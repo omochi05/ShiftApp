@@ -1,14 +1,18 @@
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { HashRouter, Routes, Route, Link } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import OwnerDashboard from "./pages/OwnerDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <nav style={{ padding: "16px", borderBottom: "1px solid #ddd" }}>
-        <Link to="/" style={{ marginRight: "16px" }}>ログイン</Link>
-        <Link to="/owner" style={{ marginRight: "16px" }}>オーナー</Link>
+        <Link to="/" style={{ marginRight: "16px" }}>
+          ログイン
+        </Link>
+        <Link to="/owner" style={{ marginRight: "16px" }}>
+          オーナー
+        </Link>
         <Link to="/employee/2">従業員</Link>
       </nav>
 
@@ -17,7 +21,7 @@ function App() {
         <Route path="/owner" element={<OwnerDashboard />} />
         <Route path="/employee/:userId" element={<EmployeeDashboard />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
