@@ -7,8 +7,12 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=[
+        "http://localhost:5173",
+        "https://shift-app-r7j1-git-main-omochi05s-projects.vercel.app",
+        "https://shift-app-r7j1-6njpnj56h-omochi05s-projects.vercel.app",
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
