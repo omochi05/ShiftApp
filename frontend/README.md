@@ -1,89 +1,463 @@
-### react実行手順
-1.npm install
-2.npm start
+# ShiftApp
 
-## 1.タスク管理 (Notion)
+シフト管理・給与計算・売上管理を行うWebアプリケーションです。
+オーナー、管理者、従業員の利用を想定し、シフト作成、勤務時間集計、給与見込み、売上管理、人件費率、黒字・赤字判定を確認できます。
 
-「ステータス更新」と **「タスクページの確認」** を忘れないこと。
+---
 
-### ステータス運用
+## 概要
 
-- 未着手: 着手前の状態
-- 進行中: 作業を開始したら更新
-- レビュー: PRを作成したタイミングで更新
-- 完了: マージされた時点更新、操作不要
+ShiftAppは、店舗運営に必要なシフト管理と人件費管理をまとめて行うためのアプリです。
+オーナーは売上や人件費を確認しながらシフトを作成でき、従業員は自分のシフトや給与見込みを確認できます。
 
-## 2.ブランチの切り方
+主な目的は以下です。
 
-ブランチは「Notionのタスク単位」で作成する。
-命名は「タスクID-種類-概要」の順で統一する。
+* オーナーがシフト作成・売上入力・人件費確認を行えるようにする
+* 従業員が自分の勤務予定と給与見込みを確認できるようにする
+* 深夜勤務を含む給与計算を自動化する
+* 週ごとの黒字・赤字判定を確認できるようにする
+* PCとスマホの両方で使いやすいUIにする
 
-### 命名規則
+---
 
-- <タスクID(数字の部分)>-<種類>-<概要>
-- 例：
-    - 49-feature-user_login_flow
-    - 120-fix-api_timeout_retry
-- 種類:
-    - feature: 機能
-    - fix: バグ修正
-    - docs: ドキュメント
-    - chore: 設定・雑務
+## 使用技術
 
-### 作成手順
+### Frontend
 
-1. Notionのタスクページを確認
-2. 開発ブランチを最新化
-    - `git checkout develop`
-    - `git pull`
-3. タスクブランチを作成
-    - `git checkout -b <タスクID>-<種類>-<概要>`
-    - 例: `git checkout -b 49-feature-user_login_flow`
+* React
+* TypeScript
+* Vite
+* React Router
+* Axios
 
-## 3.コミットの仕方
+### Backend
 
-小さく、意味のある単位で「コツコツ」コミット
-メッセージは一貫した形式で、後から履歴を追いやすく
+* Python
+* FastAPI
+* SQLAlchemy
+* Uvicorn
 
-### 命名規則
+### Database
 
-- <種別>: <概要 (日本語)>
-- 種別は英語で固定 (feat, fix, docs, refactor, test, chore)
-- 概要は簡潔な日本語で1文
-- 例：`feat: ユーザーログインフローを実装`
+* PostgreSQL
+* ClickHouse Cloud PostgreSQL互換DB
 
-### 種別ごとのコミット内容の基準
+### Deploy
 
-- feat (機能追加)
-- fix (不具合修正)
-- docs (ドキュメント)
-- refactor (リファクタ)
-- test (テスト)
-- chore (雑務・設定)
+* Frontend: Vercel
+* Backend: Render
 
-## 4.プルリクエスト (PR) の作成
+---
 
-Notionのタスクが完了 (実装と自己確認済み) したらPRを作成
+## ディレクトリ構成
 
-### 作成ルール
+```txt
+Shiftapp/
+├── backend/
+│   ├── routers/
+│   │   ├── owner.py
+│   │   ├── salary.py
+│   │   ├── sales.py
+│   │   ├── shifts.py
+│   │   └── users.py
+│   ├── database.py
+│   ├── main.py
+│   ├── models.py
+│   ├── schemas.py
+│   └── requirements.txt
+│
+├── frontend/
+│   ├── src/
+│   │   ├── api/
+│   │   │   └── client.ts
+│   │   ├── components/
+│   │   │   └── ShiftTimeline.tsx
+│   │   ├── pages/
+│   │   │   ├── EmployeeDashboard.tsx
+│   │   │   ├── LoginPage.tsx
+│   │   │   ├── OwnerDashboard.tsx
+│   │   │   └── OwnerDashboard.css
+│   │   ├── types/
+│   │   │   └── index.ts
+│   │   ├── App.tsx
+│   │   └── main.tsx
+│   ├── package.json
+│   ├── package-lock.json
+│   └── vite.config.ts
+│
+├── .gitignore
+└── README.md
+```
 
-- 対象ブランチ: `develop`へ向けて作成する
-- タイトル: 「タスクID (例:pom-49) + 概要 (日本語)」を含める
-- 説明 (PR本文) に含める項目
-    - 変更点 (なにを、どこを、どのように変更したか)
-- Reviewers: `pomeeeeeeeene`を追加する
-- Assignees: 作成者本人を選択する
+---
 
-### 作業手順 (GitHub)
+## 主な機能
 
-1. ブランチをプッシュする
-    - `git push -u origin <タスクID>-<種類>-<概要>`
-2. GitHubでPRを作成
-    - リポジトリページ -> "Compare & pull request" をクリック
-3. 上記の作成ルールに従う
+### オーナー画面
 
-### merge手順
-git checkout {マージ元}
-git pull
-git checkout {マージ先ブランチ}
-git merge {merge元}
+* 月間売上合計の表示
+* 月間人件費の表示
+* 人件費率の表示
+* 週ごとの黒字・赤字判定
+* 売上入力
+* シフト作成
+* 紙のシフト表に近いタイムライン表示
+* PC・スマホ両対応のレスポンシブUI
+
+### 従業員画面
+
+* 自分のシフト一覧表示
+* 月間勤務時間表示
+* 通常勤務時間表示
+* 深夜勤務時間表示
+* 給与対象額表示
+
+### 給与計算
+
+* 勤務時間の集計
+* 深夜時間の集計
+* 深夜割増を含む給与対象額の計算
+
+### 売上・人件費管理
+
+* 日別売上の登録
+* 月間売上合計の集計
+* 月間人件費の集計
+* 人件費率の計算
+* 週ごとの利益計算
+* 黒字・赤字判定
+
+---
+
+## API一覧
+
+| メソッド | パス                             | 内容             |
+| ---- | ------------------------------ | -------------- |
+| GET  | `/users/`                      | ユーザー一覧取得       |
+| GET  | `/shifts/`                     | シフト一覧取得        |
+| POST | `/shifts/`                     | シフト作成          |
+| GET  | `/shifts/user/{user_id}`       | 指定ユーザーのシフト取得   |
+| GET  | `/shifts/user/{user_id}/month` | 指定ユーザーの月間シフト取得 |
+| GET  | `/salary/user/{user_id}/month` | 指定ユーザーの月間給与計算  |
+| GET  | `/sales/`                      | 売上一覧取得         |
+| POST | `/sales/`                      | 売上登録           |
+| GET  | `/owner/dashboard/month`       | オーナー用月間集計      |
+| GET  | `/owner/dashboard/week`        | オーナー用週間黒字・赤字判定 |
+
+---
+
+## ローカル環境での起動方法
+
+### Backend
+
+```bash
+cd ~/OneDrive/Desktop/Shiftapp/backend
+uvicorn main:app --reload
+```
+
+起動確認：
+
+```txt
+http://127.0.0.1:8000
+```
+
+Swagger UI：
+
+```txt
+http://127.0.0.1:8000/docs
+```
+
+---
+
+### Frontend
+
+別ターミナルで実行します。
+
+```bash
+cd ~/OneDrive/Desktop/Shiftapp/frontend
+npm run dev
+```
+
+起動確認：
+
+```txt
+http://localhost:5173
+```
+
+---
+
+## Frontendのビルド確認
+
+```bash
+cd ~/OneDrive/Desktop/Shiftapp/frontend
+npm run build
+```
+
+成功すると以下のように表示されます。
+
+```txt
+✓ built in ...
+```
+
+---
+
+## 環境変数
+
+### Backend
+
+Renderまたはローカルの `.env` に以下を設定します。
+
+```env
+DB_USER=postgres
+DB_PASSWORD=自分のDBパスワード
+DB_HOST=自分のDBホスト名
+DB_PORT=5432
+DB_NAME=postgres
+```
+
+### Frontend
+
+Vercelまたはローカルの `.env` に以下を設定します。
+
+```env
+VITE_API_BASE_URL=https://shiftapp-alil.onrender.com
+```
+
+ローカル開発時は以下でも使用できます。
+
+```env
+VITE_API_BASE_URL=http://127.0.0.1:8000
+```
+
+---
+
+## Render Backend設定
+
+Renderでは `backend` フォルダをWeb Serviceとして公開します。
+
+### Root Directory
+
+```txt
+backend
+```
+
+### Build Command
+
+```bash
+pip install -r requirements.txt
+```
+
+### Start Command
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port $PORT
+```
+
+### Environment Variables
+
+```txt
+DB_USER=postgres
+DB_PASSWORD=自分のDBパスワード
+DB_HOST=自分のDBホスト名
+DB_PORT=5432
+DB_NAME=postgres
+```
+
+### Backend 本番URL
+
+```txt
+https://shiftapp-alil.onrender.com
+```
+
+---
+
+## Vercel Frontend設定
+
+Vercelでは `frontend` フォルダを公開します。
+
+### Root Directory
+
+```txt
+frontend
+```
+
+### Build Command
+
+```bash
+npm run build
+```
+
+### Output Directory
+
+```txt
+dist
+```
+
+### Environment Variables
+
+```txt
+VITE_API_BASE_URL=https://shiftapp-alil.onrender.com
+```
+
+---
+
+## 本番URL
+
+### Frontend
+
+```txt
+https://shift-app-r7j1-git-main-omochi05s-projects.vercel.app
+```
+
+HashRouterを使用している場合は、以下のURLで直接アクセスします。
+
+### オーナー画面
+
+```txt
+https://shift-app-r7j1-git-main-omochi05s-projects.vercel.app/#/owner
+```
+
+### 従業員画面
+
+```txt
+https://shift-app-r7j1-git-main-omochi05s-projects.vercel.app/#/employee/2
+```
+
+### Backend
+
+```txt
+https://shiftapp-alil.onrender.com
+```
+
+---
+
+## CORS設定
+
+VercelのfrontendからRenderのbackendへアクセスするため、FastAPI側でCORS設定を行います。
+
+開発中は以下のように全許可にしています。
+
+```python
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+本番運用では、以下のようにVercelのURLを指定する形に変更するのが望ましいです。
+
+```python
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "https://shift-app-r7j1-git-main-omochi05s-projects.vercel.app",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+---
+
+## GitHubへ反映する方法
+
+```bash
+cd ~/OneDrive/Desktop/Shiftapp
+git status
+git add .
+git commit -m "Update app"
+git push origin main
+```
+
+---
+
+## 注意事項
+
+`.env` にはDB接続情報やパスワードを含むため、GitHubにアップロードしないようにします。
+
+`.gitignore` には以下を含めます。
+
+```gitignore
+.env
+backend/.env
+frontend/.env
+node_modules/
+frontend/node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+dist/
+frontend/dist/
+```
+
+---
+
+## 今後追加したい機能
+
+* ログイン認証
+* JWTを使った認証・認可
+* オーナー、管理者、従業員ごとの権限管理
+* シフト編集・削除機能
+* 売上編集・削除機能
+* 103万円の壁の管理
+* 深夜料金・手当の詳細設定
+* 通知機能
+* 自動シフト作成
+* スマホ向けUIのさらなる改善
+* PWA対応
+* テストコード追加
+* CI/CD整備
+
+---
+
+## 開発メモ
+
+### Backend起動
+
+```bash
+cd ~/OneDrive/Desktop/Shiftapp/backend
+uvicorn main:app --reload
+```
+
+### Frontend起動
+
+```bash
+cd ~/OneDrive/Desktop/Shiftapp/frontend
+npm run dev
+```
+
+### Frontendビルド確認
+
+```bash
+cd ~/OneDrive/Desktop/Shiftapp/frontend
+npm run build
+```
+
+### Render本番起動コマンド
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port $PORT
+```
+
+### GitHub反映
+
+```bash
+cd ~/OneDrive/Desktop/Shiftapp
+git status
+git add .
+git commit -m "変更内容を書く"
+git push origin main
+```
+
+---
+
+## 補足
+
+このアプリは現在開発中です。
+今後、認証機能や権限管理、自動シフト作成機能を追加して、実運用に近い形へ改善していく予定です。
