@@ -56,8 +56,8 @@ type OwnerWeekdayDashboard = {
 
 type SaleCreate = {
   sale_date: string;
-  amount: number;
-  customer_count: number;
+  amount: string;
+  customer_count: string;
   memo: string;
 };
 
@@ -66,7 +66,7 @@ type ShiftCreate = {
   work_date: string;
   start_time: string;
   end_time: string;
-  break_minutes: number;
+  break_minutes: string;
   created_by: number;
 };
 
@@ -130,26 +130,26 @@ function OwnerDashboard() {
   const ownerId = Number(localStorage.getItem("ownerId") ?? 1);
 
   const [saleForm, setSaleForm] = useState<SaleCreate>({
-    sale_date: getTodayText(),
-    amount: 0,
-    customer_count: 0,
-    memo: "",
-  });
+  sale_date: getTodayText(),
+  amount: "",
+  customer_count: "",
+  memo: "",
+});
 
-  const [shiftForm, setShiftForm] = useState<ShiftCreate>({
-    user_id: 0,
-    work_date: getTodayText(),
-    start_time: "17:00",
-    end_time: "22:00",
-    break_minutes: 0,
-    created_by: ownerId,
-  });
+const [shiftForm, setShiftForm] = useState<ShiftCreate>({
+  user_id: 0,
+  work_date: getTodayText(),
+  start_time: "17:00",
+  end_time: "22:00",
+  break_minutes: "",
+  created_by: ownerId,
+});
 
-  const [newEmployee, setNewEmployee] = useState({
-    employee_number: "",
-    name: "",
-    hourly_wage: 1200,
-  });
+const [newEmployee, setNewEmployee] = useState({
+  employee_number: "",
+  name: "",
+  hourly_wage: "",
+});
 
   const [saleMessage, setSaleMessage] = useState("");
   const [shiftMessage, setShiftMessage] = useState("");
@@ -275,21 +275,20 @@ function OwnerDashboard() {
     try {
       setSaleMessage("");
 
-      await api.post("/sales/", {
-        sale_date: saleForm.sale_date,
-        amount: Number(saleForm.amount),
-        customer_count: Number(saleForm.customer_count),
-        memo: saleForm.memo,
-      });
-
+        await api.post("/sales/", {
+      sale_date: saleForm.sale_date,
+      amount: Number(saleForm.amount || 0),
+      customer_count: Number(saleForm.customer_count || 0),
+      memo: saleForm.memo,
+    });
       setSaleMessage("売上を登録しました");
 
-      setSaleForm((prev) => ({
-        ...prev,
-        amount: 0,
-        customer_count: 0,
-        memo: "",
-      }));
+     setSaleForm((prev) => ({
+      ...prev,
+      amount: "",
+      customer_count: "",
+      memo: "",
+    }));
 
       await fetchDashboard();
       await fetchWeeklyDashboard();
@@ -333,18 +332,18 @@ function OwnerDashboard() {
         work_date: shiftForm.work_date,
         start_time: shiftForm.start_time,
         end_time: shiftForm.end_time,
-        break_minutes: Number(shiftForm.break_minutes),
+        break_minutes: Number(shiftForm.break_minutes || 0),
         created_by: Number(ownerId),
       });
 
       setShiftMessage("シフトを作成しました");
 
       setShiftForm((prev) => ({
-        ...prev,
-        start_time: "17:00",
-        end_time: "22:00",
-        break_minutes: 0,
-      }));
+      ...prev,
+      start_time: "17:00",
+      end_time: "22:00",
+      break_minutes: "",
+    }));
 
       await fetchShifts();
       await fetchDashboard();
@@ -410,19 +409,19 @@ function OwnerDashboard() {
     setEmployeeMessage("");
 
     await api.post("/users/", {
-      name: newEmployee.name,
-      email: newEmployee.employee_number,
-      password: "unused",
-      role: "employee",
-      hourly_wage: Number(newEmployee.hourly_wage),
-    });
+  name: newEmployee.name,
+  email: newEmployee.employee_number,
+  password: "unused",
+  role: "employee",
+  hourly_wage: Number(newEmployee.hourly_wage || 0),
+});
 
     setEmployeeMessage("従業員を追加しました");
 
     setNewEmployee({
       employee_number: "",
       name: "",
-      hourly_wage: 1200,
+      hourly_wage: "",
     });
 
     await fetchUsers();
