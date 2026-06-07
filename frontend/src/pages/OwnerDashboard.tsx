@@ -294,9 +294,9 @@ export default function OwnerDashboard() {
       <section className="owner-section">
         <h2>シフト表</h2>
         <div className="timeline-wrap">
-          <ShiftTimeline shifts={shifts} users={users} />
+            <ShiftTimeline shifts={shifts} users={users} />
         </div>
-      </section>
+    </section>
     </div>
   );
 }

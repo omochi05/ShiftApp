@@ -1,13 +1,46 @@
+```html
 <!doctype html>
-<html lang="en">
+<html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- スマホ表示最適化 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+
+    <!-- アプリ情報 -->
+    <title>ShiftApp</title>
+    <meta
+      name="description"
+      content="シフト管理・給与計算・売上管理を行うWebアプリ"
+    />
+
+    <!-- アイコン -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- PWA / ホーム画面追加対応 -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#111318" />
+
+    <!-- iPhoneでホーム画面追加した時の見た目 -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="ShiftApp" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- Android / Chrome向け -->
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- SNSなどで共有された時の表示 -->
+    <meta property="og:title" content="ShiftApp" />
+    <meta
+      property="og:description"
+      content="シフト管理・給与計算・売上管理を行うWebアプリ"
+    />
+    <meta property="og:type" content="website" />
   </head>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+```
