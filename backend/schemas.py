@@ -1,5 +1,5 @@
-from pydantic import BaseModel
 from datetime import datetime, date, time
+from pydantic import BaseModel
 
 
 # =========================
@@ -8,7 +8,8 @@ from datetime import datetime, date, time
 
 class UserCreate(BaseModel):
     name: str
-    email: str
+    email: str  # DB上はemailだが、画面上では「従業員番号」として使う
+    password: str = "unused"
     role: str = "employee"
     hourly_wage: int = 0
 
@@ -16,7 +17,7 @@ class UserCreate(BaseModel):
 class UserResponse(BaseModel):
     id: int
     name: str
-    email: str
+    email: str  # DB上はemailだが、画面上では「従業員番号」として使う
     role: str
     hourly_wage: int
     created_at: datetime | None = None
@@ -115,11 +116,17 @@ class OwnerDashboardWeeklyResponse(BaseModel):
     status: str
     labor_cost_rate: float
 
+
 class OwnerDashboardWeekdayResponse(BaseModel):
     weekday: str
     total_sales: int
     total_labor_cost: int
     labor_cost_rate: float
+
+
+# =========================
+# Auth
+# =========================
 
 class OwnerLoginRequest(BaseModel):
     employee_number: str
@@ -131,3 +138,4 @@ class OwnerLoginResponse(BaseModel):
     name: str
     employee_number: str
     role: str
+

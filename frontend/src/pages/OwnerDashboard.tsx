@@ -404,12 +404,12 @@ function OwnerDashboard() {
   };
 
   const handleCreateEmployee = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      setEmployeeMessage("");
+  try {
+    setEmployeeMessage("");
 
-     await api.post("/users/", {
+    await api.post("/users/", {
       name: newEmployee.name,
       email: newEmployee.employee_number,
       password: "unused",
@@ -417,27 +417,40 @@ function OwnerDashboard() {
       hourly_wage: Number(newEmployee.hourly_wage),
     });
 
-      setEmployeeMessage("従業員を追加しました");
+    setEmployeeMessage("従業員を追加しました");
 
-      setNewEmployee({
-        employee_number: "",
-        name: "",
-        hourly_wage: 1200,
-      });
+    setNewEmployee({
+      employee_number: "",
+      name: "",
+      hourly_wage: 1200,
+    });
 
-      await fetchUsers();
-    } catch (error: any) {
-      console.error("従業員追加失敗:", error);
+    await fetchUsers();
+  } catch (error: any) {
+    console.error("従業員追加失敗:", error);
+    console.error("レスポンス:", error.response?.data);
 
-      const detail = error.response?.data?.detail;
+    const detail = error.response?.data?.detail;
 
-      if (detail) {
-        setEmployeeMessage(`従業員の追加に失敗しました：${detail}`);
-      } else {
-        setEmployeeMessage("従業員の追加に失敗しました");
-      }
+    if (Array.isArray(detail)) {
+      setEmployeeMessage(
+        `従業員の追加に失敗しました：${detail
+          .map((d) => d.msg)
+          .join(" / ")}`
+      );
+    } else if (detail) {
+      setEmployeeMessage(`従業員の追加に失敗しました：${detail}`);
+    } else if (error.response?.status) {
+      setEmployeeMessage(
+        `従業員の追加に失敗しました：HTTP ${error.response.status}`
+      );
+    } else {
+      setEmployeeMessage(
+        "従業員の追加に失敗しました：APIに接続できませんでした"
+      );
     }
-  };
+  }
+};
 const handleDeleteUser = async (userId: number) => {
   const targetUser = users.find((user) => user.id === userId);
 
@@ -469,12 +482,18 @@ const handleDeleteUser = async (userId: number) => {
   } catch (error: any) {
     console.error("従業員削除失敗:", error);
 
-    const detail = error.response?.data?.detail;
+   const detail = error.response?.data?.detail;
 
-    if (detail) {
-      setEmployeeMessage(`従業員の削除に失敗しました：${detail}`);
+if (Array.isArray(detail)) {
+  setEmployeeMessage(
+    `従業員の追加に失敗しました：${detail
+      .map((d) => d.msg)
+      .join(" / ")}`
+  );
+    } else if (detail) {
+      setEmployeeMessage(`従業員の追加に失敗しました：${detail}`);
     } else {
-      setEmployeeMessage("従業員の削除に失敗しました");
+      setEmployeeMessage("従業員の追加に失敗しました");
     }
   }
 };
