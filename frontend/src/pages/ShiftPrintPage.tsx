@@ -1,28 +1,154 @@
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { api } from "../api/client";
+import ShiftTimeline from "../components/ShiftTimeline";
 import "./ShiftPrintPage.css";
 
-function ShiftPrintPage() {
+type User = {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  hourly_wage: number;
+};
+
+type Shift = {
+  id: number;
+  user_id: number;
+  work_date: string;
+  start_time: string;
+  end_time: string;
+  break_minutes: number;
+  created_by?: number | null;
+};
+
+type ShiftForTimeline = Shift & {
+  user_name: string;
+};
+
+function addDays(dateText: string, days: number) {
+  const date = new Date(`${dateText}T00:00:00`);
+  date.setDate(date.getDate() + days);
+
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+export default function ShiftPrintPage() {
+  const [searchParams] = useSearchParams();
+
+  const weekStartDate = searchParams.get("weekStartDate") ?? "";
+  const weekEndDate = weekStartDate ? addDays(weekStartDate, 6) : "";
+
+  const [users, setUsers] = useState<User[]>([]);
+  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const weekDates = weekStartDate
+    ? Array.from({ length: 7 }, (_, index) => addDays(weekStartDate, index))
+    : [];
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (!weekStartDate) {
+        setErrorMessage("印刷する週が指定されていません");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+
+        const [usersRes, shiftsRes] = await Promise.all([
+          api.get<User[]>("/users/"),
+          api.get<Shift[]>("/shifts/"),
+        ]);
+
+        setUsers(usersRes.data);
+        setShifts(shiftsRes.data);
+      } catch (error) {
+        console.error("印刷用データ取得失敗:", error);
+        setErrorMessage("印刷用データの取得に失敗しました");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [weekStartDate]);
+
+  const weeklyShifts = shifts.filter(
+    (shift) =>
+      shift.work_date >= weekStartDate && shift.work_date <= weekEndDate
+  );
+
+  const timelineShifts: ShiftForTimeline[] = weeklyShifts.map((shift) => {
+    const user = users.find((u) => u.id === shift.user_id);
+
+    return {
+      ...shift,
+      user_name: user?.name ?? `従業員${shift.user_id}`,
+    };
+  });
+
+  const emptyWeekRows: ShiftForTimeline[] = weekDates.map((date, index) => ({
+    id: -1000 - index,
+    user_id: 0,
+    user_name: "",
+    work_date: date,
+    start_time: "00:00",
+    end_time: "00:00",
+    break_minutes: 0,
+  }));
+
+  const printShifts = [...emptyWeekRows, ...timelineShifts];
+
+  if (loading) {
+    return (
+      <div className="shift-print-page">
+        <p>印刷用シフト表を読み込み中...</p>
+      </div>
+    );
+  }
+
+  if (errorMessage) {
+    return (
+      <div className="shift-print-page">
+        <h1>エラー</h1>
+        <p>{errorMessage}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="shift-print-page">
-      <header className="print-toolbar">
-        <div>
-          <h1>シフト表印刷</h1>
-          <p>週ごとのシフト表をPDF保存・印刷できます。</p>
-        </div>
-
-        <button type="button" onClick={() => window.print()}>
-          PDF・印刷
+      <div className="shift-print-actions">
+        <button type="button" onClick={handlePrint}>
+          このシフト表を印刷
         </button>
-      </header>
 
-      <section className="print-sheet">
-        <h2>週ごとのシフト表</h2>
+        <button type="button" onClick={() => window.close()}>
+          閉じる
+        </button>
+      </div>
+
+      <section className="shift-print-sheet">
+        <h1>シフト表</h1>
+
         <p>
-          ここに週ごとのシフト表を表示します。
-          次のステップでシフトデータを取得して印刷用レイアウトにします。
+          表示期間：{weekStartDate} 〜 {weekEndDate}
         </p>
+
+        <ShiftTimeline shifts={printShifts} />
       </section>
     </div>
   );
 }
-
-export default ShiftPrintPage;

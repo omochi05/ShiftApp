@@ -6,7 +6,7 @@ import "./OwnerDashboard.css";
 type User = {
   id: number;
   name: string;
-  email: string; // DB上はemailだが、画面上では「従業員番号」として扱う
+  email: string;
   role: string;
   hourly_wage: number;
 };
@@ -97,10 +97,9 @@ function getTodayText() {
 
 function getMondayOfCurrentWeek() {
   const now = new Date();
-  const day = now.getDay(); // 日=0, 月=1, 火=2...
+  const day = now.getDay();
   const monday = new Date(now);
 
-  // 月曜始まり。日曜の場合は前の月曜へ戻す
   const diff = day === 0 ? -6 : 1 - day;
   monday.setDate(now.getDate() + diff);
 
@@ -138,7 +137,6 @@ function getShiftDurationMinutes(shift: Shift) {
   let start = timeToMinutes(shift.start_time);
   let end = timeToMinutes(shift.end_time);
 
-  // 日跨ぎ対応
   if (end <= start) {
     end += 24 * 60;
   }
@@ -171,12 +169,6 @@ function OwnerDashboard() {
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [week, setWeek] = useState(23);
 
-  // PDF / 印刷設定
-  const [printPaperSize, setPrintPaperSize] = useState("A4");
-  const [printOrientation, setPrintOrientation] = useState("landscape");
-  const [printScale, setPrintScale] = useState("fit");
-
-  // 月曜始まり。表示順は 月 → 火 → 水 → 木 → 金 → 土 → 日
   const [weekStartDate, setWeekStartDate] = useState(getMondayOfCurrentWeek());
   const weekEndDate = addDays(weekStartDate, 6);
 
@@ -269,7 +261,6 @@ function OwnerDashboard() {
       shift.work_date >= weekStartDate && shift.work_date <= weekEndDate
   );
 
-  // シフトがない日も日付行だけ表示するための空データ
   const emptyWeekRows: ShiftForTimeline[] = weekDates.map((date, index) => ({
     id: -1000 - index,
     user_id: 0,
@@ -370,34 +361,8 @@ function OwnerDashboard() {
     setWeekStartDate((prev) => addDays(prev, 7));
   };
 
-  const handlePrintShiftTable = () => {
-    const oldStyle = document.getElementById("dynamic-print-style");
-
-    if (oldStyle) {
-      oldStyle.remove();
-    }
-
-    const scaleValue = printScale === "fit" ? "1" : printScale;
-
-    const style = document.createElement("style");
-    style.id = "dynamic-print-style";
-    style.innerHTML = `
-      @page {
-        size: ${printPaperSize} ${printOrientation};
-        margin: 4mm;
-      }
-
-      @media print {
-        :root {
-          --shift-print-scale: ${scaleValue};
-        }
-      }
-    `;
-
-    document.head.appendChild(style);
-
-    // スマホ対応：setTimeoutを使わず、クリック処理内で直接呼ぶ
-    window.print();
+  const handleOpenPrintPage = () => {
+    window.open(`/print/shifts?weekStartDate=${weekStartDate}`, "_blank");
   };
 
   const handleCreateSale = async (e: React.FormEvent) => {
@@ -1116,9 +1081,7 @@ function OwnerDashboard() {
         </p>
 
         <p className="form-message print-hide">
-          PCは「PDF出力」ボタンからPDF保存できます。
-          スマホの場合は、iPhone Safariなら共有ボタン → プリント、
-          Android Chromeなら︙ → 共有 / 印刷を使ってください。
+          PC・スマホどちらも「印刷画面を開く」から、サイト内の印刷専用ページで印刷できます。
         </p>
 
         <div className="timeline-wrap">
@@ -1147,47 +1110,23 @@ function OwnerDashboard() {
         </div>
 
         <div className="pdf-setting-panel print-hide">
-          <label>
-            用紙サイズ
-            <select
-              value={printPaperSize}
-              onChange={(e) => setPrintPaperSize(e.target.value)}
-            >
-              <option value="A4">A4</option>
-              <option value="A3">A3</option>
-              <option value="B5">B5</option>
-            </select>
-          </label>
-
-          <label>
-            向き
-            <select
-              value={printOrientation}
-              onChange={(e) => setPrintOrientation(e.target.value)}
-            >
-              <option value="landscape">横向き</option>
-              <option value="portrait">縦向き</option>
-            </select>
-          </label>
-
-          <label>
-            倍率
-            <select
-              value={printScale}
-              onChange={(e) => setPrintScale(e.target.value)}
-            >
-              <option value="fit">用紙に合わせる</option>
-              <option value="1">100%</option>
-              <option value="0.95">95%</option>
-              <option value="0.9">90%</option>
-              <option value="0.85">85%</option>
-              <option value="0.8">80%</option>
-            </select>
-          </label>
-
-          <button type="button" onClick={handlePrintShiftTable}>
-            PDF出力
+          <button type="button" onClick={handleOpenPrintPage}>
+            印刷画面を開く
           </button>
+        </div>
+
+        <div className="mobile-print-panel print-hide">
+          <p>
+            スマホで印刷する場合は、下のボタンから印刷専用ページを開いてください。
+          </p>
+
+          <button type="button" onClick={handleOpenPrintPage}>
+            スマホ用印刷画面を開く
+          </button>
+
+          <p className="mobile-print-help">
+            印刷画面が開いたら「このシフト表を印刷」を押してください。
+          </p>
         </div>
 
         {templateMessage && (
@@ -1199,4 +1138,3 @@ function OwnerDashboard() {
 }
 
 export default OwnerDashboard;
-

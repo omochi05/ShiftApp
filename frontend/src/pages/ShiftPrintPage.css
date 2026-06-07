@@ -1,62 +1,159 @@
 .shift-print-page {
   min-height: 100vh;
   padding: 24px;
-  background: #0b1120;
-  color: #ffffff;
+  background: #ffffff;
+  color: #000000;
 }
 
-.print-toolbar {
+.shift-print-actions {
   display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: center;
-  margin-bottom: 24px;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
-.print-toolbar h1 {
-  margin: 0;
-}
-
-.print-toolbar p {
-  margin: 8px 0 0;
-  color: #cbd5e1;
-}
-
-.print-toolbar button {
+.shift-print-actions button {
   padding: 12px 18px;
-  border: none;
+  border: 1px solid #2563eb;
   border-radius: 10px;
   background: #2563eb;
-  color: white;
+  color: #ffffff;
   font-weight: bold;
   cursor: pointer;
 }
 
-.print-sheet {
+.shift-print-sheet {
   background: #ffffff;
-  color: #111827;
-  padding: 24px;
-  border-radius: 12px;
-  min-height: 500px;
+  color: #000000;
+}
+
+.shift-print-sheet h1 {
+  margin: 0 0 8px;
+  text-align: center;
+  font-size: 24px;
+}
+
+.shift-print-sheet p {
+  margin: 0 0 16px;
+  text-align: center;
+  font-weight: bold;
 }
 
 @media print {
-  body {
-    background: #ffffff;
+  @page {
+    size: A4 landscape;
+    margin: 4mm;
   }
 
-  .print-toolbar {
-    display: none;
+  html,
+  body,
+  #root {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
   }
 
   .shift-print-page {
-    padding: 0;
-    background: #ffffff;
-    color: #000000;
+    padding: 0 !important;
+    background: #ffffff !important;
   }
 
-  .print-sheet {
-    border-radius: 0;
-    padding: 0;
+  .shift-print-actions {
+    display: none !important;
+  }
+
+  .shift-print-sheet {
+    width: 100% !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .shift-print-sheet h1 {
+    font-size: 16px !important;
+    margin-bottom: 2mm !important;
+  }
+
+  .shift-print-sheet p {
+    font-size: 10px !important;
+    margin-bottom: 2mm !important;
+  }
+
+  .timeline-sheet {
+    width: 100% !important;
+    overflow: visible !important;
+    border: 1.5px solid #000000 !important;
+  }
+
+  .timeline-header,
+  .timeline-row {
+    grid-template-columns: 18mm 1fr !important;
+  }
+
+  .timeline-hours,
+  .timeline-grid {
+    grid-template-columns: repeat(24, 1fr) !important;
+  }
+
+  .timeline-date-cell {
+    width: 18mm !important;
+    min-width: 18mm !important;
+    max-width: 18mm !important;
+    border-right: 1px solid #000000 !important;
+    border-bottom: 1px solid #000000 !important;
+    font-size: 8px !important;
+  }
+
+  .timeline-hour-cell {
+    min-width: 0 !important;
+    height: 8mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-right: 1px solid #000000 !important;
+    border-bottom: 1px solid #000000 !important;
+    font-size: 6px !important;
+  }
+
+  .timeline-row {
+    height: 18mm !important;
+    min-height: 18mm !important;
+    max-height: 18mm !important;
+    border-bottom: 1px solid #000000 !important;
+  }
+
+  .timeline-grid-area {
+    height: 18mm !important;
+    min-height: 18mm !important;
+    max-height: 18mm !important;
+    border-left: 1px solid #000000 !important;
+  }
+
+  .timeline-row-spacer {
+    height: 18mm !important;
+    min-height: 18mm !important;
+    max-height: 18mm !important;
+  }
+
+  .timeline-grid-cell {
+    min-width: 0 !important;
+    border-right: 1px solid #999999 !important;
+    border-bottom: 1px solid #999999 !important;
+  }
+
+  .timeline-shift-bar {
+    top: calc(var(--lane, 0) * 5.6mm + 1.2mm) !important;
+    height: 5mm !important;
+    min-height: 5mm !important;
+    border: 1.2px solid #000000 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-radius: 2px !important;
+    padding: 0 1mm !important;
+  }
+
+  .timeline-shift-text {
+    font-size: 6.5px !important;
+    line-height: 5mm !important;
+    color: #000000 !important;
+    font-weight: bold !important;
   }
 }
