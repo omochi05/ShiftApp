@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Date, Time, TIMESTAMP, ForeignKey, Numeric
 from sqlalchemy.sql import func
+from sqlalchemy import Column, Integer, String, Date, Time, DateTime, ForeignKey, func
 
 from database import Base
 
@@ -58,3 +59,16 @@ class Sale(Base):
     memo = Column(String)
     created_at = Column(TIMESTAMP, server_default=func.now())
     updated_at = Column(TIMESTAMP, server_default=func.now())
+
+class ShiftTemplate(Base):
+    __tablename__ = "shift_templates"
+
+    id = Column(Integer, primary_key=True, index=True)
+    weekday = Column(Integer, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    start_time = Column(Time, nullable=False)
+    end_time = Column(Time, nullable=False)
+    break_minutes = Column(Integer, nullable=False, default=0)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())

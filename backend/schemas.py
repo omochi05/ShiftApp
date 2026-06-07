@@ -139,3 +139,72 @@ class OwnerLoginResponse(BaseModel):
     employee_number: str
     role: str
 
+class ShiftTemplateCreate(BaseModel):
+    weekday: int
+    user_id: int
+    start_time: time
+    end_time: time
+    break_minutes: int = 0
+    created_by: int | None = None
+
+
+class ShiftTemplateResponse(BaseModel):
+    id: int
+    weekday: int
+    user_id: int
+    start_time: time
+    end_time: time
+    break_minutes: int
+    created_by: int | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class ApplyShiftTemplateRequest(BaseModel):
+    week_start_date: date
+    created_by: int | None = None
+
+# =========================
+# Shift Templates
+# =========================
+
+class ShiftTemplateCreate(BaseModel):
+    weekday: int
+    user_id: int
+    start_time: time
+    end_time: time
+    break_minutes: int = 0
+    created_by: int | None = None
+
+
+class ShiftTemplateUpdate(BaseModel):
+    weekday: int
+    user_id: int
+    start_time: time
+    end_time: time
+    break_minutes: int = 0
+    created_by: int | None = None
+
+
+class ShiftTemplateResponse(BaseModel):
+    id: int
+    weekday: int
+    user_id: int
+    start_time: time
+    end_time: time
+    break_minutes: int
+    created_by: int | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class ApplyShiftTemplateRequest(BaseModel):
+    week_start_date: date
+    created_by: int | None = None
+
