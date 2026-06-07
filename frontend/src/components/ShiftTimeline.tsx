@@ -1,4 +1,5 @@
 import type { Shift, User } from "../types";
+import "./ShiftTimeline.css";
 
 type Props = {
   shifts: Shift[];
@@ -29,20 +30,19 @@ function timeToPosition(time: string) {
   const hour = Number(hourText);
   const minute = Number(minuteText);
 
-  // 表の開始を6:00にする
   let adjustedHour = hour;
+
   if (hour < 6) {
     adjustedHour = hour + 24;
   }
 
-  return (adjustedHour - 6) + minute / 60;
+  return adjustedHour - 6 + minute / 60;
 }
 
 function getShiftStyle(shift: Shift) {
   const start = timeToPosition(shift.start_time);
   let end = timeToPosition(shift.end_time);
 
-  // 22:00〜06:00 みたいに日付をまたぐ場合
   if (end <= start) {
     end += 24;
   }
@@ -60,111 +60,83 @@ export default function ShiftTimeline({ shifts, users }: Props) {
     if (!acc[shift.work_date]) {
       acc[shift.work_date] = [];
     }
+
     acc[shift.work_date].push(shift);
     return acc;
   }, {});
 
   const dates = Object.keys(grouped).sort();
 
+  if (shifts.length === 0) {
+    return <p className="shift-empty">シフトはありません</p>;
+  }
+
   return (
-    <div style={{ overflowX: "auto", border: "1px solid #333" }}>
-      <div style={{ minWidth: `${140 + hours.length * 64}px` }}>
-        {/* 時間ヘッダー */}
-        <div style={{ display: "flex", position: "sticky", top: 0, zIndex: 2 }}>
-          <div
-            style={{
-              width: "140px",
-              background: "#222",
-              color: "white",
-              padding: "8px",
-              borderRight: "1px solid #555",
-              boxSizing: "border-box",
-              fontWeight: "bold",
-            }}
-          >
-            日付
-          </div>
-
-          {hours.map((hour) => (
-            <div
-              key={hour}
-              style={{
-                width: "64px",
-                background: "#111",
-                color: "white",
-                textAlign: "center",
-                padding: "8px 0",
-                borderRight: "1px solid #555",
-                boxSizing: "border-box",
-                fontWeight: "bold",
-              }}
-            >
-              {hour}
-            </div>
-          ))}
-        </div>
-
-        {/* 日ごとの行 */}
+    <>
+      {/* スマホ用カード表示 */}
+      <div className="shift-mobile-list">
         {dates.map((date) => (
-          <div
-            key={date}
-            style={{
-              display: "flex",
-              minHeight: "72px",
-              borderTop: "1px solid #aaa",
-            }}
-          >
-            <div
-              style={{
-                width: "140px",
-                padding: "8px",
-                borderRight: "1px solid #aaa",
-                boxSizing: "border-box",
-                background: "#f5f5f5",
-                fontWeight: "bold",
-              }}
-            >
-              {getDateLabel(date)}
-            </div>
+          <div key={date} className="shift-date-card">
+            <h3>{getDateLabel(date)}</h3>
 
-            <div
-              style={{
-                position: "relative",
-                width: `${hours.length * 64}px`,
-                minHeight: "72px",
-                backgroundImage:
-                  "linear-gradient(to right, #ddd 1px, transparent 1px)",
-                backgroundSize: "64px 100%",
-              }}
-            >
-              {grouped[date].map((shift, index) => (
-                <div
-                  key={shift.id}
-                  style={{
-                    position: "absolute",
-                    top: `${8 + index * 28}px`,
-                    height: "22px",
-                    lineHeight: "22px",
-                    background: "#cfe8ff",
-                    border: "1px solid #2563eb",
-                    borderRadius: "4px",
-                    padding: "0 6px",
-                    boxSizing: "border-box",
-                    fontSize: "12px",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    ...getShiftStyle(shift),
-                  }}
-                  title={`${getUserName(users, shift.user_id)} ${shift.start_time}〜${shift.end_time}`}
-                >
-                  {getUserName(users, shift.user_id)}　
-                  {shift.start_time.slice(0, 5)}〜{shift.end_time.slice(0, 5)}
+            <div className="shift-card-list">
+              {grouped[date].map((shift) => (
+                <div key={shift.id} className="shift-card">
+                  <div className="shift-card-name">
+                    {getUserName(users, shift.user_id)}
+                  </div>
+
+                  <div className="shift-card-time">
+                    {shift.start_time.slice(0, 5)} 〜 {shift.end_time.slice(0, 5)}
+                  </div>
+
+                  <div className="shift-card-break">
+                    休憩：{shift.break_minutes}分
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         ))}
       </div>
-    </div>
+
+      {/* PC用タイムライン表示 */}
+      <div className="shift-timeline">
+        <div className="shift-timeline-inner">
+          <div className="shift-header-row">
+            <div className="shift-date-header">日付</div>
+
+            {hours.map((hour) => (
+              <div key={hour} className="shift-hour-cell">
+                {hour}
+              </div>
+            ))}
+          </div>
+
+          {dates.map((date) => (
+            <div key={date} className="shift-row">
+              <div className="shift-date-cell">{getDateLabel(date)}</div>
+
+              <div className="shift-time-area">
+                {grouped[date].map((shift, index) => (
+                  <div
+                    key={shift.id}
+                    className="shift-bar"
+                    style={{
+                      top: `${8 + index * 30}px`,
+                      ...getShiftStyle(shift),
+                    }}
+                    title={`${getUserName(users, shift.user_id)} ${shift.start_time}〜${shift.end_time}`}
+                  >
+                    {getUserName(users, shift.user_id)}　
+                    {shift.start_time.slice(0, 5)}〜{shift.end_time.slice(0, 5)}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
   );
 }
