@@ -86,7 +86,6 @@ type ShiftTemplate = {
   created_by?: number | null;
 };
 
-
 function getTodayText() {
   const now = new Date();
   const yyyy = now.getFullYear();
@@ -185,7 +184,6 @@ function OwnerDashboard() {
 
   const [users, setUsers] = useState<User[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
-  const [shiftTemplates, setShiftTemplates] = useState<ShiftTemplate[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -253,10 +251,29 @@ function OwnerDashboard() {
     };
   });
 
-  const weeklyTimelineShifts = timelineShifts.filter(
+  const weekDates = Array.from({ length: 7 }, (_, index) =>
+    addDays(weekStartDate, index)
+  );
+
+  const realWeeklyTimelineShifts = timelineShifts.filter(
     (shift) =>
       shift.work_date >= weekStartDate && shift.work_date <= weekEndDate
   );
+
+  const emptyWeekRows: ShiftForTimeline[] = weekDates.map((date, index) => ({
+    id: -1000 - index,
+    user_id: 0,
+    user_name: "",
+    work_date: date,
+    start_time: "00:00",
+    end_time: "00:00",
+    break_minutes: 0,
+  }));
+
+  const weeklyTimelineShifts = [
+    ...emptyWeekRows,
+    ...realWeeklyTimelineShifts,
+  ];
 
   const fetchUsers = async () => {
     const res = await api.get<User[]>("/users/");
@@ -269,22 +286,12 @@ function OwnerDashboard() {
         ...prev,
         user_id: prev.user_id === 0 ? employees[0].id : prev.user_id,
       }));
-
-      setTemplateForm((prev) => ({
-        ...prev,
-        user_id: prev.user_id === 0 ? employees[0].id : prev.user_id,
-      }));
     }
   };
 
   const fetchShifts = async () => {
     const res = await api.get<Shift[]>("/shifts/");
     setShifts(res.data);
-  };
-
-  const fetchShiftTemplates = async () => {
-    const res = await api.get<ShiftTemplate[]>("/shift-templates/");
-    setShiftTemplates(res.data);
   };
 
   const fetchDashboard = async () => {
@@ -326,7 +333,6 @@ function OwnerDashboard() {
       await Promise.all([
         fetchUsers(),
         fetchShifts(),
-        fetchShiftTemplates(),
         fetchDashboard(),
         fetchWeeklyDashboard(),
         fetchWeekdayDashboard(),
@@ -440,7 +446,6 @@ function OwnerDashboard() {
     }
   };
 
-
   const handleCreateTemplateFromWeek = async () => {
     const ok = window.confirm(
       `${weekStartDate}〜${weekEndDate} のシフトを固定テンプレート化しますか？\n既存テンプレートは上書きされます。`
@@ -461,8 +466,6 @@ function OwnerDashboard() {
       setTemplateMessage(
         `この週をテンプレート化しました。作成件数：${res.data.length}件`
       );
-
-      await fetchShiftTemplates();
     } catch (error: any) {
       console.error("週テンプレート化失敗:", error);
       console.error("レスポンス:", error.response?.data);
@@ -607,7 +610,6 @@ function OwnerDashboard() {
 
       await fetchUsers();
       await fetchShifts();
-      await fetchShiftTemplates();
       await fetchDashboard();
       await fetchWeeklyDashboard();
       await fetchWeekdayDashboard();
@@ -1101,10 +1103,11 @@ function OwnerDashboard() {
             この週にテンプレートを反映
           </button>
         </div>
+
+        {templateMessage && <p className="form-message">{templateMessage}</p>}
       </section>
     </div>
   );
 }
 
 export default OwnerDashboard;
-
