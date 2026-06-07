@@ -246,10 +246,12 @@ export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
                     <div
                       key={shift.id}
                       className="timeline-shift-bar"
-                      style={{
-                        ...style,
-                        top: `${shift.lane * LANE_HEIGHT + 6}px`,
-                      }}
+                      style={
+                          {
+                            ...style,
+                            "--lane": shift.lane,
+                          } as React.CSSProperties
+                        }
                       title="PC: 右クリックで削除 / スマホ: 長押しで削除"
                       onContextMenu={(e) => handleRightClickDelete(e, shift.id)}
                       onTouchStart={() => startLongPress(shift.id)}

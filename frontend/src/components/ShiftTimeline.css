@@ -1,5 +1,6 @@
 .timeline-sheet {
   width: 100%;
+  min-width: 0;
   overflow-x: auto;
   border: 1px solid #cfcfcf;
   background: #ffffff;
@@ -11,6 +12,16 @@
   display: grid;
   grid-template-columns: 140px minmax(1200px, 1fr);
   border-bottom: 1px solid #d9d9d9;
+}
+
+.timeline-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.timeline-row:last-child {
+  border-bottom: none;
 }
 
 .timeline-date-cell {
@@ -31,8 +42,9 @@
 
 .timeline-hours {
   display: grid;
-  grid-template-columns: repeat(24, 1fr);
+  grid-template-columns: repeat(24, minmax(50px, 1fr));
   min-height: 48px;
+  background: #111111;
 }
 
 .timeline-hour-cell {
@@ -47,22 +59,33 @@
   min-width: 50px;
 }
 
+.timeline-hour-cell:last-child {
+  border-right: none;
+}
+
 .timeline-grid-area {
   position: relative;
   background: #ffffff;
+  overflow: hidden;
 }
 
 .timeline-grid {
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-columns: repeat(24, 1fr);
+  grid-template-columns: repeat(24, minmax(50px, 1fr));
   z-index: 1;
+  pointer-events: none;
 }
 
 .timeline-grid-cell {
   border-right: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
   min-width: 50px;
+}
+
+.timeline-grid-cell:last-child {
+  border-right: none;
 }
 
 .timeline-shifts {
@@ -73,6 +96,7 @@
 
 .timeline-shift-bar {
   position: absolute;
+  top: calc(var(--lane, 0) * 38px + 6px);
   height: 30px;
   background: #ffffff;
   border: 1px solid #111111;
@@ -82,6 +106,15 @@
   box-sizing: border-box;
   display: flex;
   align-items: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.timeline-shift-bar:hover {
+  background: #fef2f2;
+  border-color: #ef4444;
 }
 
 .timeline-shift-text {
@@ -104,7 +137,24 @@
   border: 1px solid #d9d9d9;
 }
 
-/* スマホ */
+.timeline-overflow-badge {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 3;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #1e293b;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: bold;
+  border: 1px solid #475569;
+}
+
+/* =========================
+   Smartphone
+========================= */
+
 @media (max-width: 768px) {
   .timeline-header,
   .timeline-row {
@@ -114,6 +164,10 @@
   .timeline-date-cell {
     font-size: 12px;
     padding: 8px 4px;
+  }
+
+  .timeline-date-label {
+    font-size: 12px;
   }
 
   .timeline-hour-cell {
@@ -129,16 +183,33 @@
     font-size: 11px;
   }
 }
-.timeline-overflow-badge {
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
-  z-index: 3;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #1e293b;
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: bold;
-  border: 1px solid #475569;
+
+/* =========================
+   Print / PDF support
+   OwnerDashboard.css の @media print から上書きされる前提
+========================= */
+
+@media print {
+  .timeline-sheet {
+    overflow: visible !important;
+  }
+
+  .timeline-header,
+  .timeline-row {
+    grid-template-columns: 18mm 1fr !important;
+  }
+
+  .timeline-hours,
+  .timeline-grid {
+    grid-template-columns: repeat(24, 1fr) !important;
+  }
+
+  .timeline-hour-cell,
+  .timeline-grid-cell {
+    min-width: 0 !important;
+  }
+
+  .timeline-shift-bar {
+    top: calc(var(--lane, 0) * 6.1mm + 1.4mm) !important;
+  }
 }
