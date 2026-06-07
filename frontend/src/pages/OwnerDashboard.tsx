@@ -169,7 +169,7 @@ function OwnerDashboard() {
   const [week, setWeek] = useState(23);
 
   const [printPaperSize, setPrintPaperSize] = useState("A4");
-  const [printOrientation, setPrintOrientation] = useState("landscape");
+const [printOrientation, setPrintOrientation] = useState("landscape");
 
   const [weekStartDate, setWeekStartDate] = useState(getSundayOfCurrentWeek());
   const weekEndDate = addDays(weekStartDate, 6);

@@ -613,6 +613,11 @@ body {
 ========================= */
 
 @media print {
+  @page {
+    size: A4 landscape;
+    margin: 6mm;
+  }
+
   html,
   body,
   #root {
@@ -649,15 +654,19 @@ body {
   }
 
   .shift-print-area h2 {
-    margin: 0 0 4mm !important;
+    margin: 0 0 3mm !important;
+    text-align: center !important;
     color: #000000 !important;
-    font-size: 18px !important;
+    font-size: 14px !important;
+    line-height: 1.2 !important;
   }
 
   .shift-print-area .form-message {
+    margin: 0 0 3mm !important;
+    text-align: center !important;
     color: #000000 !important;
-    margin: 0 0 4mm !important;
-    font-size: 12px !important;
+    font-size: 10px !important;
+    line-height: 1.2 !important;
   }
 
   .print-hide {
@@ -674,15 +683,64 @@ body {
 
   .timeline-sheet {
     width: 100% !important;
+    min-width: 0 !important;
     max-width: none !important;
     background: #ffffff !important;
     color: #000000 !important;
     box-shadow: none !important;
+    border: 1px solid #999999 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
-  .timeline-header,
-  .timeline-row,
-  .timeline-grid-area,
+  .timeline-header {
+    height: 12mm !important;
+    min-height: 12mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .timeline-row {
+    min-height: 22mm !important;
+    height: 22mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .timeline-grid-area {
+    height: 22mm !important;
+    min-height: 22mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .timeline-row-spacer {
+    height: 22mm !important;
+    min-height: 22mm !important;
+  }
+
+  .timeline-date-cell {
+    width: 22mm !important;
+    min-width: 22mm !important;
+    max-width: 22mm !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+    border-color: #999999 !important;
+    font-size: 10px !important;
+    font-weight: bold !important;
+  }
+
+  .timeline-date-label {
+    color: #000000 !important;
+    font-size: 10px !important;
+  }
+
   .timeline-hours,
   .timeline-grid,
   .timeline-shifts {
@@ -690,37 +748,48 @@ body {
     color: #000000 !important;
   }
 
-  .timeline-date-cell,
-  .timeline-hour-cell,
-  .timeline-grid-cell {
-    color: #000000 !important;
-    border-color: #999999 !important;
-  }
-
   .timeline-hour-cell {
-    background: #111111 !important;
-    color: #ffffff !important;
+    height: 12mm !important;
+    min-height: 12mm !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+    border-color: #999999 !important;
+    font-size: 8px !important;
   }
 
-  .timeline-date-label {
+  .timeline-grid-cell {
+    height: 22mm !important;
+    min-height: 22mm !important;
     color: #000000 !important;
+    background: #ffffff !important;
+    border-color: #dddddd !important;
   }
 
   .timeline-shift-bar {
+    height: 5mm !important;
+    min-height: 5mm !important;
+    padding: 0 2mm !important;
     background: #ffffff !important;
     color: #000000 !important;
     border: 1px solid #000000 !important;
+    border-radius: 2px !important;
     box-shadow: none !important;
+    overflow: hidden !important;
   }
 
   .timeline-shift-text {
     color: #000000 !important;
+    font-size: 7px !important;
+    line-height: 5mm !important;
+    white-space: nowrap !important;
   }
 
   .timeline-overflow-badge {
+    right: 2mm !important;
+    bottom: 2mm !important;
     background: #ffffff !important;
     color: #000000 !important;
     border: 1px solid #000000 !important;
+    font-size: 7px !important;
   }
 }
-
