@@ -414,3 +414,58 @@ body {
     padding: 12px;
   }
 }
+
+.weekday-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid #334155;
+  background: #0f172a;
+}
+
+.weekday-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 560px;
+  color: #ffffff;
+}
+
+.weekday-table th,
+.weekday-table td {
+  padding: 12px;
+  border-bottom: 1px solid #334155;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.weekday-table th:first-child,
+.weekday-table td:first-child {
+  text-align: center;
+}
+
+.weekday-table th {
+  background: #1e293b;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.weekday-table td {
+  background: #0f172a;
+  color: #e5e7eb;
+}
+
+.weekday-table tr:last-child td {
+  border-bottom: none;
+}
+
+@media (max-width: 768px) {
+  .weekday-table {
+    min-width: 0;
+    font-size: 13px;
+  }
+
+  .weekday-table th,
+  .weekday-table td {
+    padding: 10px 8px;
+  }
+}
