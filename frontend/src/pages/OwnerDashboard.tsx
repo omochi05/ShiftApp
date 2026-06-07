@@ -276,18 +276,18 @@ function OwnerDashboard() {
   ];
 
   const fetchUsers = async () => {
-  const res = await api.get<User[]>("/users/");
-  setUsers(res.data);
+    const res = await api.get<User[]>("/users/");
+    setUsers(res.data);
 
-  const employees = res.data.filter((user) => user.role === "employee");
+    const employees = res.data.filter((user) => user.role === "employee");
 
-  if (employees.length > 0) {
-    setShiftForm((prev) => ({
-      ...prev,
-      user_id: prev.user_id === 0 ? employees[0].id : prev.user_id,
-    }));
-  }
-};
+    if (employees.length > 0) {
+      setShiftForm((prev) => ({
+        ...prev,
+        user_id: prev.user_id === 0 ? employees[0].id : prev.user_id,
+      }));
+    }
+  };
 
   const fetchShifts = async () => {
     const res = await api.get<Shift[]>("/shifts/");
@@ -358,6 +358,10 @@ function OwnerDashboard() {
 
   const handleNextWeek = () => {
     setWeekStartDate((prev) => addDays(prev, 7));
+  };
+
+  const handlePrintShiftTable = () => {
+    window.print();
   };
 
   const handleCreateSale = async (e: React.FormEvent) => {
@@ -1068,14 +1072,14 @@ function OwnerDashboard() {
         {shiftMessage && <p className="form-message">{shiftMessage}</p>}
       </section>
 
-      <section className="owner-section">
+      <section className="owner-section shift-print-area">
         <h2>シフト表</h2>
 
         <p className="form-message">
           表示期間：{weekStartDate} 〜 {weekEndDate}
         </p>
 
-        <p className="form-message">
+        <p className="form-message print-hide">
           PCはシフトを右クリック、スマホは長押しで削除できます。
         </p>
 
@@ -1086,7 +1090,7 @@ function OwnerDashboard() {
           />
         </div>
 
-        <div className="shift-template-actions-bottom">
+        <div className="shift-template-actions-bottom print-hide">
           <button type="button" onClick={handlePrevWeek}>
             前の週
           </button>
@@ -1102,12 +1106,17 @@ function OwnerDashboard() {
           <button type="button" onClick={handleApplyTemplates}>
             この週にテンプレートを反映
           </button>
+
+          <button type="button" onClick={handlePrintShiftTable}>
+            PDF出力
+          </button>
         </div>
 
-        {templateMessage && <p className="form-message">{templateMessage}</p>}
+        {templateMessage && <p className="form-message print-hide">{templateMessage}</p>}
       </section>
     </div>
   );
 }
 
 export default OwnerDashboard;
+

@@ -548,3 +548,98 @@ body {
     padding: 12px;
   }
 }
+
+/* =========================
+   Print / PDF
+========================= */
+
+@media print {
+  html,
+  body,
+  #root {
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    background: #ffffff !important;
+    color: #000000 !important;
+    overflow: visible !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .shift-print-area,
+  .shift-print-area * {
+    visibility: visible;
+  }
+
+  .shift-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 12mm;
+    border: none;
+    border-radius: 0;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .shift-print-area h2,
+  .shift-print-area p {
+    color: #000000 !important;
+  }
+
+  .shift-template-actions-bottom,
+  .form-message:nth-of-type(2) {
+    display: none !important;
+  }
+
+  .timeline-wrap {
+    overflow: visible !important;
+    background: #ffffff !important;
+  }
+
+  .timeline-sheet,
+  .timeline-header,
+  .timeline-row,
+  .timeline-grid-area,
+  .timeline-hours,
+  .timeline-grid,
+  .timeline-shifts {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .timeline-date-cell,
+  .timeline-hour-cell,
+  .timeline-grid-cell {
+    color: #000000 !important;
+    border-color: #999999 !important;
+  }
+
+  .timeline-shift-bar {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+  }
+
+  .timeline-shift-text {
+    color: #000000 !important;
+  }
+
+  .timeline-overflow-badge {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+  }
+
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+}
