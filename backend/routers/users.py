@@ -71,22 +71,26 @@ def delete_user(
         )
 
     try:
-        # 先にその従業員のシフトを削除
+        # 勤務者として登録されているシフトを削除
         db.query(Shift).filter(Shift.user_id == user_id).delete(
             synchronize_session=False
         )
 
-        # その後ユーザーを削除
+        # 作成者として紐づいているシフトも削除
+        db.query(Shift).filter(Shift.created_by == user_id).delete(
+            synchronize_session=False
+        )
+
         db.delete(user)
         db.commit()
 
     except Exception as e:
         db.rollback()
-        print("ユーザー削除エラー:", e)
+        print("ユーザー削除エラー:", repr(e))
 
         raise HTTPException(
             status_code=500,
-            detail="ユーザー削除中にエラーが発生しました"
+            detail=f"ユーザー削除中にエラーが発生しました: {str(e)}"
         )
 
     return {
