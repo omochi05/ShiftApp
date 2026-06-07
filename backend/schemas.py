@@ -2,17 +2,42 @@ from pydantic import BaseModel
 from datetime import datetime, date, time
 
 
+# =========================
+# Users
+# =========================
+
+class UserCreate(BaseModel):
+    name: str
+    email: str
+    password: str = "password"
+    role: str = "employee"
+    hourly_wage: int = 0
+
+
 class UserResponse(BaseModel):
     id: int
     name: str
     email: str
     role: str
     hourly_wage: int
-    created_at: datetime
-    updated_at: datetime
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
     class Config:
         from_attributes = True
+
+
+# =========================
+# Shifts
+# =========================
+
+class ShiftCreate(BaseModel):
+    user_id: int
+    work_date: date
+    start_time: time
+    end_time: time
+    break_minutes: int = 0
+    created_by: int | None = None
 
 
 class ShiftResponse(BaseModel):
@@ -30,14 +55,9 @@ class ShiftResponse(BaseModel):
         from_attributes = True
 
 
-class ShiftCreate(BaseModel):
-    user_id: int
-    work_date: date
-    start_time: time
-    end_time: time
-    break_minutes: int = 0
-    created_by: int | None = None
-
+# =========================
+# Salary
+# =========================
 
 class SalaryMonthlyResponse(BaseModel):
     user_id: int
@@ -47,6 +67,18 @@ class SalaryMonthlyResponse(BaseModel):
     total_normal_hours: float
     total_night_hours: float
     total_salary_target_amount: int
+
+
+# =========================
+# Sales
+# =========================
+
+class SaleCreate(BaseModel):
+    sale_date: date
+    amount: int
+    customer_count: int = 0
+    memo: str | None = None
+
 
 class SaleResponse(BaseModel):
     id: int
@@ -61,11 +93,9 @@ class SaleResponse(BaseModel):
         from_attributes = True
 
 
-class SaleCreate(BaseModel):
-    sale_date: date
-    amount: int
-    customer_count: int = 0
-    memo: str | None = None
+# =========================
+# Owner Dashboard
+# =========================
 
 class OwnerDashboardMonthlyResponse(BaseModel):
     year: int
@@ -73,6 +103,7 @@ class OwnerDashboardMonthlyResponse(BaseModel):
     total_sales: int
     total_labor_cost: int
     labor_cost_rate: float
+
 
 class OwnerDashboardWeeklyResponse(BaseModel):
     year: int
