@@ -169,7 +169,7 @@ function OwnerDashboard() {
   const [week, setWeek] = useState(23);
 
   const [printPaperSize, setPrintPaperSize] = useState("A4");
-const [printOrientation, setPrintOrientation] = useState("landscape");
+  const [printOrientation, setPrintOrientation] = useState("landscape");
 
   const [weekStartDate, setWeekStartDate] = useState(getSundayOfCurrentWeek());
   const weekEndDate = addDays(weekStartDate, 6);
@@ -375,16 +375,16 @@ const [printOrientation, setPrintOrientation] = useState("landscape");
     style.innerHTML = `
       @page {
         size: ${printPaperSize} ${printOrientation};
-        margin: 8mm;
+        margin: 4mm;
       }
     `;
 
-    document.head.appendChild(style);
+     document.head.appendChild(style);
 
-    setTimeout(() => {
-      window.print();
-    }, 100);
-  };
+      setTimeout(() => {
+        window.print();
+      }, 100);
+   };
 
   const handleCreateSale = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -615,7 +615,7 @@ body {
 @media print {
   @page {
     size: A4 landscape;
-    margin: 6mm;
+    margin: 4mm;
   }
 
   html,
@@ -645,28 +645,30 @@ body {
     top: 0 !important;
     width: 100% !important;
     max-width: none !important;
+    height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
     border: none !important;
     border-radius: 0 !important;
     background: #ffffff !important;
     color: #000000 !important;
+    overflow: visible !important;
   }
 
   .shift-print-area h2 {
-    margin: 0 0 3mm !important;
+    margin: 0 0 2mm !important;
     text-align: center !important;
     color: #000000 !important;
-    font-size: 14px !important;
-    line-height: 1.2 !important;
+    font-size: 12px !important;
+    line-height: 1.1 !important;
   }
 
   .shift-print-area .form-message {
-    margin: 0 0 3mm !important;
+    margin: 0 0 2mm !important;
     text-align: center !important;
     color: #000000 !important;
-    font-size: 10px !important;
-    line-height: 1.2 !important;
+    font-size: 8px !important;
+    line-height: 1.1 !important;
   }
 
   .print-hide {
@@ -687,33 +689,40 @@ body {
     max-width: none !important;
     background: #ffffff !important;
     color: #000000 !important;
+    border: 1px solid #000000 !important;
     box-shadow: none !important;
-    border: 1px solid #999999 !important;
+    overflow: visible !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
+    transform: scale(0.82);
+    transform-origin: top left;
   }
 
   .timeline-header {
-    height: 12mm !important;
-    min-height: 12mm !important;
+    height: 8mm !important;
+    min-height: 8mm !important;
     background: #ffffff !important;
     color: #000000 !important;
+    border-bottom: 1px solid #000000 !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
 
   .timeline-row {
-    min-height: 22mm !important;
-    height: 22mm !important;
+    height: 17mm !important;
+    min-height: 17mm !important;
+    max-height: 17mm !important;
     background: #ffffff !important;
     color: #000000 !important;
+    border-bottom: 1px solid #999999 !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
 
   .timeline-grid-area {
-    height: 22mm !important;
-    min-height: 22mm !important;
+    height: 17mm !important;
+    min-height: 17mm !important;
+    max-height: 17mm !important;
     background: #ffffff !important;
     color: #000000 !important;
     page-break-inside: avoid !important;
@@ -721,24 +730,27 @@ body {
   }
 
   .timeline-row-spacer {
-    height: 22mm !important;
-    min-height: 22mm !important;
+    height: 17mm !important;
+    min-height: 17mm !important;
+    max-height: 17mm !important;
   }
 
   .timeline-date-cell {
-    width: 22mm !important;
-    min-width: 22mm !important;
-    max-width: 22mm !important;
+    width: 18mm !important;
+    min-width: 18mm !important;
+    max-width: 18mm !important;
     color: #000000 !important;
     background: #ffffff !important;
-    border-color: #999999 !important;
-    font-size: 10px !important;
+    border-right: 1px solid #000000 !important;
+    border-bottom: 1px solid #999999 !important;
+    font-size: 8px !important;
     font-weight: bold !important;
   }
 
   .timeline-date-label {
     color: #000000 !important;
-    font-size: 10px !important;
+    font-size: 8px !important;
+    font-weight: bold !important;
   }
 
   .timeline-hours,
@@ -749,47 +761,51 @@ body {
   }
 
   .timeline-hour-cell {
-    height: 12mm !important;
-    min-height: 12mm !important;
+    height: 8mm !important;
+    min-height: 8mm !important;
     color: #000000 !important;
     background: #ffffff !important;
-    border-color: #999999 !important;
-    font-size: 8px !important;
+    border-right: 1px solid #999999 !important;
+    border-bottom: 1px solid #000000 !important;
+    font-size: 6px !important;
+    font-weight: bold !important;
   }
 
   .timeline-grid-cell {
-    height: 22mm !important;
-    min-height: 22mm !important;
+    height: 17mm !important;
+    min-height: 17mm !important;
+    max-height: 17mm !important;
     color: #000000 !important;
     background: #ffffff !important;
-    border-color: #dddddd !important;
+    border-right: 1px solid #cccccc !important;
+    border-bottom: 1px solid #cccccc !important;
   }
 
   .timeline-shift-bar {
-    height: 5mm !important;
-    min-height: 5mm !important;
-    padding: 0 2mm !important;
+    height: 4.5mm !important;
+    min-height: 4.5mm !important;
+    padding: 0 1mm !important;
     background: #ffffff !important;
     color: #000000 !important;
     border: 1px solid #000000 !important;
-    border-radius: 2px !important;
+    border-radius: 1px !important;
     box-shadow: none !important;
     overflow: hidden !important;
   }
 
   .timeline-shift-text {
     color: #000000 !important;
-    font-size: 7px !important;
-    line-height: 5mm !important;
+    font-size: 5.8px !important;
+    line-height: 4.5mm !important;
     white-space: nowrap !important;
   }
 
   .timeline-overflow-badge {
-    right: 2mm !important;
-    bottom: 2mm !important;
+    right: 1mm !important;
+    bottom: 1mm !important;
     background: #ffffff !important;
     color: #000000 !important;
     border: 1px solid #000000 !important;
-    font-size: 7px !important;
+    font-size: 6px !important;
   }
 }
