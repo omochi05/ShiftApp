@@ -1,7 +1,6 @@
 import { HashRouter, Routes, Route, Link, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import OwnerDashboard from "./pages/OwnerDashboard";
-import EmployeeDashboard from "./pages/EmployeeDashboard";
 import "./App.css";
 
 function App() {
@@ -13,20 +12,15 @@ function App() {
             ログイン
           </Link>
 
-          <Link to="/owner" style={{ marginRight: "16px" }}>
-            オーナー
-          </Link>
-
-          <Link to="/employee/2">従業員</Link>
+          <Link to="/owner">オーナー</Link>
         </nav>
 
         <Routes>
           <Route path="/" element={<LoginPage />} />
           <Route path="/owner" element={<OwnerDashboard />} />
-          <Route path="/employee/:userId" element={<EmployeeDashboard />} />
 
-          {/* 存在しないURLはログイン画面へ戻す */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* 存在しないURLはオーナー画面へ */}
+          <Route path="*" element={<Navigate to="/owner" replace />} />
         </Routes>
       </div>
     </HashRouter>
