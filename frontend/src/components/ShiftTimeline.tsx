@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, type MouseEvent } from "react";
 import "./ShiftTimeline.css";
 
 export type ShiftItem = {
@@ -43,6 +43,7 @@ function timeToPosition(time?: string) {
 
   let hour = h + m / 60;
 
+  // 0:00〜5:59 は翌日扱い
   if (hour < 6) {
     hour += 24;
   }
@@ -54,6 +55,7 @@ function getShiftStyle(start?: string, end?: string) {
   let startPos = timeToPosition(start);
   let endPos = timeToPosition(end);
 
+  // 日跨ぎ対応
   if (endPos <= startPos) {
     endPos += 24;
   }
@@ -103,6 +105,13 @@ export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
   const grouped = groupByDate(safeShifts);
   const dates = Object.keys(grouped).sort();
 
+  const cancelLongPress = () => {
+    if (longPressTimerRef.current !== null) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
   const startLongPress = (shiftId: number) => {
     cancelLongPress();
 
@@ -113,15 +122,8 @@ export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
     }, 700);
   };
 
-  const cancelLongPress = () => {
-    if (longPressTimerRef.current !== null) {
-      window.clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  };
-
   const handleRightClickDelete = (
-    e: React.MouseEvent<HTMLDivElement>,
+    e: MouseEvent<HTMLDivElement>,
     shiftId: number
   ) => {
     e.preventDefault();
@@ -152,6 +154,9 @@ export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
       {dates.map((date) => {
         const dayShifts = grouped[date];
 
+        // user_id が 0 のものは「空の日付行」用なので、バーは表示しない
+        const visibleShifts = dayShifts.filter((shift) => shift.user_id !== 0);
+
         return (
           <div className="timeline-row" key={date}>
             <div className="timeline-date-cell timeline-date-label">
@@ -169,7 +174,7 @@ export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
               </div>
 
               <div className="timeline-shifts">
-                {dayShifts.map((shift, index) => {
+                {visibleShifts.map((shift, index) => {
                   const style = getShiftStyle(
                     shift.start_time,
                     shift.end_time
@@ -206,7 +211,7 @@ export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
               <div
                 className="timeline-row-spacer"
                 style={{
-                  height: `${Math.max(dayShifts.length, 1) * 38 + 8}px`,
+                  height: `${Math.max(visibleShifts.length, 1) * 38 + 8}px`,
                 }}
               />
             </div>
@@ -216,3 +221,4 @@ export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
     </div>
   );
 }
+

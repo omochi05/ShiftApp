@@ -1321,32 +1321,11 @@ function OwnerDashboard() {
       </section>
 
       <section className="owner-section">
-        <div className="shift-week-header">
-          <div>
-            <h2>シフト表</h2>
-            <p className="form-message">
-              {weekStartDate} 〜 {weekEndDate}
-            </p>
-          </div>
+        <h2>シフト表</h2>
 
-          <div className="shift-week-actions">
-            <button type="button" onClick={handlePrevWeek}>
-              前の週
-            </button>
-
-            <button type="button" onClick={handleNextWeek}>
-              次の週
-            </button>
-
-            <button type="button" onClick={handleCreateTemplateFromWeek}>
-              この週をテンプレート化
-            </button>
-
-            <button type="button" onClick={handleApplyTemplates}>
-              この週にテンプレートを反映
-            </button>
-          </div>
-        </div>
+        <p className="form-message">
+          表示期間：{weekStartDate} 〜 {weekEndDate}
+        </p>
 
         <p className="form-message">
           PCはシフトを右クリック、スマホは長押しで削除できます。
@@ -1357,6 +1336,24 @@ function OwnerDashboard() {
             shifts={weeklyTimelineShifts}
             onDeleteShift={handleDeleteShift}
           />
+        </div>
+
+        <div className="shift-template-actions-bottom">
+          <button type="button" onClick={handlePrevWeek}>
+            前の週
+          </button>
+
+          <button type="button" onClick={handleNextWeek}>
+            次の週
+          </button>
+
+          <button type="button" onClick={handleCreateTemplateFromWeek}>
+            この週をテンプレート化
+          </button>
+
+          <button type="button" onClick={handleApplyTemplates}>
+            この週にテンプレートを反映
+          </button>
         </div>
       </section>
     </div>
