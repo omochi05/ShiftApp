@@ -1,142 +1,178 @@
-import type { Shift, User } from "../types";
 import "./ShiftTimeline.css";
 
-type Props = {
-  shifts: Shift[];
-  users: User[];
+export type ShiftItem = {
+  id: number;
+  user_id: number;
+  user_name?: string;
+  work_date: string;
+  start_time: string;
+  end_time: string;
+  break_minutes?: number;
+  memo?: string;
 };
 
-const hours = [
-  "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17",
-  "18", "19", "20", "21", "22", "23", "0", "1", "2", "3", "4", "5",
+type Props = {
+  shifts: ShiftItem[];
+};
+
+const HOURS = [
+  6, 7, 8, 9, 10, 11, 12,
+  13, 14, 15, 16, 17, 18, 19,
+  20, 21, 22, 23, 0, 1, 2, 3, 4, 5,
 ];
 
-const weekLabels = ["日", "月", "火", "水", "木", "金", "土"];
+const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
-function getUserName(users: User[], userId: number) {
-  return users.find((user) => user.id === userId)?.name ?? `ID:${userId}`;
+function normalizeTime(time?: string) {
+  if (!time || typeof time !== "string") {
+    return "00:00";
+  }
+
+  return time.slice(0, 5);
 }
 
-function getDateLabel(dateText: string) {
-  const date = new Date(dateText);
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const week = weekLabels[date.getDay()];
-  return `${month}/${day}（${week}）`;
-}
+function timeToPosition(time?: string) {
+  const safeTime = normalizeTime(time);
+  const [h, m] = safeTime.split(":").map(Number);
 
-function timeToPosition(time: string) {
-  const [hourText, minuteText] = time.split(":");
-  const hour = Number(hourText);
-  const minute = Number(minuteText);
+  if (Number.isNaN(h) || Number.isNaN(m)) {
+    return 0;
+  }
 
-  let adjustedHour = hour;
+  let hour = h + m / 60;
 
   if (hour < 6) {
-    adjustedHour = hour + 24;
+    hour += 24;
   }
 
-  return adjustedHour - 6 + minute / 60;
+  return hour - 6;
 }
 
-function getShiftStyle(shift: Shift) {
-  const start = timeToPosition(shift.start_time);
-  let end = timeToPosition(shift.end_time);
+function getShiftStyle(start?: string, end?: string) {
+  let startPos = timeToPosition(start);
+  let endPos = timeToPosition(end);
 
-  if (end <= start) {
-    end += 24;
+  if (endPos <= startPos) {
+    endPos += 24;
   }
 
-  const width = end - start;
+  const left = `${(startPos / 24) * 100}%`;
+  const width = `${((endPos - startPos) / 24) * 100}%`;
 
-  return {
-    left: `${start * 64}px`,
-    width: `${width * 64}px`,
-  };
+  return { left, width };
 }
 
-export default function ShiftTimeline({ shifts, users }: Props) {
-  const grouped = shifts.reduce<Record<string, Shift[]>>((acc, shift) => {
-    if (!acc[shift.work_date]) {
-      acc[shift.work_date] = [];
+function groupByDate(shifts: ShiftItem[]) {
+  const map: Record<string, ShiftItem[]> = {};
+
+  for (const shift of shifts) {
+    if (!shift.work_date) {
+      continue;
     }
 
-    acc[shift.work_date].push(shift);
-    return acc;
-  }, {});
+    if (!map[shift.work_date]) {
+      map[shift.work_date] = [];
+    }
 
+    map[shift.work_date].push(shift);
+  }
+
+  return map;
+}
+
+function formatDateLabel(dateStr: string) {
+  const d = new Date(`${dateStr}T00:00:00`);
+
+  if (Number.isNaN(d.getTime())) {
+    return dateStr;
+  }
+
+  const month = d.getMonth() + 1;
+  const date = d.getDate();
+  const weekday = WEEKDAYS[d.getDay()];
+
+  return `${month}/${date}（${weekday}）`;
+}
+
+export default function ShiftTimeline({ shifts }: Props) {
+  const safeShifts = Array.isArray(shifts) ? shifts : [];
+  const grouped = groupByDate(safeShifts);
   const dates = Object.keys(grouped).sort();
 
-  if (shifts.length === 0) {
-    return <p className="shift-empty">シフトはありません</p>;
+  if (dates.length === 0) {
+    return <p className="timeline-empty">シフトはありません</p>;
   }
 
   return (
-    <>
-      {/* スマホ用カード表示 */}
-      <div className="shift-mobile-list">
-        {dates.map((date) => (
-          <div key={date} className="shift-date-card">
-            <h3>{getDateLabel(date)}</h3>
+    <div className="timeline-sheet">
+      <div className="timeline-header">
+        <div className="timeline-date-cell">日付</div>
 
-            <div className="shift-card-list">
-              {grouped[date].map((shift) => (
-                <div key={shift.id} className="shift-card">
-                  <div className="shift-card-name">
-                    {getUserName(users, shift.user_id)}
-                  </div>
-
-                  <div className="shift-card-time">
-                    {shift.start_time.slice(0, 5)} 〜 {shift.end_time.slice(0, 5)}
-                  </div>
-
-                  <div className="shift-card-break">
-                    休憩：{shift.break_minutes}分
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* PC用タイムライン表示 */}
-      <div className="shift-timeline">
-        <div className="shift-timeline-inner">
-          <div className="shift-header-row">
-            <div className="shift-date-header">日付</div>
-
-            {hours.map((hour) => (
-              <div key={hour} className="shift-hour-cell">
-                {hour}
-              </div>
-            ))}
-          </div>
-
-          {dates.map((date) => (
-            <div key={date} className="shift-row">
-              <div className="shift-date-cell">{getDateLabel(date)}</div>
-
-              <div className="shift-time-area">
-                {grouped[date].map((shift, index) => (
-                  <div
-                    key={shift.id}
-                    className="shift-bar"
-                    style={{
-                      top: `${8 + index * 30}px`,
-                      ...getShiftStyle(shift),
-                    }}
-                    title={`${getUserName(users, shift.user_id)} ${shift.start_time}〜${shift.end_time}`}
-                  >
-                    {getUserName(users, shift.user_id)}　
-                    {shift.start_time.slice(0, 5)}〜{shift.end_time.slice(0, 5)}
-                  </div>
-                ))}
-              </div>
+        <div className="timeline-hours">
+          {HOURS.map((hour, index) => (
+            <div key={`${hour}-${index}`} className="timeline-hour-cell">
+              {hour}
             </div>
           ))}
         </div>
       </div>
-    </>
+
+      {dates.map((date) => {
+        const dayShifts = grouped[date];
+
+        return (
+          <div className="timeline-row" key={date}>
+            <div className="timeline-date-cell timeline-date-label">
+              {formatDateLabel(date)}
+            </div>
+
+            <div className="timeline-grid-area">
+              <div className="timeline-grid">
+                {HOURS.map((hour, index) => (
+                  <div
+                    key={`${hour}-${index}`}
+                    className="timeline-grid-cell"
+                  />
+                ))}
+              </div>
+
+              <div className="timeline-shifts">
+                {dayShifts.map((shift, index) => {
+                  const style = getShiftStyle(
+                    shift.start_time,
+                    shift.end_time
+                  );
+
+                  return (
+                    <div
+                      key={shift.id}
+                      className="timeline-shift-bar"
+                      style={{
+                        ...style,
+                        top: `${index * 38 + 6}px`,
+                      }}
+                    >
+                      <span className="timeline-shift-text">
+                        {shift.user_name ?? `従業員${shift.user_id}`}{" "}
+                        {normalizeTime(shift.start_time)}〜
+                        {normalizeTime(shift.end_time)}
+                        {shift.memo ? ` / ${shift.memo}` : ""}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div
+                className="timeline-row-spacer"
+                style={{
+                  height: `${Math.max(dayShifts.length, 1) * 38 + 8}px`,
+                }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
