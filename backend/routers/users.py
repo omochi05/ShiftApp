@@ -1,10 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from schemas import UserResponse, UserCreate
 
 from database import get_db
-from models import User,Shift
+from models import User, Shift
 from schemas import UserCreate, UserResponse
 
 router = APIRouter(
@@ -15,7 +14,8 @@ router = APIRouter(
 
 @router.get("/", response_model=list[UserResponse])
 def get_users(db: Session = Depends(get_db)):
-    return db.query(User).order_by(User.id).all()
+    users = db.query(User).order_by(User.id).all()
+    return users
 
 
 @router.post("/", response_model=UserResponse)
@@ -25,7 +25,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(
             status_code=400,
-            detail="このメールアドレスはすでに登録されています"
+            detail="この従業員番号はすでに登録されています"
         )
 
     new_user = User(
@@ -45,10 +45,11 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(
             status_code=400,
-            detail="このメールアドレスはすでに登録されています"
+            detail="この従業員番号はすでに登録されています"
         )
 
     return new_user
+
 
 @router.delete("/{user_id}")
 def delete_user(
@@ -69,13 +70,24 @@ def delete_user(
             detail="オーナーは削除できません"
         )
 
-    related_shifts = db.query(Shift).filter(Shift.user_id == user_id).all()
+    try:
+        # 先にその従業員のシフトを削除
+        db.query(Shift).filter(Shift.user_id == user_id).delete(
+            synchronize_session=False
+        )
 
-    for shift in related_shifts:
-        db.delete(shift)
+        # その後ユーザーを削除
+        db.delete(user)
+        db.commit()
 
-    db.delete(user)
-    db.commit()
+    except Exception as e:
+        db.rollback()
+        print("ユーザー削除エラー:", e)
+
+        raise HTTPException(
+            status_code=500,
+            detail="ユーザー削除中にエラーが発生しました"
+        )
 
     return {
         "message": "ユーザーを削除しました",
