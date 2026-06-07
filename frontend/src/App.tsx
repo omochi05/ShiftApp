@@ -4,7 +4,26 @@ import OwnerDashboard from "./pages/OwnerDashboard";
 import ShiftPrintPage from "./pages/ShiftPrintPage";
 import "./App.css";
 
+function RequireOwnerLogin({ children }: { children: JSX.Element }) {
+  const isLoggedIn = localStorage.getItem("ownerLogin") === "true";
+
+  if (!isLoggedIn) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+}
+
 function App() {
+  const isLoggedIn = localStorage.getItem("ownerLogin") === "true";
+
+  const handleLogout = () => {
+    localStorage.removeItem("ownerLogin");
+    localStorage.removeItem("ownerName");
+    localStorage.removeItem("ownerId");
+    window.location.href = "/#/";
+  };
+
   return (
     <HashRouter>
       <div>
@@ -13,17 +32,44 @@ function App() {
             ログイン
           </Link>
 
-          <Link to="/owner" style={{ marginRight: "16px" }}>
-            オーナー
-          </Link>
+          {isLoggedIn && (
+            <>
+              <Link to="/owner" style={{ marginRight: "16px" }}>
+                オーナー
+              </Link>
 
-          <Link to="/print/shifts">シフト表印刷</Link>
+              <Link to="/print/shifts" style={{ marginRight: "16px" }}>
+                シフト表印刷
+              </Link>
+
+              <button type="button" onClick={handleLogout}>
+                ログアウト
+              </button>
+            </>
+          )}
         </nav>
 
         <Routes>
           <Route path="/" element={<LoginPage />} />
-          <Route path="/owner" element={<OwnerDashboard />} />
-          <Route path="/print/shifts" element={<ShiftPrintPage />} />
+
+          <Route
+            path="/owner"
+            element={
+              <RequireOwnerLogin>
+                <OwnerDashboard />
+              </RequireOwnerLogin>
+            }
+          />
+
+          <Route
+            path="/print/shifts"
+            element={
+              <RequireOwnerLogin>
+                <ShiftPrintPage />
+              </RequireOwnerLogin>
+            }
+          />
+
           <Route path="*" element={<Navigate to="/owner" replace />} />
         </Routes>
       </div>
