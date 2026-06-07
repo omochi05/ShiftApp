@@ -171,7 +171,7 @@ function OwnerDashboard() {
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [week, setWeek] = useState(23);
 
-  // PDF設定
+  // PDF / 印刷設定
   const [printPaperSize, setPrintPaperSize] = useState("A4");
   const [printOrientation, setPrintOrientation] = useState("landscape");
   const [printScale, setPrintScale] = useState("fit");
@@ -1116,7 +1116,9 @@ function OwnerDashboard() {
         </p>
 
         <p className="form-message print-hide">
-          PCはシフトを右クリック、スマホは長押しで削除できます。
+          PCは「PDF出力」ボタンからPDF保存できます。
+          スマホの場合は、iPhone Safariなら共有ボタン → プリント、
+          Android Chromeなら︙ → 共有 / 印刷を使ってください。
         </p>
 
         <div className="timeline-wrap">
@@ -1197,3 +1199,4 @@ function OwnerDashboard() {
 }
 
 export default OwnerDashboard;
+
