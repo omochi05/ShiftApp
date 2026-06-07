@@ -115,3 +115,9 @@ class OwnerDashboardWeeklyResponse(BaseModel):
     profit: int
     status: str
     labor_cost_rate: float
+
+class OwnerDashboardWeekdayResponse(BaseModel):
+    weekday: str
+    total_sales: int
+    total_labor_cost: int
+    labor_cost_rate: float
