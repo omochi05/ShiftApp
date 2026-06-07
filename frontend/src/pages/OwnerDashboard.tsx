@@ -70,6 +70,12 @@ type ShiftCreate = {
   created_by: number;
 };
 
+type NewEmployee = {
+  employee_number: string;
+  name: string;
+  hourly_wage: string;
+};
+
 function getTodayText() {
   const now = new Date();
   const yyyy = now.getFullYear();
@@ -95,12 +101,29 @@ function getShiftDurationMinutes(shift: Shift) {
   let start = timeToMinutes(shift.start_time);
   let end = timeToMinutes(shift.end_time);
 
-  // 日跨ぎ対応
   if (end <= start) {
     end += 24 * 60;
   }
 
   return end - start;
+}
+
+function formatApiError(error: any, fallbackMessage: string) {
+  const detail = error.response?.data?.detail;
+
+  if (Array.isArray(detail)) {
+    return `${fallbackMessage}：${detail.map((d) => d.msg).join(" / ")}`;
+  }
+
+  if (detail) {
+    return `${fallbackMessage}：${detail}`;
+  }
+
+  if (error.response?.status) {
+    return `${fallbackMessage}：HTTP ${error.response.status}`;
+  }
+
+  return `${fallbackMessage}：APIに接続できませんでした`;
 }
 
 function OwnerDashboard() {
@@ -113,10 +136,8 @@ function OwnerDashboard() {
   const [dashboard, setDashboard] = useState<OwnerDashboardMonthly | null>(
     null
   );
-
   const [weeklyDashboard, setWeeklyDashboard] =
     useState<OwnerWeeklyDashboard | null>(null);
-
   const [weekdayDashboard, setWeekdayDashboard] = useState<
     OwnerWeekdayDashboard[]
   >([]);
@@ -130,26 +151,26 @@ function OwnerDashboard() {
   const ownerId = Number(localStorage.getItem("ownerId") ?? 1);
 
   const [saleForm, setSaleForm] = useState<SaleCreate>({
-  sale_date: getTodayText(),
-  amount: "",
-  customer_count: "",
-  memo: "",
-});
+    sale_date: getTodayText(),
+    amount: "",
+    customer_count: "",
+    memo: "",
+  });
 
-const [shiftForm, setShiftForm] = useState<ShiftCreate>({
-  user_id: 0,
-  work_date: getTodayText(),
-  start_time: "17:00",
-  end_time: "22:00",
-  break_minutes: "",
-  created_by: ownerId,
-});
+  const [shiftForm, setShiftForm] = useState<ShiftCreate>({
+    user_id: 0,
+    work_date: getTodayText(),
+    start_time: "17:00",
+    end_time: "22:00",
+    break_minutes: "",
+    created_by: ownerId,
+  });
 
-const [newEmployee, setNewEmployee] = useState({
-  employee_number: "",
-  name: "",
-  hourly_wage: "",
-});
+  const [newEmployee, setNewEmployee] = useState<NewEmployee>({
+    employee_number: "",
+    name: "",
+    hourly_wage: "",
+  });
 
   const [saleMessage, setSaleMessage] = useState("");
   const [shiftMessage, setShiftMessage] = useState("");
@@ -157,8 +178,6 @@ const [newEmployee, setNewEmployee] = useState({
 
   const employeeUsers = users.filter((user) => user.role === "employee");
 
-  // 同じ日付・同じ従業員のシフトは1つだけ表示する
-  // すでに重複データがDBに残っている場合でも、画面上では重複表示しない
   const uniqueShifts = Array.from(
     shifts
       .reduce((map, shift) => {
@@ -170,7 +189,6 @@ const [newEmployee, setNewEmployee] = useState({
           return map;
         }
 
-        // 重複がある場合は、勤務時間が長い方を表示する
         const existingDuration = getShiftDurationMinutes(existing);
         const currentDuration = getShiftDurationMinutes(shift);
 
@@ -275,20 +293,21 @@ const [newEmployee, setNewEmployee] = useState({
     try {
       setSaleMessage("");
 
-        await api.post("/sales/", {
-      sale_date: saleForm.sale_date,
-      amount: Number(saleForm.amount || 0),
-      customer_count: Number(saleForm.customer_count || 0),
-      memo: saleForm.memo,
-    });
+      await api.post("/sales/", {
+        sale_date: saleForm.sale_date,
+        amount: Number(saleForm.amount || 0),
+        customer_count: Number(saleForm.customer_count || 0),
+        memo: saleForm.memo,
+      });
+
       setSaleMessage("売上を登録しました");
 
-     setSaleForm((prev) => ({
-      ...prev,
-      amount: "",
-      customer_count: "",
-      memo: "",
-    }));
+      setSaleForm((prev) => ({
+        ...prev,
+        amount: "",
+        customer_count: "",
+        memo: "",
+      }));
 
       await fetchDashboard();
       await fetchWeeklyDashboard();
@@ -312,7 +331,6 @@ const [newEmployee, setNewEmployee] = useState({
       return;
     }
 
-    // 同じ日付・同じ従業員の重複登録を防ぐ
     const alreadyExists = shifts.some(
       (shift) =>
         shift.user_id === Number(shiftForm.user_id) &&
@@ -339,11 +357,11 @@ const [newEmployee, setNewEmployee] = useState({
       setShiftMessage("シフトを作成しました");
 
       setShiftForm((prev) => ({
-      ...prev,
-      start_time: "17:00",
-      end_time: "22:00",
-      break_minutes: "",
-    }));
+        ...prev,
+        start_time: "17:00",
+        end_time: "22:00",
+        break_minutes: "",
+      }));
 
       await fetchShifts();
       await fetchDashboard();
@@ -403,99 +421,71 @@ const [newEmployee, setNewEmployee] = useState({
   };
 
   const handleCreateEmployee = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    setEmployeeMessage("");
+    try {
+      setEmployeeMessage("");
 
-    await api.post("/users/", {
-  name: newEmployee.name,
-  email: newEmployee.employee_number,
-  password: "unused",
-  role: "employee",
-  hourly_wage: Number(newEmployee.hourly_wage || 0),
-});
+      await api.post("/users/", {
+        name: newEmployee.name,
+        email: newEmployee.employee_number,
+        password: "unused",
+        role: "employee",
+        hourly_wage: Number(newEmployee.hourly_wage || 0),
+      });
 
-    setEmployeeMessage("従業員を追加しました");
+      setEmployeeMessage("従業員を追加しました");
 
-    setNewEmployee({
-      employee_number: "",
-      name: "",
-      hourly_wage: "",
-    });
+      setNewEmployee({
+        employee_number: "",
+        name: "",
+        hourly_wage: "",
+      });
 
-    await fetchUsers();
-  } catch (error: any) {
-    console.error("従業員追加失敗:", error);
-    console.error("レスポンス:", error.response?.data);
+      await fetchUsers();
+    } catch (error: any) {
+      console.error("従業員追加失敗:", error);
+      console.error("レスポンス:", error.response?.data);
 
-    const detail = error.response?.data?.detail;
-
-    if (Array.isArray(detail)) {
-      setEmployeeMessage(
-        `従業員の追加に失敗しました：${detail
-          .map((d) => d.msg)
-          .join(" / ")}`
-      );
-    } else if (detail) {
-      setEmployeeMessage(`従業員の追加に失敗しました：${detail}`);
-    } else if (error.response?.status) {
-      setEmployeeMessage(
-        `従業員の追加に失敗しました：HTTP ${error.response.status}`
-      );
-    } else {
-      setEmployeeMessage(
-        "従業員の追加に失敗しました：APIに接続できませんでした"
-      );
+      setEmployeeMessage(formatApiError(error, "従業員の追加に失敗しました"));
     }
-  }
-};
-const handleDeleteUser = async (userId: number) => {
-  const targetUser = users.find((user) => user.id === userId);
+  };
 
-  if (!targetUser) {
-    setEmployeeMessage("削除対象の従業員が見つかりません");
-    return;
-  }
+  const handleDeleteUser = async (userId: number) => {
+    const targetUser = users.find((user) => user.id === userId);
 
-  const ok = window.confirm(
-    `${targetUser.name}（${targetUser.email}）を削除しますか？\nこの従業員のシフトも削除されます。`
-  );
-
-  if (!ok) {
-    return;
-  }
-
-  try {
-    setEmployeeMessage("");
-
-    await api.delete(`/users/${userId}`);
-
-    setEmployeeMessage("従業員を削除しました");
-
-    await fetchUsers();
-    await fetchShifts();
-    await fetchDashboard();
-    await fetchWeeklyDashboard();
-    await fetchWeekdayDashboard();
-  } catch (error: any) {
-    console.error("従業員削除失敗:", error);
-
-   const detail = error.response?.data?.detail;
-
-if (Array.isArray(detail)) {
-  setEmployeeMessage(
-    `従業員の追加に失敗しました：${detail
-      .map((d) => d.msg)
-      .join(" / ")}`
-  );
-    } else if (detail) {
-      setEmployeeMessage(`従業員の追加に失敗しました：${detail}`);
-    } else {
-      setEmployeeMessage("従業員の追加に失敗しました");
+    if (!targetUser) {
+      setEmployeeMessage("削除対象の従業員が見つかりません");
+      return;
     }
-  }
-};
+
+    const ok = window.confirm(
+      `${targetUser.name}（${targetUser.email}）を削除しますか？\nこの従業員のシフトや関連データも削除されます。`
+    );
+
+    if (!ok) {
+      return;
+    }
+
+    try {
+      setEmployeeMessage("");
+
+      await api.delete(`/users/${userId}`);
+
+      setEmployeeMessage("従業員を削除しました");
+
+      await fetchUsers();
+      await fetchShifts();
+      await fetchDashboard();
+      await fetchWeeklyDashboard();
+      await fetchWeekdayDashboard();
+    } catch (error: any) {
+      console.error("従業員削除失敗:", error);
+      console.error("レスポンス:", error.response?.data);
+
+      setEmployeeMessage(formatApiError(error, "従業員の削除に失敗しました"));
+    }
+  };
 
   if (loading) {
     return (
@@ -688,13 +678,22 @@ if (Array.isArray(detail)) {
             <input
               type="number"
               value={newEmployee.hourly_wage}
+              onFocus={() => {
+                if (newEmployee.hourly_wage === "0") {
+                  setNewEmployee({
+                    ...newEmployee,
+                    hourly_wage: "",
+                  });
+                }
+              }}
               onChange={(e) =>
                 setNewEmployee({
                   ...newEmployee,
-                  hourly_wage: Number(e.target.value),
+                  hourly_wage: e.target.value,
                 })
               }
               min="0"
+              placeholder="例：1200"
               required
             />
           </label>
@@ -765,13 +764,22 @@ if (Array.isArray(detail)) {
             <input
               type="number"
               value={saleForm.amount}
+              onFocus={() => {
+                if (saleForm.amount === "0") {
+                  setSaleForm({
+                    ...saleForm,
+                    amount: "",
+                  });
+                }
+              }}
               onChange={(e) =>
                 setSaleForm({
                   ...saleForm,
-                  amount: Number(e.target.value),
+                  amount: e.target.value,
                 })
               }
               min="0"
+              placeholder="例：300000"
               required
             />
           </label>
@@ -781,13 +789,22 @@ if (Array.isArray(detail)) {
             <input
               type="number"
               value={saleForm.customer_count}
+              onFocus={() => {
+                if (saleForm.customer_count === "0") {
+                  setSaleForm({
+                    ...saleForm,
+                    customer_count: "",
+                  });
+                }
+              }}
               onChange={(e) =>
                 setSaleForm({
                   ...saleForm,
-                  customer_count: Number(e.target.value),
+                  customer_count: e.target.value,
                 })
               }
               min="0"
+              placeholder="例：100"
               required
             />
           </label>
@@ -891,13 +908,22 @@ if (Array.isArray(detail)) {
             <input
               type="number"
               value={shiftForm.break_minutes}
+              onFocus={() => {
+                if (shiftForm.break_minutes === "0") {
+                  setShiftForm({
+                    ...shiftForm,
+                    break_minutes: "",
+                  });
+                }
+              }}
               onChange={(e) =>
                 setShiftForm({
                   ...shiftForm,
-                  break_minutes: Number(e.target.value),
+                  break_minutes: e.target.value,
                 })
               }
               min="0"
+              placeholder="例：60"
               required
             />
           </label>
@@ -926,3 +952,4 @@ if (Array.isArray(detail)) {
 }
 
 export default OwnerDashboard;
+
