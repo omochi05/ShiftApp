@@ -208,3 +208,7 @@ class ApplyShiftTemplateRequest(BaseModel):
     week_start_date: date
     created_by: int | None = None
 
+class CreateTemplateFromWeekRequest(BaseModel):
+    week_start_date: date
+    created_by: int | None = None
+
