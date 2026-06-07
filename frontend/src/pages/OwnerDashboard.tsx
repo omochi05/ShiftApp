@@ -6,7 +6,7 @@ import "./OwnerDashboard.css";
 type User = {
   id: number;
   name: string;
-  email: string;
+  email: string; // DB上はemailだが、画面上では「従業員番号」として扱う
   role: string;
   hourly_wage: number;
 };
@@ -21,6 +21,10 @@ type Shift = {
   created_by?: number | null;
   created_at?: string | null;
   updated_at?: string | null;
+};
+
+type ShiftForTimeline = Shift & {
+  user_name: string;
 };
 
 type OwnerDashboardMonthly = {
@@ -43,6 +47,13 @@ type OwnerWeeklyDashboard = {
   labor_cost_rate?: number;
 };
 
+type OwnerWeekdayDashboard = {
+  weekday: string;
+  total_sales: number;
+  total_labor_cost: number;
+  labor_cost_rate: number;
+};
+
 type SaleCreate = {
   sale_date: string;
   amount: number;
@@ -59,6 +70,15 @@ type ShiftCreate = {
   created_by: number;
 };
 
+function getTodayText() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 function OwnerDashboard() {
   const now = new Date();
 
@@ -66,9 +86,14 @@ function OwnerDashboard() {
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [week, setWeek] = useState(23);
 
-  const [dashboard, setDashboard] = useState<OwnerDashboardMonthly | null>(null);
+  const [dashboard, setDashboard] = useState<OwnerDashboardMonthly | null>(
+    null
+  );
   const [weeklyDashboard, setWeeklyDashboard] =
     useState<OwnerWeeklyDashboard | null>(null);
+  const [weekdayDashboard, setWeekdayDashboard] = useState<
+    OwnerWeekdayDashboard[]
+  >([]);
 
   const [users, setUsers] = useState<User[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
@@ -76,25 +101,27 @@ function OwnerDashboard() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const ownerId = Number(localStorage.getItem("ownerId") ?? 1);
+
   const [saleForm, setSaleForm] = useState<SaleCreate>({
-    sale_date: "2026-06-10",
-    amount: 300000,
-    customer_count: 750,
-    memo: "テスト売上",
+    sale_date: getTodayText(),
+    amount: 0,
+    customer_count: 0,
+    memo: "",
   });
 
   const [shiftForm, setShiftForm] = useState<ShiftCreate>({
-    user_id: 2,
-    work_date: "2026-06-11",
+    user_id: 0,
+    work_date: getTodayText(),
     start_time: "17:00",
     end_time: "22:00",
     break_minutes: 0,
-    created_by: 1,
+    created_by: ownerId,
   });
 
   const [newEmployee, setNewEmployee] = useState({
+    employee_number: "",
     name: "",
-    email: "",
     password: "password",
     hourly_wage: 1200,
   });
@@ -103,9 +130,29 @@ function OwnerDashboard() {
   const [shiftMessage, setShiftMessage] = useState("");
   const [employeeMessage, setEmployeeMessage] = useState("");
 
+  const employeeUsers = users.filter((user) => user.role === "employee");
+
+  const timelineShifts: ShiftForTimeline[] = shifts.map((shift) => {
+    const user = users.find((u) => u.id === shift.user_id);
+
+    return {
+      ...shift,
+      user_name: user?.name ?? `従業員${shift.user_id}`,
+    };
+  });
+
   const fetchUsers = async () => {
     const res = await api.get<User[]>("/users/");
     setUsers(res.data);
+
+    const employees = res.data.filter((user) => user.role === "employee");
+
+    if (employees.length > 0) {
+      setShiftForm((prev) => ({
+        ...prev,
+        user_id: prev.user_id === 0 ? employees[0].id : prev.user_id,
+      }));
+    }
   };
 
   const fetchShifts = async () => {
@@ -132,6 +179,18 @@ function OwnerDashboard() {
     }
   };
 
+  const fetchWeekdayDashboard = async () => {
+    try {
+      const res = await api.get<OwnerWeekdayDashboard[]>(
+        `/owner/dashboard/weekday?year=${year}&month=${month}`
+      );
+      setWeekdayDashboard(res.data);
+    } catch (error) {
+      console.error("曜日別人件費率取得失敗:", error);
+      setWeekdayDashboard([]);
+    }
+  };
+
   const loadAllData = async () => {
     try {
       setLoading(true);
@@ -142,10 +201,13 @@ function OwnerDashboard() {
         fetchShifts(),
         fetchDashboard(),
         fetchWeeklyDashboard(),
+        fetchWeekdayDashboard(),
       ]);
     } catch (error) {
       console.error("データ取得失敗:", error);
-      setErrorMessage("データの取得に失敗しました。API接続やCORS設定を確認してください。");
+      setErrorMessage(
+        "データの取得に失敗しました。API接続やCORS設定を確認してください。"
+      );
     } finally {
       setLoading(false);
     }
@@ -170,8 +232,17 @@ function OwnerDashboard() {
       });
 
       setSaleMessage("売上を登録しました");
+
+      setSaleForm((prev) => ({
+        ...prev,
+        amount: 0,
+        customer_count: 0,
+        memo: "",
+      }));
+
       await fetchDashboard();
       await fetchWeeklyDashboard();
+      await fetchWeekdayDashboard();
     } catch (error: any) {
       console.error("売上登録失敗:", error);
 
@@ -186,6 +257,11 @@ function OwnerDashboard() {
   const handleCreateShift = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (Number(shiftForm.user_id) === 0) {
+      setShiftMessage("従業員を先に登録してください");
+      return;
+    }
+
     try {
       setShiftMessage("");
 
@@ -195,13 +271,22 @@ function OwnerDashboard() {
         start_time: shiftForm.start_time,
         end_time: shiftForm.end_time,
         break_minutes: Number(shiftForm.break_minutes),
-        created_by: Number(shiftForm.created_by),
+        created_by: Number(ownerId),
       });
 
       setShiftMessage("シフトを作成しました");
+
+      setShiftForm((prev) => ({
+        ...prev,
+        start_time: "17:00",
+        end_time: "22:00",
+        break_minutes: 0,
+      }));
+
       await fetchShifts();
       await fetchDashboard();
       await fetchWeeklyDashboard();
+      await fetchWeekdayDashboard();
     } catch (error) {
       console.error("シフト作成失敗:", error);
       setShiftMessage("シフト作成に失敗しました");
@@ -216,7 +301,7 @@ function OwnerDashboard() {
 
       await api.post("/users/", {
         name: newEmployee.name,
-        email: newEmployee.email,
+        email: newEmployee.employee_number,
         password: newEmployee.password,
         role: "employee",
         hourly_wage: Number(newEmployee.hourly_wage),
@@ -225,8 +310,8 @@ function OwnerDashboard() {
       setEmployeeMessage("従業員を追加しました");
 
       setNewEmployee({
+        employee_number: "",
         name: "",
-        email: "",
         password: "password",
         hourly_wage: 1200,
       });
@@ -235,8 +320,10 @@ function OwnerDashboard() {
     } catch (error: any) {
       console.error("従業員追加失敗:", error);
 
-      if (error.response?.status === 400) {
-        setEmployeeMessage("このメールアドレスはすでに登録されています");
+      const detail = error.response?.data?.detail;
+
+      if (detail) {
+        setEmployeeMessage(`従業員の追加に失敗しました：${detail}`);
       } else {
         setEmployeeMessage("従業員の追加に失敗しました");
       }
@@ -294,7 +381,7 @@ function OwnerDashboard() {
         </div>
 
         <div className="summary-card">
-          <span>人件費率</span>
+          <span>月間人件費率</span>
           <strong>{dashboard?.labor_cost_rate}%</strong>
         </div>
       </section>
@@ -345,13 +432,9 @@ function OwnerDashboard() {
               weeklyDashboard.status === "赤字" ? "red" : "black"
             }`}
           >
+            <p>売上：{weeklyDashboard.total_sales.toLocaleString()}円</p>
             <p>
-              売上：
-              {weeklyDashboard.total_sales.toLocaleString()}円
-            </p>
-            <p>
-              人件費：
-              {weeklyDashboard.total_labor_cost.toLocaleString()}円
+              人件費：{weeklyDashboard.total_labor_cost.toLocaleString()}円
             </p>
 
             {typeof weeklyDashboard.profit === "number" && (
@@ -370,9 +453,53 @@ function OwnerDashboard() {
       </section>
 
       <section className="owner-section">
+        <h2>曜日別 売上・人件費率</h2>
+
+        <div className="weekday-table-wrap">
+          <table className="weekday-table">
+            <thead>
+              <tr>
+                <th>曜日</th>
+                <th>売上</th>
+                <th>人件費</th>
+                <th>人件費率</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {weekdayDashboard.map((item) => (
+                <tr key={item.weekday}>
+                  <td>{item.weekday}</td>
+                  <td>{item.total_sales.toLocaleString()}円</td>
+                  <td>{item.total_labor_cost.toLocaleString()}円</td>
+                  <td>{item.labor_cost_rate}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="owner-section">
         <h2>従業員追加</h2>
 
         <form className="owner-form" onSubmit={handleCreateEmployee}>
+          <label>
+            従業員番号
+            <input
+              type="text"
+              value={newEmployee.employee_number}
+              onChange={(e) =>
+                setNewEmployee({
+                  ...newEmployee,
+                  employee_number: e.target.value,
+                })
+              }
+              placeholder="例：EMP001"
+              required
+            />
+          </label>
+
           <label>
             名前
             <input
@@ -384,23 +511,7 @@ function OwnerDashboard() {
                   name: e.target.value,
                 })
               }
-              placeholder="例：佐藤花子"
-              required
-            />
-          </label>
-
-          <label>
-            メールアドレス
-            <input
-              type="email"
-              value={newEmployee.email}
-              onChange={(e) =>
-                setNewEmployee({
-                  ...newEmployee,
-                  email: e.target.value,
-                })
-              }
-              placeholder="例：sato@example.com"
+              placeholder="例：田中太郎"
               required
             />
           </label>
@@ -440,6 +551,32 @@ function OwnerDashboard() {
         </form>
 
         {employeeMessage && <p className="form-message">{employeeMessage}</p>}
+      </section>
+
+      <section className="owner-section">
+        <h2>従業員一覧</h2>
+
+        <div className="weekday-table-wrap">
+          <table className="weekday-table">
+            <thead>
+              <tr>
+                <th>従業員番号</th>
+                <th>名前</th>
+                <th>時給</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {employeeUsers.map((user) => (
+                <tr key={user.id}>
+                  <td>{user.email}</td>
+                  <td>{user.name}</td>
+                  <td>{user.hourly_wage.toLocaleString()}円</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section className="owner-section">
@@ -504,6 +641,7 @@ function OwnerDashboard() {
                   memo: e.target.value,
                 })
               }
+              placeholder="例：雨天・イベント日など"
             />
           </label>
 
@@ -529,13 +667,15 @@ function OwnerDashboard() {
               }
               required
             >
-              {users
-                .filter((user) => user.role === "employee")
-                .map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name}
-                  </option>
-                ))}
+              {employeeUsers.length === 0 && (
+                <option value={0}>従業員を先に登録してください</option>
+              )}
+
+              {employeeUsers.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name}（{user.email}）
+                </option>
+              ))}
             </select>
           </label>
 
@@ -610,7 +750,7 @@ function OwnerDashboard() {
         <h2>シフト表</h2>
 
         <div className="timeline-wrap">
-          <ShiftTimeline shifts={shifts} users={users} />
+          <ShiftTimeline shifts={timelineShifts} />
         </div>
       </section>
     </div>
@@ -618,3 +758,4 @@ function OwnerDashboard() {
 }
 
 export default OwnerDashboard;
+
