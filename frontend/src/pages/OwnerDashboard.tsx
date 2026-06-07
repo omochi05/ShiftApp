@@ -170,6 +170,7 @@ function OwnerDashboard() {
 
   const [printPaperSize, setPrintPaperSize] = useState("A4");
   const [printOrientation, setPrintOrientation] = useState("landscape");
+  const [printScale, setPrintScale] = useState("fit");
 
   const [weekStartDate, setWeekStartDate] = useState(getSundayOfCurrentWeek());
   const weekEndDate = addDays(weekStartDate, 6);
@@ -364,27 +365,38 @@ function OwnerDashboard() {
   };
 
   const handlePrintShiftTable = () => {
-    const oldStyle = document.getElementById("dynamic-print-style");
+  const oldStyle = document.getElementById("dynamic-print-style");
 
-    if (oldStyle) {
-      oldStyle.remove();
+  if (oldStyle) {
+    oldStyle.remove();
+  }
+
+  const scaleValue =
+    printScale === "fit"
+      ? "1"
+      : printScale;
+
+  const style = document.createElement("style");
+  style.id = "dynamic-print-style";
+  style.innerHTML = `
+    @page {
+      size: ${printPaperSize} ${printOrientation};
+      margin: 4mm;
     }
 
-    const style = document.createElement("style");
-    style.id = "dynamic-print-style";
-    style.innerHTML = `
-      @page {
-        size: ${printPaperSize} ${printOrientation};
-        margin: 4mm;
+    @media print {
+      :root {
+        --shift-print-scale: ${scaleValue};
       }
-    `;
+    }
+  `;
 
-     document.head.appendChild(style);
+  document.head.appendChild(style);
 
-      setTimeout(() => {
-        window.print();
-      }, 100);
-   };
+  setTimeout(() => {
+    window.print();
+  }, 100);
+};
 
   const handleCreateSale = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1132,32 +1144,35 @@ function OwnerDashboard() {
 
         <div className="pdf-setting-panel print-hide">
           <label>
-            用紙サイズ
+            倍率
             <select
-              value={printPaperSize}
-              onChange={(e) => setPrintPaperSize(e.target.value)}
+              value={printScale}
+              onChange={(e) => setPrintScale(e.target.value)}
             >
-              <option value="A4">A4</option>
-              <option value="A3">A3</option>
-              <option value="B5">B5</option>
+              <option value="fit">用紙に合わせる</option>
+              <option value="1">100%</option>
+              <option value="0.95">95%</option>
+              <option value="0.9">90%</option>
+              <option value="0.85">85%</option>
+              <option value="0.8">80%</option>
             </select>
           </label>
 
-          <label>
-            向き
-            <select
-              value={printOrientation}
-              onChange={(e) => setPrintOrientation(e.target.value)}
-            >
-              <option value="landscape">横向き</option>
-              <option value="portrait">縦向き</option>
-            </select>
-          </label>
+            <label>
+                向き
+                <select
+                  value={printOrientation}
+                  onChange={(e) => setPrintOrientation(e.target.value)}
+                >
+                  <option value="landscape">横向き</option>
+                  <option value="portrait">縦向き</option>
+                </select>
+              </label>
 
-          <button type="button" onClick={handlePrintShiftTable}>
-            PDF出力
-          </button>
-        </div>
+              <button type="button" onClick={handlePrintShiftTable}>
+                PDF出力
+              </button>
+            </div>
 
         {templateMessage && (
           <p className="form-message print-hide">{templateMessage}</p>
