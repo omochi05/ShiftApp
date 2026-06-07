@@ -460,8 +460,13 @@ body {
 
 @media (max-width: 768px) {
   .weekday-table {
-    min-width: 0;
+    min-width: 520px;
     font-size: 13px;
+  }
+
+  .weekday-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .weekday-table th,
