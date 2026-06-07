@@ -474,3 +474,14 @@ body {
     padding: 10px 8px;
   }
 }
+.timeline-shift-bar {
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.timeline-shift-bar:hover {
+  background: #fef2f2;
+  border-color: #ef4444;
+}

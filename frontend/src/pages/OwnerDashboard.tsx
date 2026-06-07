@@ -440,6 +440,46 @@ function OwnerDashboard() {
       }
     }
   };
+const handleDeleteUser = async (userId: number) => {
+  const targetUser = users.find((user) => user.id === userId);
+
+  if (!targetUser) {
+    setEmployeeMessage("削除対象の従業員が見つかりません");
+    return;
+  }
+
+  const ok = window.confirm(
+    `${targetUser.name}（${targetUser.email}）を削除しますか？\nこの従業員のシフトも削除されます。`
+  );
+
+  if (!ok) {
+    return;
+  }
+
+  try {
+    setEmployeeMessage("");
+
+    await api.delete(`/users/${userId}`);
+
+    setEmployeeMessage("従業員を削除しました");
+
+    await fetchUsers();
+    await fetchShifts();
+    await fetchDashboard();
+    await fetchWeeklyDashboard();
+    await fetchWeekdayDashboard();
+  } catch (error: any) {
+    console.error("従業員削除失敗:", error);
+
+    const detail = error.response?.data?.detail;
+
+    if (detail) {
+      setEmployeeMessage(`従業員の削除に失敗しました：${detail}`);
+    } else {
+      setEmployeeMessage("従業員の削除に失敗しました");
+    }
+  }
+};
 
   if (loading) {
     return (
@@ -674,6 +714,7 @@ function OwnerDashboard() {
                 <th>従業員番号</th>
                 <th>名前</th>
                 <th>時給</th>
+                <th>操作</th>
               </tr>
             </thead>
 
@@ -683,6 +724,15 @@ function OwnerDashboard() {
                   <td>{user.email}</td>
                   <td>{user.name}</td>
                   <td>{user.hourly_wage.toLocaleString()}円</td>
+                  <td>
+                    <button
+                      type="button"
+                      className="table-delete-button"
+                      onClick={() => handleDeleteUser(user.id)}
+                    >
+                      削除
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from schemas import UserResponse, UserCreate
 
 from database import get_db
-from models import User
+from models import User,Shift
 from schemas import UserCreate, UserResponse
 
 router = APIRouter(
@@ -49,3 +49,35 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         )
 
     return new_user
+
+@router.delete("/{user_id}")
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="ユーザーが見つかりません"
+        )
+
+    if user.role == "owner":
+        raise HTTPException(
+            status_code=400,
+            detail="オーナーは削除できません"
+        )
+
+    related_shifts = db.query(Shift).filter(Shift.user_id == user_id).all()
+
+    for shift in related_shifts:
+        db.delete(shift)
+
+    db.delete(user)
+    db.commit()
+
+    return {
+        "message": "ユーザーを削除しました",
+        "user_id": user_id
+    }
