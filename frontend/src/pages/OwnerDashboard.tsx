@@ -396,9 +396,8 @@ function OwnerDashboard() {
 
     document.head.appendChild(style);
 
-    setTimeout(() => {
-      window.print();
-    }, 100);
+    // スマホ対応：setTimeoutを使わず、クリック処理内で直接呼ぶ
+    window.print();
   };
 
   const handleCreateSale = async (e: React.FormEvent) => {
@@ -1198,4 +1197,3 @@ function OwnerDashboard() {
 }
 
 export default OwnerDashboard;
-
