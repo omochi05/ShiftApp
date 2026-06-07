@@ -328,14 +328,13 @@ function OwnerDashboard() {
       setLoading(true);
       setErrorMessage("");
 
-      await Promise.all([
-        fetchUsers(),
-        fetchShifts(),
-        fetchShiftTemplates(),
-        fetchDashboard(),
-        fetchWeeklyDashboard(),
-        fetchWeekdayDashboard(),
-      ]);
+     await Promise.all([
+      fetchUsers(),
+      fetchShifts(),
+      fetchDashboard(),
+      fetchWeeklyDashboard(),
+      fetchWeekdayDashboard(),
+    ]);
     } catch (error) {
       console.error("データ取得失敗:", error);
       setErrorMessage(
