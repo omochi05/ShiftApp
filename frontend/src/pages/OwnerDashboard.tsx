@@ -409,12 +409,13 @@ function OwnerDashboard() {
     try {
       setEmployeeMessage("");
 
-      await api.post("/users/", {
-        name: newEmployee.name,
-        email: newEmployee.employee_number,
-        role: "employee",
-        hourly_wage: Number(newEmployee.hourly_wage),
-      });
+     await api.post("/users/", {
+      name: newEmployee.name,
+      email: newEmployee.employee_number,
+      password: "unused",
+      role: "employee",
+      hourly_wage: Number(newEmployee.hourly_wage),
+    });
 
       setEmployeeMessage("従業員を追加しました");
 
