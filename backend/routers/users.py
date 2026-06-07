@@ -96,17 +96,26 @@ def delete_user(
                 {"shift_ids": target_shift_ids}
             )
 
-        # 3. 勤務者として登録されているシフトを削除
+        # 3. このユーザーに紐づくシフト申請を削除
+        db.execute(
+            text("""
+                DELETE FROM shift_requests
+                WHERE user_id = :user_id
+            """),
+            {"user_id": user_id}
+        )
+
+        # 4. 勤務者として登録されているシフトを削除
         db.query(Shift).filter(Shift.user_id == user_id).delete(
             synchronize_session=False
         )
 
-        # 4. 作成者として紐づいているシフトも削除
+        # 5. 作成者として紐づいているシフトも削除
         db.query(Shift).filter(Shift.created_by == user_id).delete(
             synchronize_session=False
         )
 
-        # 5. 最後にユーザーを削除
+        # 6. 最後にユーザーを削除
         db.delete(user)
         db.commit()
 
