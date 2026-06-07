@@ -148,7 +148,6 @@ function OwnerDashboard() {
   const [newEmployee, setNewEmployee] = useState({
     employee_number: "",
     name: "",
-    password: "password",
     hourly_wage: 1200,
   });
 
@@ -413,7 +412,6 @@ function OwnerDashboard() {
       await api.post("/users/", {
         name: newEmployee.name,
         email: newEmployee.employee_number,
-        password: newEmployee.password,
         role: "employee",
         hourly_wage: Number(newEmployee.hourly_wage),
       });
@@ -423,7 +421,6 @@ function OwnerDashboard() {
       setNewEmployee({
         employee_number: "",
         name: "",
-        password: "password",
         hourly_wage: 1200,
       });
 
@@ -663,21 +660,6 @@ const handleDeleteUser = async (userId: number) => {
                 })
               }
               placeholder="例：田中太郎"
-              required
-            />
-          </label>
-
-          <label>
-            初期パスワード
-            <input
-              type="text"
-              value={newEmployee.password}
-              onChange={(e) =>
-                setNewEmployee({
-                  ...newEmployee,
-                  password: e.target.value,
-                })
-              }
               required
             />
           </label>

@@ -9,7 +9,6 @@ from datetime import datetime, date, time
 class UserCreate(BaseModel):
     name: str
     email: str
-    password: str = "password"
     role: str = "employee"
     hourly_wage: int = 0
 
