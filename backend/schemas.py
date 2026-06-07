@@ -121,3 +121,14 @@ class OwnerDashboardWeekdayResponse(BaseModel):
     total_sales: int
     total_labor_cost: int
     labor_cost_rate: float
+
+class OwnerLoginRequest(BaseModel):
+    employee_number: str
+    password: str
+
+
+class OwnerLoginResponse(BaseModel):
+    id: int
+    name: str
+    employee_number: str
+    role: str
