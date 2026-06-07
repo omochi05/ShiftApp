@@ -168,6 +168,9 @@ function OwnerDashboard() {
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [week, setWeek] = useState(23);
 
+  const [printPaperSize, setPrintPaperSize] = useState("A4");
+  const [printOrientation, setPrintOrientation] = useState("landscape");
+
   const [weekStartDate, setWeekStartDate] = useState(getSundayOfCurrentWeek());
   const weekEndDate = addDays(weekStartDate, 6);
 
@@ -361,7 +364,26 @@ function OwnerDashboard() {
   };
 
   const handlePrintShiftTable = () => {
-    window.print();
+    const oldStyle = document.getElementById("dynamic-print-style");
+
+    if (oldStyle) {
+      oldStyle.remove();
+    }
+
+    const style = document.createElement("style");
+    style.id = "dynamic-print-style";
+    style.innerHTML = `
+      @page {
+        size: ${printPaperSize} ${printOrientation};
+        margin: 8mm;
+      }
+    `;
+
+    document.head.appendChild(style);
+
+    setTimeout(() => {
+      window.print();
+    }, 100);
   };
 
   const handleCreateSale = async (e: React.FormEvent) => {
@@ -1106,13 +1128,40 @@ function OwnerDashboard() {
           <button type="button" onClick={handleApplyTemplates}>
             この週にテンプレートを反映
           </button>
+        </div>
+
+        <div className="pdf-setting-panel print-hide">
+          <label>
+            用紙サイズ
+            <select
+              value={printPaperSize}
+              onChange={(e) => setPrintPaperSize(e.target.value)}
+            >
+              <option value="A4">A4</option>
+              <option value="A3">A3</option>
+              <option value="B5">B5</option>
+            </select>
+          </label>
+
+          <label>
+            向き
+            <select
+              value={printOrientation}
+              onChange={(e) => setPrintOrientation(e.target.value)}
+            >
+              <option value="landscape">横向き</option>
+              <option value="portrait">縦向き</option>
+            </select>
+          </label>
 
           <button type="button" onClick={handlePrintShiftTable}>
             PDF出力
           </button>
         </div>
 
-        {templateMessage && <p className="form-message print-hide">{templateMessage}</p>}
+        {templateMessage && (
+          <p className="form-message print-hide">{templateMessage}</p>
+        )}
       </section>
     </div>
   );
