@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, type MouseEvent } from "react";
 import "./ShiftTimeline.css";
 
 export type ShiftItem = {
@@ -33,10 +33,15 @@ const MAX_LANES = 3;
 const LANE_HEIGHT = 38;
 const ROW_BASE_PADDING = 8;
 
+function isPlaceholderShift(shift: ShiftItem) {
+  return shift.user_id === 0 || shift.id < 0;
+}
+
 function normalizeTime(time?: string) {
   if (!time || typeof time !== "string") {
     return "00:00";
   }
+
   return time.slice(0, 5);
 }
 
@@ -62,6 +67,7 @@ function getShiftRange(start?: string, end?: string) {
   const startPos = timeToPosition(start);
   let endPos = timeToPosition(end);
 
+  // 日跨ぎ対応
   if (endPos <= startPos) {
     endPos += 24;
   }
@@ -82,7 +88,9 @@ function groupByDate(shifts: ShiftItem[]) {
   const map: Record<string, ShiftItem[]> = {};
 
   for (const shift of shifts) {
-    if (!shift.work_date) continue;
+    if (!shift.work_date) {
+      continue;
+    }
 
     if (!map[shift.work_date]) {
       map[shift.work_date] = [];
@@ -109,10 +117,17 @@ function formatDateLabel(dateStr: string) {
 }
 
 function layoutShiftsForDay(dayShifts: ShiftItem[]) {
-  const sorted = [...dayShifts].sort((a, b) => {
+  const realShifts = dayShifts.filter((shift) => !isPlaceholderShift(shift));
+
+  const sorted = [...realShifts].sort((a, b) => {
     const aStart = getShiftRange(a.start_time, a.end_time).startPos;
     const bStart = getShiftRange(b.start_time, b.end_time).startPos;
-    return aStart - bStart;
+
+    if (aStart !== bStart) {
+      return aStart - bStart;
+    }
+
+    return a.id - b.id;
   });
 
   const laneEndTimes = Array(MAX_LANES).fill(-1);
@@ -156,6 +171,13 @@ export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
   const grouped = groupByDate(safeShifts);
   const dates = Object.keys(grouped).sort();
 
+  const cancelLongPress = () => {
+    if (longPressTimerRef.current !== null) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
   const startLongPress = (shiftId: number) => {
     cancelLongPress();
 
@@ -166,15 +188,8 @@ export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
     }, 700);
   };
 
-  const cancelLongPress = () => {
-    if (longPressTimerRef.current !== null) {
-      window.clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  };
-
   const handleRightClickDelete = (
-    e: React.MouseEvent<HTMLDivElement>,
+    e: MouseEvent<HTMLDivElement>,
     shiftId: number
   ) => {
     e.preventDefault();
@@ -204,7 +219,8 @@ export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
 
       {dates.map((date) => {
         const dayShifts = grouped[date];
-        const { visible, hiddenCount, rowHeight } = layoutShiftsForDay(dayShifts);
+        const { visible, hiddenCount, rowHeight } =
+          layoutShiftsForDay(dayShifts);
 
         return (
           <div className="timeline-row" key={date}>

@@ -129,4 +129,16 @@
     font-size: 11px;
   }
 }
-
+.timeline-overflow-badge {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 3;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #1e293b;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: bold;
+  border: 1px solid #475569;
+}
