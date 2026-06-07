@@ -79,6 +79,30 @@ function getTodayText() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function timeToMinutes(time: string) {
+  const [hourText, minuteText] = time.slice(0, 5).split(":");
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+
+  if (Number.isNaN(hour) || Number.isNaN(minute)) {
+    return 0;
+  }
+
+  return hour * 60 + minute;
+}
+
+function getShiftDurationMinutes(shift: Shift) {
+  let start = timeToMinutes(shift.start_time);
+  let end = timeToMinutes(shift.end_time);
+
+  // 日跨ぎ対応
+  if (end <= start) {
+    end += 24 * 60;
+  }
+
+  return end - start;
+}
+
 function OwnerDashboard() {
   const now = new Date();
 
@@ -89,8 +113,10 @@ function OwnerDashboard() {
   const [dashboard, setDashboard] = useState<OwnerDashboardMonthly | null>(
     null
   );
+
   const [weeklyDashboard, setWeeklyDashboard] =
     useState<OwnerWeeklyDashboard | null>(null);
+
   const [weekdayDashboard, setWeekdayDashboard] = useState<
     OwnerWeekdayDashboard[]
   >([]);
@@ -132,7 +158,33 @@ function OwnerDashboard() {
 
   const employeeUsers = users.filter((user) => user.role === "employee");
 
-  const timelineShifts: ShiftForTimeline[] = shifts.map((shift) => {
+  // 同じ日付・同じ従業員のシフトは1つだけ表示する
+  // すでに重複データがDBに残っている場合でも、画面上では重複表示しない
+  const uniqueShifts = Array.from(
+    shifts
+      .reduce((map, shift) => {
+        const key = `${shift.work_date}-${shift.user_id}`;
+        const existing = map.get(key);
+
+        if (!existing) {
+          map.set(key, shift);
+          return map;
+        }
+
+        // 重複がある場合は、勤務時間が長い方を表示する
+        const existingDuration = getShiftDurationMinutes(existing);
+        const currentDuration = getShiftDurationMinutes(shift);
+
+        if (currentDuration > existingDuration) {
+          map.set(key, shift);
+        }
+
+        return map;
+      }, new Map<string, Shift>())
+      .values()
+  );
+
+  const timelineShifts: ShiftForTimeline[] = uniqueShifts.map((shift) => {
     const user = users.find((u) => u.id === shift.user_id);
 
     return {
@@ -262,6 +314,18 @@ function OwnerDashboard() {
       return;
     }
 
+    // 同じ日付・同じ従業員の重複登録を防ぐ
+    const alreadyExists = shifts.some(
+      (shift) =>
+        shift.user_id === Number(shiftForm.user_id) &&
+        shift.work_date === shiftForm.work_date
+    );
+
+    if (alreadyExists) {
+      setShiftMessage("この従業員は同じ日にすでにシフトが登録されています");
+      return;
+    }
+
     try {
       setShiftMessage("");
 
@@ -290,6 +354,53 @@ function OwnerDashboard() {
     } catch (error) {
       console.error("シフト作成失敗:", error);
       setShiftMessage("シフト作成に失敗しました");
+    }
+  };
+
+  const handleDeleteShift = async (shiftId: number) => {
+    const targetShift = shifts.find((shift) => shift.id === shiftId);
+
+    if (!targetShift) {
+      setShiftMessage("削除対象のシフトが見つかりません");
+      return;
+    }
+
+    const sameUserSameDateShifts = shifts.filter(
+      (shift) =>
+        shift.user_id === targetShift.user_id &&
+        shift.work_date === targetShift.work_date
+    );
+
+    const targetUser = users.find((user) => user.id === targetShift.user_id);
+    const userName = targetUser?.name ?? `従業員${targetShift.user_id}`;
+
+    const confirmMessage =
+      sameUserSameDateShifts.length > 1
+        ? `${userName}の${targetShift.work_date}の重複シフトをまとめて削除しますか？`
+        : `${userName}の${targetShift.work_date}のシフトを削除しますか？`;
+
+    const ok = window.confirm(confirmMessage);
+
+    if (!ok) {
+      return;
+    }
+
+    try {
+      setShiftMessage("");
+
+      await Promise.all(
+        sameUserSameDateShifts.map((shift) => api.delete(`/shifts/${shift.id}`))
+      );
+
+      setShiftMessage("シフトを削除しました");
+
+      await fetchShifts();
+      await fetchDashboard();
+      await fetchWeeklyDashboard();
+      await fetchWeekdayDashboard();
+    } catch (error) {
+      console.error("シフト削除失敗:", error);
+      setShiftMessage("シフト削除に失敗しました");
     }
   };
 
@@ -748,9 +859,15 @@ function OwnerDashboard() {
 
       <section className="owner-section">
         <h2>シフト表</h2>
+        <p className="form-message">
+          PCはシフトを右クリック、スマホは長押しで削除できます。
+        </p>
 
         <div className="timeline-wrap">
-          <ShiftTimeline shifts={timelineShifts} />
+          <ShiftTimeline
+            shifts={timelineShifts}
+            onDeleteShift={handleDeleteShift}
+          />
         </div>
       </section>
     </div>
@@ -758,4 +875,3 @@ function OwnerDashboard() {
 }
 
 export default OwnerDashboard;
-

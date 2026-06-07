@@ -1,13 +1,14 @@
-from typing import List
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from database import get_db
-from models import Shift
-from schemas import ShiftResponse
-from schemas import ShiftResponse, ShiftCreate
-from typing import List
 import calendar
 from datetime import date
+from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from database import get_db
+from models import Shift
+from schemas import ShiftCreate, ShiftResponse
+
 
 router = APIRouter(
     prefix="/shifts",
@@ -17,8 +18,14 @@ router = APIRouter(
 
 @router.get("/", response_model=List[ShiftResponse])
 def get_shifts(db: Session = Depends(get_db)):
-    shifts = db.query(Shift).all()
+    shifts = (
+        db.query(Shift)
+        .order_by(Shift.work_date, Shift.start_time, Shift.user_id)
+        .all()
+    )
+
     return shifts
+
 
 @router.post("/", response_model=ShiftResponse)
 def create_shift(shift: ShiftCreate, db: Session = Depends(get_db)):
@@ -36,6 +43,30 @@ def create_shift(shift: ShiftCreate, db: Session = Depends(get_db)):
     db.refresh(new_shift)
 
     return new_shift
+
+
+@router.delete("/{shift_id}")
+def delete_shift(
+    shift_id: int,
+    db: Session = Depends(get_db)
+):
+    shift = db.query(Shift).filter(Shift.id == shift_id).first()
+
+    if shift is None:
+        raise HTTPException(
+            status_code=404,
+            detail="シフトが見つかりません"
+        )
+
+    db.delete(shift)
+    db.commit()
+
+    return {
+        "message": "シフトを削除しました",
+        "shift_id": shift_id
+    }
+
+
 @router.get("/user/{user_id}", response_model=List[ShiftResponse])
 def get_shifts_by_user(user_id: int, db: Session = Depends(get_db)):
     shifts = (
@@ -44,7 +75,9 @@ def get_shifts_by_user(user_id: int, db: Session = Depends(get_db)):
         .order_by(Shift.work_date, Shift.start_time)
         .all()
     )
+
     return shifts
+
 
 @router.get("/user/{user_id}/month", response_model=List[ShiftResponse])
 def get_shifts_by_user_and_month(

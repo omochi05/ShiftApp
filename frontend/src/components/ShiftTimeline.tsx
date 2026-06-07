@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import "./ShiftTimeline.css";
 
 export type ShiftItem = {
@@ -13,6 +14,7 @@ export type ShiftItem = {
 
 type Props = {
   shifts: ShiftItem[];
+  onDeleteShift?: (shiftId: number) => void;
 };
 
 const HOURS = [
@@ -94,10 +96,40 @@ function formatDateLabel(dateStr: string) {
   return `${month}/${date}（${weekday}）`;
 }
 
-export default function ShiftTimeline({ shifts }: Props) {
+export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
+  const longPressTimerRef = useRef<number | null>(null);
+
   const safeShifts = Array.isArray(shifts) ? shifts : [];
   const grouped = groupByDate(safeShifts);
   const dates = Object.keys(grouped).sort();
+
+  const startLongPress = (shiftId: number) => {
+    cancelLongPress();
+
+    longPressTimerRef.current = window.setTimeout(() => {
+      if (onDeleteShift) {
+        onDeleteShift(shiftId);
+      }
+    }, 700);
+  };
+
+  const cancelLongPress = () => {
+    if (longPressTimerRef.current !== null) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  const handleRightClickDelete = (
+    e: React.MouseEvent<HTMLDivElement>,
+    shiftId: number
+  ) => {
+    e.preventDefault();
+
+    if (onDeleteShift) {
+      onDeleteShift(shiftId);
+    }
+  };
 
   if (dates.length === 0) {
     return <p className="timeline-empty">シフトはありません</p>;
@@ -151,6 +183,14 @@ export default function ShiftTimeline({ shifts }: Props) {
                         ...style,
                         top: `${index * 38 + 6}px`,
                       }}
+                      title="PC: 右クリックで削除 / スマホ: 長押しで削除"
+                      onContextMenu={(e) =>
+                        handleRightClickDelete(e, shift.id)
+                      }
+                      onTouchStart={() => startLongPress(shift.id)}
+                      onTouchEnd={cancelLongPress}
+                      onTouchMove={cancelLongPress}
+                      onTouchCancel={cancelLongPress}
                     >
                       <span className="timeline-shift-text">
                         {shift.user_name ?? `従業員${shift.user_id}`}{" "}
