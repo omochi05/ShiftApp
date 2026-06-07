@@ -1,0 +1,62 @@
+.shift-print-page {
+  min-height: 100vh;
+  padding: 24px;
+  background: #0b1120;
+  color: #ffffff;
+}
+
+.print-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.print-toolbar h1 {
+  margin: 0;
+}
+
+.print-toolbar p {
+  margin: 8px 0 0;
+  color: #cbd5e1;
+}
+
+.print-toolbar button {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  background: #2563eb;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.print-sheet {
+  background: #ffffff;
+  color: #111827;
+  padding: 24px;
+  border-radius: 12px;
+  min-height: 500px;
+}
+
+@media print {
+  body {
+    background: #ffffff;
+  }
+
+  .print-toolbar {
+    display: none;
+  }
+
+  .shift-print-page {
+    padding: 0;
+    background: #ffffff;
+    color: #000000;
+  }
+
+  .print-sheet {
+    border-radius: 0;
+    padding: 0;
+  }
+}

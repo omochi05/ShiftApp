@@ -1,6 +1,7 @@
 import { HashRouter, Routes, Route, Link, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import OwnerDashboard from "./pages/OwnerDashboard";
+import ShiftPrintPage from "./pages/ShiftPrintPage";
 import "./App.css";
 
 function App() {
@@ -12,14 +13,17 @@ function App() {
             ログイン
           </Link>
 
-          <Link to="/owner">オーナー</Link>
+          <Link to="/owner" style={{ marginRight: "16px" }}>
+            オーナー
+          </Link>
+
+          <Link to="/print/shifts">シフト表印刷</Link>
         </nav>
 
         <Routes>
           <Route path="/" element={<LoginPage />} />
           <Route path="/owner" element={<OwnerDashboard />} />
-
-          {/* 存在しないURLはオーナー画面へ */}
+          <Route path="/print/shifts" element={<ShiftPrintPage />} />
           <Route path="*" element={<Navigate to="/owner" replace />} />
         </Routes>
       </div>
