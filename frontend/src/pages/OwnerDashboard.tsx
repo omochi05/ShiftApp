@@ -276,18 +276,18 @@ function OwnerDashboard() {
   ];
 
   const fetchUsers = async () => {
-    const res = await api.get<User[]>("/users/");
-    setUsers(res.data);
+  const res = await api.get<User[]>("/users/");
+  setUsers(res.data);
 
-    const employees = res.data.filter((user) => user.role === "employee");
+  const employees = res.data.filter((user) => user.role === "employee");
 
-    if (employees.length > 0) {
-      setShiftForm((prev) => ({
-        ...prev,
-        user_id: prev.user_id === 0 ? employees[0].id : prev.user_id,
-      }));
-    }
-  };
+  if (employees.length > 0) {
+    setShiftForm((prev) => ({
+      ...prev,
+      user_id: prev.user_id === 0 ? employees[0].id : prev.user_id,
+    }));
+  }
+};
 
   const fetchShifts = async () => {
     const res = await api.get<Shift[]>("/shifts/");
