@@ -12,7 +12,7 @@ app.add_middleware(
         "https://shift-app-r7j1-git-main-omochi05s-projects.vercel.app",
         "https://shift-app-r7j1-6njpnj56h-omochi05s-projects.vercel.app",
     ],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
