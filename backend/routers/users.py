@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -71,16 +72,41 @@ def delete_user(
         )
 
     try:
-        # 勤務者として登録されているシフトを削除
+        # 1. このユーザーに関係するシフトIDを取得
+        target_shift_ids = [
+            row[0]
+            for row in db.execute(
+                text("""
+                    SELECT id
+                    FROM shifts
+                    WHERE user_id = :user_id
+                       OR created_by = :user_id
+                """),
+                {"user_id": user_id}
+            ).fetchall()
+        ]
+
+        # 2. シフトに紐づく通知を先に削除
+        if target_shift_ids:
+            db.execute(
+                text("""
+                    DELETE FROM notifications
+                    WHERE related_shift_id = ANY(:shift_ids)
+                """),
+                {"shift_ids": target_shift_ids}
+            )
+
+        # 3. 勤務者として登録されているシフトを削除
         db.query(Shift).filter(Shift.user_id == user_id).delete(
             synchronize_session=False
         )
 
-        # 作成者として紐づいているシフトも削除
+        # 4. 作成者として紐づいているシフトも削除
         db.query(Shift).filter(Shift.created_by == user_id).delete(
             synchronize_session=False
         )
 
+        # 5. 最後にユーザーを削除
         db.delete(user)
         db.commit()
 
