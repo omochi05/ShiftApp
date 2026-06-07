@@ -106,6 +106,31 @@ function getTodayText() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function getSundayOfCurrentWeek() {
+  const now = new Date();
+  const day = now.getDay();
+  const sunday = new Date(now);
+
+  sunday.setDate(now.getDate() - day);
+
+  const yyyy = sunday.getFullYear();
+  const mm = String(sunday.getMonth() + 1).padStart(2, "0");
+  const dd = String(sunday.getDate()).padStart(2, "0");
+
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function addDays(dateText: string, days: number) {
+  const date = new Date(`${dateText}T00:00:00`);
+  date.setDate(date.getDate() + days);
+
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 function timeToMinutes(time: string) {
   const [hourText, minuteText] = time.slice(0, 5).split(":");
   const hour = Number(hourText);
@@ -147,27 +172,6 @@ function formatApiError(error: any, fallbackMessage: string) {
   return `${fallbackMessage}：APIに接続できませんでした`;
 }
 
-function getSundayFromISOWeek(year: number, week: number) {
-  const simple = new Date(year, 0, 1 + (week - 1) * 7);
-  const dayOfWeek = simple.getDay();
-  const isoMonday = new Date(simple);
-
-  if (dayOfWeek <= 4) {
-    isoMonday.setDate(simple.getDate() - simple.getDay() + 1);
-  } else {
-    isoMonday.setDate(simple.getDate() + 8 - simple.getDay());
-  }
-
-  const sunday = new Date(isoMonday);
-  sunday.setDate(isoMonday.getDate() - 1);
-
-  const yyyy = sunday.getFullYear();
-  const mm = String(sunday.getMonth() + 1).padStart(2, "0");
-  const dd = String(sunday.getDate()).padStart(2, "0");
-
-  return `${yyyy}-${mm}-${dd}`;
-}
-
 function OwnerDashboard() {
   const now = new Date();
 
@@ -175,11 +179,16 @@ function OwnerDashboard() {
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [week, setWeek] = useState(23);
 
+  const [weekStartDate, setWeekStartDate] = useState(getSundayOfCurrentWeek());
+  const weekEndDate = addDays(weekStartDate, 6);
+
   const [dashboard, setDashboard] = useState<OwnerDashboardMonthly | null>(
     null
   );
+
   const [weeklyDashboard, setWeeklyDashboard] =
     useState<OwnerWeeklyDashboard | null>(null);
+
   const [weekdayDashboard, setWeekdayDashboard] = useState<
     OwnerWeekdayDashboard[]
   >([]);
@@ -263,6 +272,11 @@ function OwnerDashboard() {
     };
   });
 
+  const weeklyTimelineShifts = timelineShifts.filter(
+    (shift) =>
+      shift.work_date >= weekStartDate && shift.work_date <= weekEndDate
+  );
+
   const fetchUsers = async () => {
     const res = await api.get<User[]>("/users/");
     setUsers(res.data);
@@ -328,13 +342,14 @@ function OwnerDashboard() {
       setLoading(true);
       setErrorMessage("");
 
-     await Promise.all([
-      fetchUsers(),
-      fetchShifts(),
-      fetchDashboard(),
-      fetchWeeklyDashboard(),
-      fetchWeekdayDashboard(),
-    ]);
+      await Promise.all([
+        fetchUsers(),
+        fetchShifts(),
+        fetchShiftTemplates(),
+        fetchDashboard(),
+        fetchWeeklyDashboard(),
+        fetchWeekdayDashboard(),
+      ]);
     } catch (error) {
       console.error("データ取得失敗:", error);
       setErrorMessage(
@@ -349,6 +364,14 @@ function OwnerDashboard() {
     loadAllData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year, month, week]);
+
+  const handlePrevWeek = () => {
+    setWeekStartDate((prev) => addDays(prev, -7));
+  };
+
+  const handleNextWeek = () => {
+    setWeekStartDate((prev) => addDays(prev, 7));
+  };
 
   const handleCreateSale = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -512,9 +535,9 @@ function OwnerDashboard() {
     }
   };
 
-  const handleApplyTemplates = async () => {
+  const handleCreateTemplateFromWeek = async () => {
     const ok = window.confirm(
-      `${year}年 第${week}週にテンプレートを適用しますか？\n既に同じ日のシフトがある従業員はスキップされます。`
+      `${weekStartDate}〜${weekEndDate} のシフトを固定テンプレート化しますか？\n既存テンプレートは上書きされます。`
     );
 
     if (!ok) {
@@ -524,7 +547,35 @@ function OwnerDashboard() {
     try {
       setTemplateMessage("");
 
-      const weekStartDate = getSundayFromISOWeek(year, week);
+      const res = await api.post<ShiftTemplate[]>("/shift-templates/from-week", {
+        week_start_date: weekStartDate,
+        created_by: Number(ownerId),
+      });
+
+      setTemplateMessage(
+        `この週をテンプレート化しました。作成件数：${res.data.length}件`
+      );
+
+      await fetchShiftTemplates();
+    } catch (error: any) {
+      console.error("週テンプレート化失敗:", error);
+      console.error("レスポンス:", error.response?.data);
+
+      setTemplateMessage(formatApiError(error, "週テンプレート化に失敗しました"));
+    }
+  };
+
+  const handleApplyTemplates = async () => {
+    const ok = window.confirm(
+      `${weekStartDate}〜${weekEndDate} にテンプレートを反映しますか？\n既に同じ日のシフトがある従業員はスキップされます。`
+    );
+
+    if (!ok) {
+      return;
+    }
+
+    try {
+      setTemplateMessage("");
 
       const res = await api.post<Shift[]>("/shift-templates/apply", {
         week_start_date: weekStartDate,
@@ -532,7 +583,7 @@ function OwnerDashboard() {
       });
 
       setTemplateMessage(
-        `テンプレートを適用しました。作成件数：${res.data.length}件`
+        `テンプレートを反映しました。作成件数：${res.data.length}件`
       );
 
       await fetchShifts();
@@ -540,10 +591,10 @@ function OwnerDashboard() {
       await fetchWeeklyDashboard();
       await fetchWeekdayDashboard();
     } catch (error: any) {
-      console.error("テンプレート適用失敗:", error);
+      console.error("テンプレート反映失敗:", error);
       console.error("レスポンス:", error.response?.data);
 
-      setTemplateMessage(formatApiError(error, "テンプレート適用に失敗しました"));
+      setTemplateMessage(formatApiError(error, "テンプレート反映に失敗しました"));
     }
   };
 
@@ -1110,7 +1161,7 @@ function OwnerDashboard() {
       </section>
 
       <section className="owner-section">
-        <h2>曜日別テンプレート作成</h2>
+        <h2>固定シフトテンプレート作成</h2>
 
         <form className="owner-form" onSubmit={handleCreateTemplate}>
           <label>
@@ -1215,14 +1266,6 @@ function OwnerDashboard() {
           <button type="submit">テンプレートを作成</button>
         </form>
 
-        <button
-          type="button"
-          className="owner-secondary-button"
-          onClick={handleApplyTemplates}
-        >
-          この週にテンプレートを適用
-        </button>
-
         {templateMessage && <p className="form-message">{templateMessage}</p>}
 
         <div className="weekday-table-wrap">
@@ -1278,14 +1321,40 @@ function OwnerDashboard() {
       </section>
 
       <section className="owner-section">
-        <h2>シフト表</h2>
+        <div className="shift-week-header">
+          <div>
+            <h2>シフト表</h2>
+            <p className="form-message">
+              {weekStartDate} 〜 {weekEndDate}
+            </p>
+          </div>
+
+          <div className="shift-week-actions">
+            <button type="button" onClick={handlePrevWeek}>
+              前の週
+            </button>
+
+            <button type="button" onClick={handleNextWeek}>
+              次の週
+            </button>
+
+            <button type="button" onClick={handleCreateTemplateFromWeek}>
+              この週をテンプレート化
+            </button>
+
+            <button type="button" onClick={handleApplyTemplates}>
+              この週にテンプレートを反映
+            </button>
+          </div>
+        </div>
+
         <p className="form-message">
           PCはシフトを右クリック、スマホは長押しで削除できます。
         </p>
 
         <div className="timeline-wrap">
           <ShiftTimeline
-            shifts={timelineShifts}
+            shifts={weeklyTimelineShifts}
             onDeleteShift={handleDeleteShift}
           />
         </div>
