@@ -76,6 +76,27 @@ type NewEmployee = {
   hourly_wage: string;
 };
 
+type ShiftTemplate = {
+  id: number;
+  weekday: number;
+  user_id: number;
+  start_time: string;
+  end_time: string;
+  break_minutes: number;
+  created_by?: number | null;
+};
+
+type TemplateCreate = {
+  weekday: number;
+  user_id: number;
+  start_time: string;
+  end_time: string;
+  break_minutes: string;
+  created_by: number;
+};
+
+const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
+
 function getTodayText() {
   const now = new Date();
   const yyyy = now.getFullYear();
@@ -126,6 +147,27 @@ function formatApiError(error: any, fallbackMessage: string) {
   return `${fallbackMessage}：APIに接続できませんでした`;
 }
 
+function getSundayFromISOWeek(year: number, week: number) {
+  const simple = new Date(year, 0, 1 + (week - 1) * 7);
+  const dayOfWeek = simple.getDay();
+  const isoMonday = new Date(simple);
+
+  if (dayOfWeek <= 4) {
+    isoMonday.setDate(simple.getDate() - simple.getDay() + 1);
+  } else {
+    isoMonday.setDate(simple.getDate() + 8 - simple.getDay());
+  }
+
+  const sunday = new Date(isoMonday);
+  sunday.setDate(isoMonday.getDate() - 1);
+
+  const yyyy = sunday.getFullYear();
+  const mm = String(sunday.getMonth() + 1).padStart(2, "0");
+  const dd = String(sunday.getDate()).padStart(2, "0");
+
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 function OwnerDashboard() {
   const now = new Date();
 
@@ -144,6 +186,7 @@ function OwnerDashboard() {
 
   const [users, setUsers] = useState<User[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
+  const [shiftTemplates, setShiftTemplates] = useState<ShiftTemplate[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -166,6 +209,15 @@ function OwnerDashboard() {
     created_by: ownerId,
   });
 
+  const [templateForm, setTemplateForm] = useState<TemplateCreate>({
+    weekday: 1,
+    user_id: 0,
+    start_time: "17:00",
+    end_time: "22:00",
+    break_minutes: "",
+    created_by: ownerId,
+  });
+
   const [newEmployee, setNewEmployee] = useState<NewEmployee>({
     employee_number: "",
     name: "",
@@ -175,6 +227,7 @@ function OwnerDashboard() {
   const [saleMessage, setSaleMessage] = useState("");
   const [shiftMessage, setShiftMessage] = useState("");
   const [employeeMessage, setEmployeeMessage] = useState("");
+  const [templateMessage, setTemplateMessage] = useState("");
 
   const employeeUsers = users.filter((user) => user.role === "employee");
 
@@ -221,12 +274,22 @@ function OwnerDashboard() {
         ...prev,
         user_id: prev.user_id === 0 ? employees[0].id : prev.user_id,
       }));
+
+      setTemplateForm((prev) => ({
+        ...prev,
+        user_id: prev.user_id === 0 ? employees[0].id : prev.user_id,
+      }));
     }
   };
 
   const fetchShifts = async () => {
     const res = await api.get<Shift[]>("/shifts/");
     setShifts(res.data);
+  };
+
+  const fetchShiftTemplates = async () => {
+    const res = await api.get<ShiftTemplate[]>("/shift-templates/");
+    setShiftTemplates(res.data);
   };
 
   const fetchDashboard = async () => {
@@ -268,6 +331,7 @@ function OwnerDashboard() {
       await Promise.all([
         fetchUsers(),
         fetchShifts(),
+        fetchShiftTemplates(),
         fetchDashboard(),
         fetchWeeklyDashboard(),
         fetchWeekdayDashboard(),
@@ -370,6 +434,117 @@ function OwnerDashboard() {
     } catch (error) {
       console.error("シフト作成失敗:", error);
       setShiftMessage("シフト作成に失敗しました");
+    }
+  };
+
+  const handleCreateTemplate = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (Number(templateForm.user_id) === 0) {
+      setTemplateMessage("従業員を先に登録してください");
+      return;
+    }
+
+    try {
+      setTemplateMessage("");
+
+      await api.post("/shift-templates/", {
+        weekday: Number(templateForm.weekday),
+        user_id: Number(templateForm.user_id),
+        start_time: templateForm.start_time,
+        end_time: templateForm.end_time,
+        break_minutes: Number(templateForm.break_minutes || 0),
+        created_by: Number(ownerId),
+      });
+
+      setTemplateMessage("テンプレートを作成しました");
+
+      setTemplateForm((prev) => ({
+        ...prev,
+        start_time: "17:00",
+        end_time: "22:00",
+        break_minutes: "",
+      }));
+
+      await fetchShiftTemplates();
+    } catch (error: any) {
+      console.error("テンプレート作成失敗:", error);
+      console.error("レスポンス:", error.response?.data);
+
+      setTemplateMessage(formatApiError(error, "テンプレート作成に失敗しました"));
+    }
+  };
+
+  const handleDeleteTemplate = async (templateId: number) => {
+    const target = shiftTemplates.find((template) => template.id === templateId);
+
+    if (!target) {
+      setTemplateMessage("削除対象のテンプレートが見つかりません");
+      return;
+    }
+
+    const user = users.find((u) => u.id === target.user_id);
+    const userName = user?.name ?? `従業員${target.user_id}`;
+
+    const ok = window.confirm(
+      `${WEEKDAY_LABELS[target.weekday]}曜 ${userName} ${target.start_time.slice(
+        0,
+        5
+      )}〜${target.end_time.slice(0, 5)} のテンプレートを削除しますか？`
+    );
+
+    if (!ok) {
+      return;
+    }
+
+    try {
+      setTemplateMessage("");
+
+      await api.delete(`/shift-templates/${templateId}`);
+
+      setTemplateMessage("テンプレートを削除しました");
+
+      await fetchShiftTemplates();
+    } catch (error: any) {
+      console.error("テンプレート削除失敗:", error);
+      console.error("レスポンス:", error.response?.data);
+
+      setTemplateMessage(formatApiError(error, "テンプレート削除に失敗しました"));
+    }
+  };
+
+  const handleApplyTemplates = async () => {
+    const ok = window.confirm(
+      `${year}年 第${week}週にテンプレートを適用しますか？\n既に同じ日のシフトがある従業員はスキップされます。`
+    );
+
+    if (!ok) {
+      return;
+    }
+
+    try {
+      setTemplateMessage("");
+
+      const weekStartDate = getSundayFromISOWeek(year, week);
+
+      const res = await api.post<Shift[]>("/shift-templates/apply", {
+        week_start_date: weekStartDate,
+        created_by: Number(ownerId),
+      });
+
+      setTemplateMessage(
+        `テンプレートを適用しました。作成件数：${res.data.length}件`
+      );
+
+      await fetchShifts();
+      await fetchDashboard();
+      await fetchWeeklyDashboard();
+      await fetchWeekdayDashboard();
+    } catch (error: any) {
+      console.error("テンプレート適用失敗:", error);
+      console.error("レスポンス:", error.response?.data);
+
+      setTemplateMessage(formatApiError(error, "テンプレート適用に失敗しました"));
     }
   };
 
@@ -476,6 +651,7 @@ function OwnerDashboard() {
 
       await fetchUsers();
       await fetchShifts();
+      await fetchShiftTemplates();
       await fetchDashboard();
       await fetchWeeklyDashboard();
       await fetchWeekdayDashboard();
@@ -932,6 +1108,174 @@ function OwnerDashboard() {
         </form>
 
         {shiftMessage && <p className="form-message">{shiftMessage}</p>}
+      </section>
+
+      <section className="owner-section">
+        <h2>曜日別テンプレート作成</h2>
+
+        <form className="owner-form" onSubmit={handleCreateTemplate}>
+          <label>
+            曜日
+            <select
+              value={templateForm.weekday}
+              onChange={(e) =>
+                setTemplateForm({
+                  ...templateForm,
+                  weekday: Number(e.target.value),
+                })
+              }
+              required
+            >
+              {WEEKDAY_LABELS.map((label, index) => (
+                <option key={label} value={index}>
+                  {label}曜日
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            従業員
+            <select
+              value={templateForm.user_id}
+              onChange={(e) =>
+                setTemplateForm({
+                  ...templateForm,
+                  user_id: Number(e.target.value),
+                })
+              }
+              required
+            >
+              {employeeUsers.length === 0 && (
+                <option value={0}>従業員を先に登録してください</option>
+              )}
+
+              {employeeUsers.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name}（{user.email}）
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            開始
+            <input
+              type="time"
+              value={templateForm.start_time}
+              onChange={(e) =>
+                setTemplateForm({
+                  ...templateForm,
+                  start_time: e.target.value,
+                })
+              }
+              required
+            />
+          </label>
+
+          <label>
+            終了
+            <input
+              type="time"
+              value={templateForm.end_time}
+              onChange={(e) =>
+                setTemplateForm({
+                  ...templateForm,
+                  end_time: e.target.value,
+                })
+              }
+              required
+            />
+          </label>
+
+          <label>
+            休憩時間（分）
+            <input
+              type="number"
+              value={templateForm.break_minutes}
+              onFocus={() => {
+                if (templateForm.break_minutes === "0") {
+                  setTemplateForm({
+                    ...templateForm,
+                    break_minutes: "",
+                  });
+                }
+              }}
+              onChange={(e) =>
+                setTemplateForm({
+                  ...templateForm,
+                  break_minutes: e.target.value,
+                })
+              }
+              min="0"
+              placeholder="例：60"
+              required
+            />
+          </label>
+
+          <button type="submit">テンプレートを作成</button>
+        </form>
+
+        <button
+          type="button"
+          className="owner-secondary-button"
+          onClick={handleApplyTemplates}
+        >
+          この週にテンプレートを適用
+        </button>
+
+        {templateMessage && <p className="form-message">{templateMessage}</p>}
+
+        <div className="weekday-table-wrap">
+          <table className="weekday-table">
+            <thead>
+              <tr>
+                <th>曜日</th>
+                <th>従業員</th>
+                <th>時間</th>
+                <th>休憩</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {shiftTemplates.map((template) => {
+                const user = users.find((u) => u.id === template.user_id);
+
+                return (
+                  <tr key={template.id}>
+                    <td>{WEEKDAY_LABELS[template.weekday]}</td>
+                    <td>
+                      {user
+                        ? `${user.name}（${user.email}）`
+                        : `従業員${template.user_id}`}
+                    </td>
+                    <td>
+                      {template.start_time.slice(0, 5)}〜
+                      {template.end_time.slice(0, 5)}
+                    </td>
+                    <td>{template.break_minutes}分</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="table-delete-button"
+                        onClick={() => handleDeleteTemplate(template.id)}
+                      >
+                        削除
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+
+              {shiftTemplates.length === 0 && (
+                <tr>
+                  <td colSpan={5}>テンプレートはまだありません</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section className="owner-section">
