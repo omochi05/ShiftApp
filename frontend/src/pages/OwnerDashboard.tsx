@@ -95,16 +95,18 @@ function getTodayText() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function getSundayOfCurrentWeek() {
+function getMondayOfCurrentWeek() {
   const now = new Date();
-  const day = now.getDay();
-  const sunday = new Date(now);
+  const day = now.getDay(); // 日=0, 月=1, 火=2...
+  const monday = new Date(now);
 
-  sunday.setDate(now.getDate() - day);
+  // 月曜始まり。日曜の場合は前の月曜へ戻す
+  const diff = day === 0 ? -6 : 1 - day;
+  monday.setDate(now.getDate() + diff);
 
-  const yyyy = sunday.getFullYear();
-  const mm = String(sunday.getMonth() + 1).padStart(2, "0");
-  const dd = String(sunday.getDate()).padStart(2, "0");
+  const yyyy = monday.getFullYear();
+  const mm = String(monday.getMonth() + 1).padStart(2, "0");
+  const dd = String(monday.getDate()).padStart(2, "0");
 
   return `${yyyy}-${mm}-${dd}`;
 }
@@ -136,6 +138,7 @@ function getShiftDurationMinutes(shift: Shift) {
   let start = timeToMinutes(shift.start_time);
   let end = timeToMinutes(shift.end_time);
 
+  // 日跨ぎ対応
   if (end <= start) {
     end += 24 * 60;
   }
@@ -168,11 +171,13 @@ function OwnerDashboard() {
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [week, setWeek] = useState(23);
 
+  // PDF設定
   const [printPaperSize, setPrintPaperSize] = useState("A4");
   const [printOrientation, setPrintOrientation] = useState("landscape");
   const [printScale, setPrintScale] = useState("fit");
 
-  const [weekStartDate, setWeekStartDate] = useState(getSundayOfCurrentWeek());
+  // 月曜始まり。表示順は 月 → 火 → 水 → 木 → 金 → 土 → 日
+  const [weekStartDate, setWeekStartDate] = useState(getMondayOfCurrentWeek());
   const weekEndDate = addDays(weekStartDate, 6);
 
   const [dashboard, setDashboard] = useState<OwnerDashboardMonthly | null>(
@@ -264,6 +269,7 @@ function OwnerDashboard() {
       shift.work_date >= weekStartDate && shift.work_date <= weekEndDate
   );
 
+  // シフトがない日も日付行だけ表示するための空データ
   const emptyWeekRows: ShiftForTimeline[] = weekDates.map((date, index) => ({
     id: -1000 - index,
     user_id: 0,
@@ -365,38 +371,35 @@ function OwnerDashboard() {
   };
 
   const handlePrintShiftTable = () => {
-  const oldStyle = document.getElementById("dynamic-print-style");
+    const oldStyle = document.getElementById("dynamic-print-style");
 
-  if (oldStyle) {
-    oldStyle.remove();
-  }
-
-  const scaleValue =
-    printScale === "fit"
-      ? "1"
-      : printScale;
-
-  const style = document.createElement("style");
-  style.id = "dynamic-print-style";
-  style.innerHTML = `
-    @page {
-      size: ${printPaperSize} ${printOrientation};
-      margin: 4mm;
+    if (oldStyle) {
+      oldStyle.remove();
     }
 
-    @media print {
-      :root {
-        --shift-print-scale: ${scaleValue};
+    const scaleValue = printScale === "fit" ? "1" : printScale;
+
+    const style = document.createElement("style");
+    style.id = "dynamic-print-style";
+    style.innerHTML = `
+      @page {
+        size: ${printPaperSize} ${printOrientation};
+        margin: 4mm;
       }
-    }
-  `;
 
-  document.head.appendChild(style);
+      @media print {
+        :root {
+          --shift-print-scale: ${scaleValue};
+        }
+      }
+    `;
 
-  setTimeout(() => {
-    window.print();
-  }, 100);
-};
+    document.head.appendChild(style);
+
+    setTimeout(() => {
+      window.print();
+    }, 100);
+  };
 
   const handleCreateSale = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1144,6 +1147,29 @@ function OwnerDashboard() {
 
         <div className="pdf-setting-panel print-hide">
           <label>
+            用紙サイズ
+            <select
+              value={printPaperSize}
+              onChange={(e) => setPrintPaperSize(e.target.value)}
+            >
+              <option value="A4">A4</option>
+              <option value="A3">A3</option>
+              <option value="B5">B5</option>
+            </select>
+          </label>
+
+          <label>
+            向き
+            <select
+              value={printOrientation}
+              onChange={(e) => setPrintOrientation(e.target.value)}
+            >
+              <option value="landscape">横向き</option>
+              <option value="portrait">縦向き</option>
+            </select>
+          </label>
+
+          <label>
             倍率
             <select
               value={printScale}
@@ -1158,21 +1184,10 @@ function OwnerDashboard() {
             </select>
           </label>
 
-            <label>
-                向き
-                <select
-                  value={printOrientation}
-                  onChange={(e) => setPrintOrientation(e.target.value)}
-                >
-                  <option value="landscape">横向き</option>
-                  <option value="portrait">縦向き</option>
-                </select>
-              </label>
-
-              <button type="button" onClick={handlePrintShiftTable}>
-                PDF出力
-              </button>
-            </div>
+          <button type="button" onClick={handlePrintShiftTable}>
+            PDF出力
+          </button>
+        </div>
 
         {templateMessage && (
           <p className="form-message print-hide">{templateMessage}</p>

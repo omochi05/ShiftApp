@@ -73,8 +73,7 @@ def create_shift_template(
     return new_template
 
 
-# 重要:
-# /from-week と /apply は /{template_id} より上に書く
+# /from-week と /apply は /{template_id} より上に置く
 @router.post("/from-week", response_model=list[ShiftTemplateResponse])
 def create_templates_from_week(
     request: CreateTemplateFromWeekRequest,
@@ -103,8 +102,8 @@ def create_templates_from_week(
     created_templates = []
 
     for shift in week_shifts:
-        # Python weekday: 月=0, 火=1 ... 日=6
-        # アプリ側: 日=0, 月=1 ... 土=6
+        # Python weekday: 月=0, 火=1, ... 日=6
+        # アプリ側: 日=0, 月=1, ... 土=6
         app_weekday = (shift.work_date.weekday() + 1) % 7
 
         new_template = ShiftTemplate(
@@ -132,12 +131,20 @@ def apply_shift_templates(
     request: ApplyShiftTemplateRequest,
     db: Session = Depends(get_db),
 ):
-    templates = db.query(ShiftTemplate).all()
+    templates = (
+        db.query(ShiftTemplate)
+        .order_by(ShiftTemplate.weekday, ShiftTemplate.start_time)
+        .all()
+    )
 
     created_shifts = []
 
     for template in templates:
-        target_date = request.week_start_date + timedelta(days=template.weekday)
+        # template.weekday は 日=0, 月=1, ... 土=6
+        # week_start_date は月曜日なので、月=0, 火=1, ... 日=6 に変換する
+        days_from_monday = 6 if template.weekday == 0 else template.weekday - 1
+
+        target_date = request.week_start_date + timedelta(days=days_from_monday)
 
         existing_shift = (
             db.query(Shift)
