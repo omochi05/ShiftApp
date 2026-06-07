@@ -1,4 +1,4 @@
-import { useRef, type MouseEvent } from "react";
+import { useRef } from "react";
 import "./ShiftTimeline.css";
 
 export type ShiftItem = {
@@ -17,6 +17,10 @@ type Props = {
   onDeleteShift?: (shiftId: number) => void;
 };
 
+type PositionedShift = ShiftItem & {
+  lane: number;
+};
+
 const HOURS = [
   6, 7, 8, 9, 10, 11, 12,
   13, 14, 15, 16, 17, 18, 19,
@@ -25,11 +29,14 @@ const HOURS = [
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
+const MAX_LANES = 3;
+const LANE_HEIGHT = 38;
+const ROW_BASE_PADDING = 8;
+
 function normalizeTime(time?: string) {
   if (!time || typeof time !== "string") {
     return "00:00";
   }
-
   return time.slice(0, 5);
 }
 
@@ -51,14 +58,19 @@ function timeToPosition(time?: string) {
   return hour - 6;
 }
 
-function getShiftStyle(start?: string, end?: string) {
-  let startPos = timeToPosition(start);
+function getShiftRange(start?: string, end?: string) {
+  const startPos = timeToPosition(start);
   let endPos = timeToPosition(end);
 
-  // 日跨ぎ対応
   if (endPos <= startPos) {
     endPos += 24;
   }
+
+  return { startPos, endPos };
+}
+
+function getShiftStyle(start?: string, end?: string) {
+  const { startPos, endPos } = getShiftRange(start, end);
 
   const left = `${(startPos / 24) * 100}%`;
   const width = `${((endPos - startPos) / 24) * 100}%`;
@@ -70,9 +82,7 @@ function groupByDate(shifts: ShiftItem[]) {
   const map: Record<string, ShiftItem[]> = {};
 
   for (const shift of shifts) {
-    if (!shift.work_date) {
-      continue;
-    }
+    if (!shift.work_date) continue;
 
     if (!map[shift.work_date]) {
       map[shift.work_date] = [];
@@ -98,19 +108,53 @@ function formatDateLabel(dateStr: string) {
   return `${month}/${date}（${weekday}）`;
 }
 
+function layoutShiftsForDay(dayShifts: ShiftItem[]) {
+  const sorted = [...dayShifts].sort((a, b) => {
+    const aStart = getShiftRange(a.start_time, a.end_time).startPos;
+    const bStart = getShiftRange(b.start_time, b.end_time).startPos;
+    return aStart - bStart;
+  });
+
+  const laneEndTimes = Array(MAX_LANES).fill(-1);
+  const visible: PositionedShift[] = [];
+  const hidden: ShiftItem[] = [];
+
+  for (const shift of sorted) {
+    const { startPos, endPos } = getShiftRange(shift.start_time, shift.end_time);
+
+    let assignedLane = -1;
+
+    for (let lane = 0; lane < MAX_LANES; lane++) {
+      if (startPos >= laneEndTimes[lane]) {
+        assignedLane = lane;
+        laneEndTimes[lane] = endPos;
+        break;
+      }
+    }
+
+    if (assignedLane === -1) {
+      hidden.push(shift);
+    } else {
+      visible.push({
+        ...shift,
+        lane: assignedLane,
+      });
+    }
+  }
+
+  return {
+    visible,
+    hiddenCount: hidden.length,
+    rowHeight: MAX_LANES * LANE_HEIGHT + ROW_BASE_PADDING,
+  };
+}
+
 export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
   const longPressTimerRef = useRef<number | null>(null);
 
   const safeShifts = Array.isArray(shifts) ? shifts : [];
   const grouped = groupByDate(safeShifts);
   const dates = Object.keys(grouped).sort();
-
-  const cancelLongPress = () => {
-    if (longPressTimerRef.current !== null) {
-      window.clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  };
 
   const startLongPress = (shiftId: number) => {
     cancelLongPress();
@@ -122,8 +166,15 @@ export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
     }, 700);
   };
 
+  const cancelLongPress = () => {
+    if (longPressTimerRef.current !== null) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
   const handleRightClickDelete = (
-    e: MouseEvent<HTMLDivElement>,
+    e: React.MouseEvent<HTMLDivElement>,
     shiftId: number
   ) => {
     e.preventDefault();
@@ -153,9 +204,7 @@ export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
 
       {dates.map((date) => {
         const dayShifts = grouped[date];
-
-        // user_id が 0 のものは「空の日付行」用なので、バーは表示しない
-        const visibleShifts = dayShifts.filter((shift) => shift.user_id !== 0);
+        const { visible, hiddenCount, rowHeight } = layoutShiftsForDay(dayShifts);
 
         return (
           <div className="timeline-row" key={date}>
@@ -174,11 +223,8 @@ export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
               </div>
 
               <div className="timeline-shifts">
-                {visibleShifts.map((shift, index) => {
-                  const style = getShiftStyle(
-                    shift.start_time,
-                    shift.end_time
-                  );
+                {visible.map((shift) => {
+                  const style = getShiftStyle(shift.start_time, shift.end_time);
 
                   return (
                     <div
@@ -186,12 +232,10 @@ export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
                       className="timeline-shift-bar"
                       style={{
                         ...style,
-                        top: `${index * 38 + 6}px`,
+                        top: `${shift.lane * LANE_HEIGHT + 6}px`,
                       }}
                       title="PC: 右クリックで削除 / スマホ: 長押しで削除"
-                      onContextMenu={(e) =>
-                        handleRightClickDelete(e, shift.id)
-                      }
+                      onContextMenu={(e) => handleRightClickDelete(e, shift.id)}
                       onTouchStart={() => startLongPress(shift.id)}
                       onTouchEnd={cancelLongPress}
                       onTouchMove={cancelLongPress}
@@ -208,10 +252,16 @@ export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
                 })}
               </div>
 
+              {hiddenCount > 0 && (
+                <div className="timeline-overflow-badge">
+                  +{hiddenCount}件
+                </div>
+              )}
+
               <div
                 className="timeline-row-spacer"
                 style={{
-                  height: `${Math.max(visibleShifts.length, 1) * 38 + 8}px`,
+                  height: `${rowHeight}px`,
                 }}
               />
             </div>
@@ -221,4 +271,3 @@ export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
     </div>
   );
 }
-
