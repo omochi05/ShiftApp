@@ -1,11 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import text
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from database import get_db
 from models import User, Shift
-from schemas import UserCreate, UserResponsefrom schemas import UserCreate, UserResponse, UserUpdate
+from schemas import UserCreate, UserResponse, UserUpdate
 
 router = APIRouter(
     prefix="/users",
