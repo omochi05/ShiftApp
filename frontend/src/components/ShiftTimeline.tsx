@@ -208,9 +208,7 @@ export default function ShiftTimeline({
           {hourLabels.map((hour, index) => (
             <div
               key={`${hour}-${index}`}
-              className={`shift-timeline-hour ${
-                index % 3 === 0 ? "shift-timeline-hour-strong" : ""
-              }`}
+              className="shift-timeline-hour"
               style={{
                 left: `${(index / TOTAL_HOURS) * 100}%`,
               }}

@@ -63,12 +63,13 @@
 
 /* =========================
    印刷設定
+   スマホA3横印刷で土日が切れにくい版
 ========================= */
 
 @media print {
   @page {
     size: A3 landscape;
-    margin: 2mm;
+    margin: 3mm;
   }
 
   html,
@@ -105,17 +106,17 @@
     padding: 0 !important;
     background: #ffffff !important;
 
-    /* A3横いっぱいに近づける */
-    zoom: 1.18;
+    /* スマホ印刷でもA3横1枚に収めやすい倍率 */
+    zoom: 0.98;
   }
 
   .shift-print-sheet h1 {
-    font-size: 26px !important;
+    font-size: 24px !important;
     margin: 0 0 2px !important;
   }
 
   .shift-print-period {
-    font-size: 15px !important;
+    font-size: 14px !important;
     margin: 0 0 4px !important;
   }
 }

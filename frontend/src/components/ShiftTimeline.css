@@ -174,7 +174,6 @@
   font-weight: 900;
 }
 
-/* どの画面でも×ボタンは非表示 */
 .shift-bar-delete,
 .shift-bar button,
 .print-hide {
@@ -214,33 +213,34 @@
 }
 
 /* =========================
-   印刷用 A3 1枚向け
+   印刷用 A3横 1枚向け
+   スマホ印刷で土日が切れにくい版
 ========================= */
 
 @media print {
   .shift-timeline {
     width: 100% !important;
     min-width: 0 !important;
-    border-bottom: 2.5px solid #000000 !important;
+    border-bottom: 2px solid #000000 !important;
     page-break-inside: avoid;
     break-inside: avoid;
   }
 
   .shift-timeline-header {
-    grid-template-columns: 68px 1fr !important;
-    border: 2.5px solid #000000 !important;
+    grid-template-columns: 66px 1fr !important;
+    border: 2px solid #000000 !important;
     border-bottom: none !important;
   }
 
   .shift-timeline-date-head {
-    padding: 4px 2px !important;
-    border-right: 2.5px solid #000000 !important;
-    font-size: 15px !important;
+    padding: 3px 2px !important;
+    border-right: 2px solid #000000 !important;
+    font-size: 13px !important;
   }
 
   .shift-timeline-hours {
     position: relative !important;
-    min-height: 26px !important;
+    min-height: 22px !important;
     overflow: visible !important;
   }
 
@@ -250,9 +250,9 @@
     transform: translateX(-50%) !important;
 
     width: 18px !important;
-    min-height: 26px !important;
+    min-height: 22px !important;
 
-    font-size: 9px !important;
+    font-size: 8px !important;
     border-right: none !important;
   }
 
@@ -267,33 +267,33 @@
   }
 
   .shift-timeline-row {
-    grid-template-columns: 68px 1fr !important;
-    border: 2.5px solid #000000 !important;
+    grid-template-columns: 66px 1fr !important;
+    border: 2px solid #000000 !important;
     border-bottom: none !important;
     page-break-inside: avoid;
     break-inside: avoid;
   }
 
   .shift-timeline-date {
-    border-right: 2.5px solid #000000 !important;
-    font-size: 16px !important;
-    line-height: 1.1 !important;
+    border-right: 2px solid #000000 !important;
+    font-size: 14px !important;
+    line-height: 1.05 !important;
   }
 
   .shift-timeline-body {
-    min-height: 56px !important;
+    min-height: 48px !important;
     overflow: hidden !important;
   }
 
   .shift-bar {
-    height: 22px !important;
-    border: 2px solid #000000 !important;
+    height: 19px !important;
+    border: 1.8px solid #000000 !important;
     border-radius: 5px !important;
   }
 
   .shift-bar-print-name {
     max-width: 100% !important;
-    font-size: 11px !important;
+    font-size: 9.5px !important;
     font-weight: 900 !important;
   }
 
