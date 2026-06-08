@@ -191,7 +191,7 @@
 }
 
 .shift-timeline-print .shift-bar {
-  height: 18px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -209,7 +209,7 @@
   text-overflow: ellipsis;
 
   color: #000000 !important;
-  font-size: 9.5px;
+  font-size: 10.5px;
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
@@ -233,7 +233,7 @@
 
 /* =========================
    印刷用 A3横 1枚向け
-   白背景・1枚収め・少し大きめ
+   下余白を減らすために表を大きめにする
 ========================= */
 
 @media print {
@@ -263,7 +263,7 @@
 
   .shift-timeline-hours {
     position: relative !important;
-    min-height: 20px !important;
+    min-height: 22px !important;
     overflow: visible !important;
     background: #111111 !important;
   }
@@ -274,7 +274,7 @@
     transform: translateX(-50%) !important;
 
     width: 18px !important;
-    min-height: 20px !important;
+    min-height: 22px !important;
 
     font-size: 8px !important;
     border-right: none !important;
@@ -304,12 +304,12 @@
     border-right: 2px solid #000000 !important;
     background: #ffffff !important;
     color: #000000 !important;
-    font-size: 14px !important;
+    font-size: 15px !important;
     line-height: 1.05 !important;
   }
 
   .shift-timeline-body {
-    min-height: 43px !important;
+    min-height: 62px !important;
     overflow: hidden !important;
 
     background:
@@ -331,8 +331,8 @@
   }
 
   .shift-bar {
-    height: 17px !important;
-    border: 1.7px solid #000000 !important;
+    height: 22px !important;
+    border: 1.8px solid #000000 !important;
     border-radius: 5px !important;
     background: #ffffff !important;
     color: #000000 !important;
@@ -340,7 +340,7 @@
 
   .shift-bar-print-name {
     max-width: 100% !important;
-    font-size: 9px !important;
+    font-size: 10.5px !important;
     font-weight: 900 !important;
     color: #000000 !important;
   }
