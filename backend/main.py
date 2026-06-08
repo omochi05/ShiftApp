@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from routers import auth, sales, shifts, shift_templates, users
+
 app = FastAPI()
 
 app.add_middleware(
@@ -17,4 +19,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ここから下に既存の router / endpoint
+app.include_router(auth.router)
+app.include_router(users.router)
+app.include_router(shifts.router)
+app.include_router(sales.router)
+app.include_router(shift_templates.router)
+
+
+@app.get("/")
+def read_root():
+    return {"message": "Shift app API is running"}
