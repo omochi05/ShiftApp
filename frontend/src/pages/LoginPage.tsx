@@ -17,7 +17,7 @@ function LoginPage() {
       setLoading(true);
       setMessage("");
 
-      const res = await api.post("/auth/login", {
+      const res = await api.post("/login", {
         employee_number: employeeNumber,
         password: password,
       });
