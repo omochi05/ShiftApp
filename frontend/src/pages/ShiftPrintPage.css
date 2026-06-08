@@ -16,6 +16,8 @@
   margin-bottom: 20px;
   justify-content: center;
   flex-wrap: wrap;
+  position: relative;
+  z-index: 100;
 }
 
 .shift-print-actions button {
@@ -27,6 +29,8 @@
   font-weight: bold;
   font-size: 16px;
   cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
 }
 
 .shift-print-actions button:hover {
@@ -78,257 +82,6 @@
 
 /* =========================
    Print / A3 Landscape
-========================= */
-
-@media print {
-  @page {
-    size: A3 landscape;
-    margin: 5mm;
-  }
-
-  /* App.tsx の上部ナビを印刷時に消す */
-  .app-nav {
-    display: none !important;
-  }
-
-  html,
-  body,
-  #root {
-    width: 100% !important;
-    height: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    overflow: visible !important;
-  }
-
-  body {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  .shift-print-page {
-    width: 100% !important;
-    min-height: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    overflow: visible !important;
-  }
-
-  .shift-print-actions,
-  .shift-print-help {
-    display: none !important;
-  }
-
-  .shift-print-sheet {
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-
-  .shift-print-sheet h1 {
-    margin: 0 0 3mm !important;
-    padding: 0 !important;
-    text-align: center !important;
-    font-size: 22px !important;
-    line-height: 1.2 !important;
-    color: #000000 !important;
-  }
-
-  .shift-print-sheet p {
-    margin: 0 0 4mm !important;
-    padding: 0 !important;
-    text-align: center !important;
-    font-size: 13px !important;
-    line-height: 1.2 !important;
-    font-weight: bold !important;
-    color: #000000 !important;
-  }
-
-  .timeline-wrap {
-    width: 100% !important;
-    max-width: none !important;
-    overflow: visible !important;
-    background: #ffffff !important;
-    border-radius: 0 !important;
-  }
-
-  .timeline-sheet {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    overflow: visible !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border: 1.5px solid #000000 !important;
-    box-shadow: none !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-
-  .timeline-header,
-  .timeline-row {
-    display: grid !important;
-    grid-template-columns: 24mm 1fr !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border-bottom: 1px solid #000000 !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-
-  .timeline-header {
-    height: 11mm !important;
-    min-height: 11mm !important;
-    max-height: 11mm !important;
-  }
-
-  .timeline-row {
-    height: 24mm !important;
-    min-height: 24mm !important;
-    max-height: 24mm !important;
-  }
-
-  .timeline-date-cell {
-    width: 24mm !important;
-    min-width: 24mm !important;
-    max-width: 24mm !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border-right: 1px solid #000000 !important;
-    border-bottom: 1px solid #000000 !important;
-    font-size: 11px !important;
-    font-weight: bold !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-    white-space: nowrap !important;
-  }
-
-  .timeline-date-label {
-    font-size: 11px !important;
-    color: #000000 !important;
-    font-weight: bold !important;
-  }
-
-  .timeline-hours {
-    display: grid !important;
-    grid-template-columns: repeat(24, 1fr) !important;
-    height: 11mm !important;
-    min-height: 11mm !important;
-    max-height: 11mm !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-  }
-
-  .timeline-hour-cell {
-    min-width: 0 !important;
-    height: 11mm !important;
-    min-height: 11mm !important;
-    max-height: 11mm !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border-right: 1px solid #000000 !important;
-    border-bottom: 1px solid #000000 !important;
-    font-size: 8px !important;
-    font-weight: bold !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  .timeline-grid-area {
-    position: relative !important;
-    height: 24mm !important;
-    min-height: 24mm !important;
-    max-height: 24mm !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border-left: 1px solid #000000 !important;
-    overflow: hidden !important;
-  }
-
-  .timeline-grid {
-    position: absolute !important;
-    inset: 0 !important;
-    display: grid !important;
-    grid-template-columns: repeat(24, 1fr) !important;
-    height: 100% !important;
-    background: #ffffff !important;
-    z-index: 1 !important;
-    pointer-events: none !important;
-  }
-
-  .timeline-grid-cell {
-    min-width: 0 !important;
-    height: 100% !important;
-    background: #ffffff !important;
-    border-right: 1px solid #999999 !important;
-    border-bottom: 1px solid #999999 !important;
-  }
-
-  .timeline-shifts {
-    position: absolute !important;
-    inset: 0 !important;
-    z-index: 2 !important;
-    background: transparent !important;
-  }
-
-  .timeline-shift-bar {
-    position: absolute !important;
-    top: calc(var(--lane, 0) * 7.2mm + 1.5mm) !important;
-    height: 6.4mm !important;
-    min-height: 6.4mm !important;
-    padding: 0 1.5mm !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border: 1.2px solid #000000 !important;
-    border-radius: 2px !important;
-    box-shadow: none !important;
-    overflow: hidden !important;
-    display: flex !important;
-    align-items: center !important;
-  }
-
-  .timeline-shift-text {
-    color: #000000 !important;
-    font-size: 8px !important;
-    line-height: 6.4mm !important;
-    font-weight: bold !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  }
-
-  .timeline-row-spacer {
-    height: 24mm !important;
-    min-height: 24mm !important;
-    max-height: 24mm !important;
-  }
-
-  .timeline-overflow-badge {
-    right: 1mm !important;
-    bottom: 1mm !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border: 1px solid #000000 !important;
-    font-size: 8px !important;
-    font-weight: bold !important;
-  }
-}
-
-/* =========================
-   Smartphone
 ========================= */
 
 @media print {
@@ -585,5 +338,37 @@
     border: 1px solid #000000 !important;
     font-size: 7px !important;
     font-weight: bold !important;
+  }
+}
+
+/* =========================
+   Smartphone
+========================= */
+
+@media (max-width: 768px) {
+  .shift-print-page {
+    padding: 12px;
+  }
+
+  .shift-print-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    position: relative;
+    z-index: 100;
+  }
+
+  .shift-print-actions button {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+  }
+
+  .shift-print-sheet h1 {
+    font-size: 22px;
+  }
+
+  .shift-print-sheet p {
+    font-size: 14px;
   }
 }
