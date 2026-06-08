@@ -86,6 +86,11 @@
     margin: 5mm;
   }
 
+  /* App.tsx の上部ナビを印刷時に消す */
+  .app-nav {
+    display: none !important;
+  }
+
   html,
   body,
   #root {
