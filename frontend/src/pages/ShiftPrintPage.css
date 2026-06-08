@@ -68,7 +68,7 @@
 @media print {
   @page {
     size: A3 landscape;
-    margin: 3mm;
+    margin: 2mm;
   }
 
   html,
@@ -101,21 +101,21 @@
   .shift-print-sheet {
     width: 100% !important;
     max-width: none !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     background: #ffffff !important;
 
-    /* 横幅を広く使いつつ、A3 1枚に収める */
-    zoom: 0.82;
+    /* A3横いっぱいに近づける */
+    zoom: 1.18;
   }
 
   .shift-print-sheet h1 {
-    font-size: 23px !important;
+    font-size: 26px !important;
     margin: 0 0 2px !important;
   }
 
   .shift-print-period {
-    font-size: 14px !important;
+    font-size: 15px !important;
     margin: 0 0 4px !important;
   }
 }
