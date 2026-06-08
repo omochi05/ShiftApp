@@ -258,21 +258,17 @@ export default function ShiftTimeline({
                     }}
                     title={`${shift.user_name} ${startTime}〜${endTime}`}
                   >
-                    {printMode ? (
-                      <span className="shift-bar-print-name">
+                    <span
+                      className={
+                        printMode
+                          ? "shift-bar-print-name"
+                          : "shift-bar-normal-content"
+                      }
+                    >
+                      <span className="shift-bar-name">
                         {shift.user_name}
                       </span>
-                    ) : (
-                      <span className="shift-bar-normal-content">
-                        <span className="shift-bar-name">
-                          {shift.user_name}
-                        </span>
-
-                        <span className="shift-bar-time">
-                          {startTime}〜{endTime}
-                        </span>
-                      </span>
-                    )}
+                    </span>
                   </div>
                 );
               })}
