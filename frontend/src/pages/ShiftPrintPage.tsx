@@ -184,7 +184,7 @@ export default function ShiftPrintPage() {
           表示期間：{weekStartDate} 〜 {weekEndDate}
         </p>
 
-        <ShiftTimeline shifts={printShifts} printMode />
+       <ShiftTimeline shifts={printShifts} />
       </section>
     </div>
   );

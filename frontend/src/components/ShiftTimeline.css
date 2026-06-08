@@ -645,3 +645,195 @@
     display: none !important;
   }
 }
+
+/* =========================
+   A3 Print Override
+   通常シフト表と同じ横棒レイアウトをA3に合わせる
+========================= */
+
+@media print {
+  .timeline-sheet {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    overflow: visible !important;
+    border: 1.5px solid #000000 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .timeline-header,
+  .timeline-row {
+    display: grid !important;
+    grid-template-columns: 24mm 1fr !important;
+    border-bottom: 1.2px solid #000000 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .timeline-header {
+    position: static !important;
+    height: 10mm !important;
+    min-height: 10mm !important;
+    max-height: 10mm !important;
+  }
+
+  .timeline-row {
+    height: 32mm !important;
+    min-height: 32mm !important;
+    max-height: 32mm !important;
+  }
+
+  .timeline-date-cell {
+    width: 24mm !important;
+    min-width: 24mm !important;
+    max-width: 24mm !important;
+    padding: 0 !important;
+    border-right: 1.2px solid #000000 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+  }
+
+  .timeline-date-label {
+    font-size: 12px !important;
+    color: #000000 !important;
+    font-weight: 900 !important;
+  }
+
+  .timeline-hours {
+    display: grid !important;
+    grid-template-columns: repeat(24, 1fr) !important;
+    height: 10mm !important;
+    min-height: 10mm !important;
+    max-height: 10mm !important;
+    background: #111111 !important;
+    color: #ffffff !important;
+  }
+
+  .timeline-hour-cell {
+    min-width: 0 !important;
+    height: 10mm !important;
+    min-height: 10mm !important;
+    max-height: 10mm !important;
+    padding: 0 !important;
+    border-right: 1px solid #333333 !important;
+    border-bottom: 1.2px solid #000000 !important;
+    background: #111111 !important;
+    color: #ffffff !important;
+    font-size: 9px !important;
+    font-weight: 900 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .timeline-grid-area {
+    position: relative !important;
+    height: 32mm !important;
+    min-height: 32mm !important;
+    max-height: 32mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-left: 1.2px solid #000000 !important;
+    overflow: hidden !important;
+  }
+
+  .timeline-grid {
+    position: absolute !important;
+    inset: 0 !important;
+    display: grid !important;
+    grid-template-columns: repeat(24, 1fr) !important;
+    height: 100% !important;
+    background: transparent !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
+  }
+
+  .timeline-grid-cell {
+    min-width: 0 !important;
+    height: 100% !important;
+    background: transparent !important;
+    border-right: 0.9px solid #555555 !important;
+    border-bottom: none !important;
+  }
+
+  .timeline-shifts {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 2 !important;
+    background: transparent !important;
+  }
+
+  .timeline-shift-bar {
+    position: absolute !important;
+    top: calc(var(--lane, 0) * 7.2mm + 1.4mm) !important;
+    height: 6.6mm !important;
+    min-height: 6.6mm !important;
+    padding: 0 1.3mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1.1px solid #000000 !important;
+    border-radius: 2px !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .timeline-shift-text {
+    display: flex !important;
+    gap: 1mm !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    color: #000000 !important;
+    font-size: 9px !important;
+    line-height: 6.6mm !important;
+    font-weight: 900 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .timeline-shift-name {
+    display: inline !important;
+    max-width: 22mm !important;
+    color: #000000 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    flex-shrink: 1 !important;
+  }
+
+  .timeline-shift-time {
+    display: inline !important;
+    color: #000000 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .timeline-shift-memo {
+    display: none !important;
+  }
+
+  .timeline-row-spacer {
+    height: 32mm !important;
+    min-height: 32mm !important;
+    max-height: 32mm !important;
+  }
+
+  .timeline-overflow-badge {
+    display: none !important;
+  }
+}

@@ -1,6 +1,6 @@
 /* =========================
    ShiftPrintPage.css
-   横棒24時間シフト表 / A3横向き
+   通常シフト表と同じ横棒24時間表をA3印刷
 ========================= */
 
 .shift-print-page {
@@ -54,7 +54,7 @@
 .shift-print-sheet h1 {
   margin: 0 0 8px;
   text-align: center;
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 900;
   color: #000000 !important;
 }
@@ -127,7 +127,7 @@
     margin: 0 0 1.5mm !important;
     padding: 0 !important;
     text-align: center !important;
-    font-size: 20px !important;
+    font-size: 22px !important;
     line-height: 1.1 !important;
     font-weight: 900 !important;
     color: #000000 !important;
@@ -137,7 +137,7 @@
     margin: 0 0 2.5mm !important;
     padding: 0 !important;
     text-align: center !important;
-    font-size: 12px !important;
+    font-size: 13px !important;
     line-height: 1.1 !important;
     font-weight: bold !important;
     color: #000000 !important;
