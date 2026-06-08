@@ -179,7 +179,7 @@
 }
 
 .shift-timeline-print .shift-bar {
-  height: 22px;
+  height: 19px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -197,7 +197,7 @@
   text-overflow: ellipsis;
 
   color: #000000 !important;
-  font-size: 10.5px;
+  font-size: 9.5px;
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
@@ -217,6 +217,7 @@
 
 /* =========================
    印刷用 A3横 1枚向け
+   日曜が2ページ目に行かないよう微調整
 ========================= */
 
 @media print {
@@ -233,8 +234,8 @@
   }
 
   .shift-timeline-day {
-    grid-template-columns: 62px 1fr !important;
-    grid-template-rows: 22px auto !important;
+    grid-template-columns: 60px 1fr !important;
+    grid-template-rows: 19px auto !important;
 
     border: 2px solid #000000 !important;
     border-bottom: none !important;
@@ -255,12 +256,12 @@
     background: #ffffff !important;
     color: #000000 !important;
 
-    font-size: 15px !important;
-    line-height: 1.05 !important;
+    font-size: 14px !important;
+    line-height: 1.02 !important;
   }
 
   .shift-timeline-hours {
-    min-height: 22px !important;
+    min-height: 19px !important;
 
     background: #111111 !important;
     color: #ffffff !important;
@@ -273,10 +274,10 @@
     transform: translateX(-50%) !important;
 
     width: 18px !important;
-    min-height: 22px !important;
+    min-height: 19px !important;
 
     color: #ffffff !important;
-    font-size: 8px !important;
+    font-size: 7.5px !important;
     border-right: none !important;
   }
 
@@ -312,9 +313,9 @@
   }
 
   .shift-bar {
-    height: 22px !important;
+    height: 19px !important;
 
-    border: 1.8px solid #000000 !important;
+    border: 1.7px solid #000000 !important;
     border-radius: 5px !important;
 
     background: #ffffff !important;
@@ -324,7 +325,7 @@
   .shift-bar-print-name,
   .shift-bar-normal-content {
     max-width: 100% !important;
-    font-size: 10.5px !important;
+    font-size: 9.5px !important;
     font-weight: 900 !important;
     color: #000000 !important;
   }

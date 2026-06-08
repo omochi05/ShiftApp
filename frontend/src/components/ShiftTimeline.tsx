@@ -31,8 +31,9 @@ const TOTAL_HOURS = 24;
 const NORMAL_LANE_HEIGHT = 30;
 const NORMAL_BAR_TOP_OFFSET = 8;
 
-const PRINT_LANE_HEIGHT = 28;
-const PRINT_BAR_TOP_OFFSET = 7;
+/* A3印刷で7日分を1枚に収めるため少しだけ圧縮 */
+const PRINT_LANE_HEIGHT = 25;
+const PRINT_BAR_TOP_OFFSET = 5;
 
 const hourLabels = [
   "6",
@@ -211,7 +212,7 @@ export default function ShiftTimeline({
         const { positioned, laneCount } = positionShifts(dayShifts);
 
         const bodyHeight = printMode
-          ? Math.max(64, laneCount * laneHeight + 14)
+          ? Math.max(54, laneCount * laneHeight + 10)
           : Math.max(66, laneCount * laneHeight + 16);
 
         return (
