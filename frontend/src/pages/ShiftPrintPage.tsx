@@ -63,7 +63,6 @@ export default function ShiftPrintPage() {
     }
 
     lastPrintTapRef.current = now;
-
     window.focus();
 
     setTimeout(() => {
