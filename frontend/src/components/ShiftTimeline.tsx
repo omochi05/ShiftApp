@@ -111,6 +111,13 @@ function formatDateLabel(dateStr: string) {
   return `${month}/${date}（${weekday}）`;
 }
 
+function isOverlapping(a: ShiftItem, b: ShiftItem) {
+  const aRange = getShiftRange(a.start_time, a.end_time);
+  const bRange = getShiftRange(b.start_time, b.end_time);
+
+  return aRange.startPos < bRange.endPos && bRange.startPos < aRange.endPos;
+}
+
 function layoutShiftsForDay(dayShifts: ShiftItem[]) {
   const sorted = [...dayShifts].sort((a, b) => {
     const aRange = getShiftRange(a.start_time, a.end_time);
@@ -120,42 +127,25 @@ function layoutShiftsForDay(dayShifts: ShiftItem[]) {
       return aRange.startPos - bRange.startPos;
     }
 
-    return aRange.endPos - bRange.endPos;
+    if (aRange.endPos !== bRange.endPos) {
+      return aRange.endPos - bRange.endPos;
+    }
+
+    return a.id - b.id;
   });
 
-  const laneEndTimes = Array(MAX_LANES).fill(-1);
   const visible: PositionedShift[] = [];
 
   for (const shift of sorted) {
-    const { startPos, endPos } = getShiftRange(
-      shift.start_time,
-      shift.end_time
-    );
+    const overlappingBeforeCount = visible.filter((placedShift) =>
+      isOverlapping(shift, placedShift)
+    ).length;
 
-    let assignedLane = -1;
-
-    // 上から順番に、時間が空いているレーンへ配置
-    for (let lane = 0; lane < MAX_LANES; lane++) {
-      if (startPos >= laneEndTimes[lane]) {
-        assignedLane = lane;
-        laneEndTimes[lane] = endPos;
-        break;
-      }
-    }
-
-    // 4レーン全部埋まっている場合
-    // A3 1ページ固定を優先するため、行は増やさず一番下へ
-    if (assignedLane === -1) {
-      assignedLane = MAX_LANES - 1;
-      laneEndTimes[assignedLane] = Math.max(
-        laneEndTimes[assignedLane],
-        endPos
-      );
-    }
+    const lane = Math.min(overlappingBeforeCount, MAX_LANES - 1);
 
     visible.push({
       ...shift,
-      lane: assignedLane,
+      lane,
     });
   }
 

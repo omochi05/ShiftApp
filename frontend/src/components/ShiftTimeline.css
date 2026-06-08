@@ -96,9 +96,9 @@
 }
 
 .timeline-shift-bar {
-  position: absolute;
-  top: calc(var(--lane, 0) * 38px + 6px);
-  height: 30px;
+  position: absolute !important;
+  top: calc(var(--lane, 0) * 7.3mm + 1.6mm) !important;
+  height: 6.7mm !important;
   background: #ffffff;
   border: 1px solid #111111;
   border-radius: 4px;
