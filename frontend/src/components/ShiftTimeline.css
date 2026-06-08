@@ -308,16 +308,29 @@
   }
 
   .timeline-grid-area {
-    position: relative !important;
-    height: 32mm !important;
-    min-height: 32mm !important;
-    max-height: 32mm !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border-left: 1.2px solid #000000 !important;
-    overflow: hidden !important;
-  }
-
+  position: relative !important;
+  height: 32mm !important;
+  min-height: 32mm !important;
+  max-height: 32mm !important;
+  background:
+    linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 7.9mm,
+      #000000 8mm,
+      transparent 8.1mm,
+      transparent 15.9mm,
+      #000000 16mm,
+      transparent 16.1mm,
+      transparent 23.9mm,
+      #000000 24mm,
+      transparent 24.1mm
+    ),
+    #ffffff !important;
+  color: #000000 !important;
+  border-left: 1.2px solid #000000 !important;
+  overflow: hidden !important;
+}
   .timeline-grid {
     position: absolute !important;
     inset: 0 !important;
