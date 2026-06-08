@@ -186,25 +186,27 @@
 }
 
 /* =========================
-   Print / PDF support
-   A3横向き・4レーン対応
+   Print / A3 Landscape
+   A3横向き・4レーン・見やすい拡大版
 ========================= */
 
 @media print {
   .timeline-sheet {
     width: 100% !important;
     min-width: 0 !important;
+    max-width: none !important;
     overflow: visible !important;
-    border: 1.4px solid #000000 !important;
+    border: 1.6px solid #000000 !important;
     background: #ffffff !important;
     color: #000000 !important;
+    box-shadow: none !important;
   }
 
   .timeline-header,
   .timeline-row {
     display: grid !important;
-    grid-template-columns: 20mm 1fr !important;
-    border-bottom: 1px solid #000000 !important;
+    grid-template-columns: 24mm 1fr !important;
+    border-bottom: 1.3px solid #000000 !important;
     background: #ffffff !important;
     color: #000000 !important;
     page-break-inside: avoid !important;
@@ -213,27 +215,27 @@
 
   .timeline-header {
     position: static !important;
-    height: 8mm !important;
-    min-height: 8mm !important;
-    max-height: 8mm !important;
+    height: 10mm !important;
+    min-height: 10mm !important;
+    max-height: 10mm !important;
   }
 
   .timeline-row {
-    height: 24mm !important;
-    min-height: 24mm !important;
-    max-height: 24mm !important;
+    height: calc(var(--lane-count, 4) * 7.4mm + 4mm) !important;
+    min-height: calc(var(--lane-count, 4) * 7.4mm + 4mm) !important;
+    max-height: none !important;
   }
 
   .timeline-date-cell {
-    width: 20mm !important;
-    min-width: 20mm !important;
-    max-width: 20mm !important;
+    width: 24mm !important;
+    min-width: 24mm !important;
+    max-width: 24mm !important;
     padding: 0 !important;
-    border-right: 1px solid #000000 !important;
-    border-bottom: 1px solid #000000 !important;
+    border-right: 1.3px solid #000000 !important;
+    border-bottom: 1.3px solid #000000 !important;
     background: #ffffff !important;
     color: #000000 !important;
-    font-size: 9px !important;
+    font-size: 11px !important;
     font-weight: bold !important;
     display: flex !important;
     align-items: center !important;
@@ -243,7 +245,7 @@
   }
 
   .timeline-date-label {
-    font-size: 9px !important;
+    font-size: 11px !important;
     color: #000000 !important;
     font-weight: bold !important;
   }
@@ -251,38 +253,42 @@
   .timeline-hours {
     display: grid !important;
     grid-template-columns: repeat(24, 1fr) !important;
-    height: 8mm !important;
-    min-height: 8mm !important;
-    max-height: 8mm !important;
+    height: 10mm !important;
+    min-height: 10mm !important;
+    max-height: 10mm !important;
     background: #ffffff !important;
     color: #000000 !important;
   }
 
   .timeline-hour-cell {
     min-width: 0 !important;
-    height: 8mm !important;
-    min-height: 8mm !important;
-    max-height: 8mm !important;
+    height: 10mm !important;
+    min-height: 10mm !important;
+    max-height: 10mm !important;
     padding: 0 !important;
-    border-right: 1px solid #000000 !important;
-    border-bottom: 1px solid #000000 !important;
+    border-right: 1.3px solid #000000 !important;
+    border-bottom: 1.3px solid #000000 !important;
     background: #ffffff !important;
     color: #000000 !important;
-    font-size: 6.5px !important;
+    font-size: 8px !important;
     font-weight: bold !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
   }
 
+  .timeline-hour-cell:last-child {
+    border-right: none !important;
+  }
+
   .timeline-grid-area {
     position: relative !important;
-    height: 24mm !important;
-    min-height: 24mm !important;
-    max-height: 24mm !important;
+    height: calc(var(--lane-count, 4) * 7.4mm + 4mm) !important;
+    min-height: calc(var(--lane-count, 4) * 7.4mm + 4mm) !important;
+    max-height: none !important;
     background: #ffffff !important;
     color: #000000 !important;
-    border-left: 1px solid #000000 !important;
+    border-left: 1.3px solid #000000 !important;
     overflow: hidden !important;
   }
 
@@ -301,8 +307,12 @@
     min-width: 0 !important;
     height: 100% !important;
     background: #ffffff !important;
-    border-right: 1px solid #000000 !important;
-    border-bottom: 1px solid #000000 !important;
+    border-right: 1.3px solid #000000 !important;
+    border-bottom: 1.3px solid #000000 !important;
+  }
+
+  .timeline-grid-cell:last-child {
+    border-right: none !important;
   }
 
   .timeline-shifts {
@@ -314,58 +324,58 @@
 
   .timeline-shift-bar {
     position: absolute !important;
-    height: 5mm !important;
-    min-height: 5mm !important;
+    top: calc(var(--lane, 0) * 7.4mm + 2mm) !important;
+    height: 6.5mm !important;
+    min-height: 6.5mm !important;
     padding: 0 1mm !important;
     background: #ffffff !important;
     color: #000000 !important;
-    border: 1px solid #000000 !important;
-    border-radius: 1.5px !important;
+    border: 1.1px solid #000000 !important;
+    border-radius: 2px !important;
     box-shadow: none !important;
     overflow: hidden !important;
     display: flex !important;
     align-items: center !important;
   }
 
-  .timeline-shift-bar:nth-child(4n + 1) {
-    top: 1.2mm !important;
-  }
-
-  .timeline-shift-bar:nth-child(4n + 2) {
-    top: 6.8mm !important;
-  }
-
-  .timeline-shift-bar:nth-child(4n + 3) {
-    top: 12.4mm !important;
-  }
-
-  .timeline-shift-bar:nth-child(4n) {
-    top: 18mm !important;
-  }
-
   .timeline-shift-text {
+    display: flex !important;
+    gap: 1mm !important;
+    align-items: center !important;
     color: #000000 !important;
-    font-size: 6.5px !important;
-    line-height: 5mm !important;
+    font-size: 7.5px !important;
+    line-height: 6.5mm !important;
     font-weight: bold !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }
 
+  .timeline-shift-name {
+    max-width: 22mm !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    display: none !important;
+  }
+
+  .timeline-shift-time {
+    flex-shrink: 0 !important;
+  }
+
+  .timeline-shift-memo {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
   .timeline-row-spacer {
-    height: 24mm !important;
-    min-height: 24mm !important;
-    max-height: 24mm !important;
+    height: calc(var(--lane-count, 4) * 7.4mm + 4mm) !important;
+    min-height: calc(var(--lane-count, 4) * 7.4mm + 4mm) !important;
+    max-height: none !important;
   }
 
   .timeline-overflow-badge {
-    right: 1mm !important;
-    bottom: 1mm !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border: 1px solid #000000 !important;
-    font-size: 7px !important;
-    font-weight: bold !important;
+    display: none !important;
   }
 }
