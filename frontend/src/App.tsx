@@ -1,5 +1,12 @@
 import type { ReactNode } from "react";
-import { HashRouter, Routes, Route, Link, Navigate } from "react-router-dom";
+import {
+  HashRouter,
+  Routes,
+  Route,
+  Link,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import OwnerDashboard from "./pages/OwnerDashboard";
 import ShiftPrintPage from "./pages/ShiftPrintPage";
@@ -17,7 +24,7 @@ function RequireOwnerLogin({ children }: { children: ReactNode }) {
 
 function getMondayOfCurrentWeek() {
   const now = new Date();
-  const day = now.getDay(); // 日=0, 月=1, 火=2...
+  const day = now.getDay();
   const monday = new Date(now);
 
   const diff = day === 0 ? -6 : 1 - day;
@@ -30,11 +37,17 @@ function getMondayOfCurrentWeek() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function App() {
+function AppContent() {
+  const location = useLocation();
+
   const isLoggedIn = localStorage.getItem("ownerLogin") === "true";
   const ownerName = localStorage.getItem("ownerName");
 
   const printWeekStartDate = getMondayOfCurrentWeek();
+
+  const isPrintPage =
+    location.pathname === "/print/shifts" ||
+    location.pathname === "/owner/print/shifts";
 
   const handleLogout = () => {
     localStorage.removeItem("ownerLogin");
@@ -46,77 +59,83 @@ function App() {
   };
 
   return (
+    <div>
+      {isLoggedIn && !isPrintPage && (
+        <nav className="app-nav">
+          <strong className="app-nav-title">
+            ShiftApp {ownerName ? ` / ${ownerName}` : ""}
+          </strong>
+
+          <Link to="/owner" className="app-nav-link">
+            オーナー
+          </Link>
+
+          <Link
+            to={`/print/shifts?weekStartDate=${printWeekStartDate}`}
+            className="app-nav-link"
+          >
+            シフト表印刷
+          </Link>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="app-nav-logout"
+          >
+            ログアウト
+          </button>
+        </nav>
+      )}
+
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+
+        <Route
+          path="/owner"
+          element={
+            <RequireOwnerLogin>
+              <OwnerDashboard />
+            </RequireOwnerLogin>
+          }
+        />
+
+        <Route
+          path="/print/shifts"
+          element={
+            <RequireOwnerLogin>
+              <ShiftPrintPage />
+            </RequireOwnerLogin>
+          }
+        />
+
+        <Route
+          path="/owner/print/shifts"
+          element={
+            <RequireOwnerLogin>
+              <ShiftPrintPage />
+            </RequireOwnerLogin>
+          }
+        />
+
+        <Route
+          path="*"
+          element={
+            isLoggedIn ? (
+              <Navigate to="/owner" replace />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+      </Routes>
+    </div>
+  );
+}
+
+function App() {
+  return (
     <HashRouter>
-      <div>
-        {isLoggedIn && (
-          <nav className="app-nav">
-            <strong className="app-nav-title">
-              ShiftApp {ownerName ? ` / ${ownerName}` : ""}
-            </strong>
-
-            <Link to="/owner" className="app-nav-link">
-              オーナー
-            </Link>
-
-            <Link
-              to={`/print/shifts?weekStartDate=${printWeekStartDate}`}
-              className="app-nav-link"
-            >
-              シフト表印刷
-            </Link>
-
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="app-nav-logout"
-            >
-              ログアウト
-            </button>
-          </nav>
-        )}
-
-        <Routes>
-          <Route path="/" element={<LoginPage />} />
-
-          <Route
-            path="/owner"
-            element={
-              <RequireOwnerLogin>
-                <OwnerDashboard />
-              </RequireOwnerLogin>
-            }
-          />
-
-          <Route
-            path="/print/shifts"
-            element={
-              <RequireOwnerLogin>
-                <ShiftPrintPage />
-              </RequireOwnerLogin>
-            }
-          />
-
-          <Route
-            path="/owner/print/shifts"
-            element={
-              <RequireOwnerLogin>
-                <ShiftPrintPage />
-              </RequireOwnerLogin>
-            }
-          />
-
-          <Route
-            path="*"
-            element={
-              isLoggedIn ? (
-                <Navigate to="/owner" replace />
-              ) : (
-                <Navigate to="/" replace />
-              )
-            }
-          />
-        </Routes>
-      </div>
+      <AppContent />
     </HashRouter>
   );
 }
