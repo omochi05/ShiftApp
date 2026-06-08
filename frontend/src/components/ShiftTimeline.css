@@ -100,8 +100,8 @@
   background:
     repeating-linear-gradient(
       to right,
-      transparent 0,
-      transparent calc(100% / 24 - 1px),
+      #ffffff 0,
+      #ffffff calc(100% / 24 - 1px),
       #d1d5db calc(100% / 24 - 1px),
       #d1d5db calc(100% / 24)
     ),
@@ -112,7 +112,7 @@
       #777777 calc((100% / 24) * 3 - 2px),
       #777777 calc((100% / 24) * 3)
     ),
-    #ffffff;
+    #ffffff !important;
 
   overflow: hidden;
 }
@@ -233,7 +233,7 @@
 
 /* =========================
    印刷用 A3横 1枚向け
-   スマホ印刷で崩れにくい版
+   白背景・1枚収め・少し大きめ
 ========================= */
 
 @media print {
@@ -243,24 +243,29 @@
     border-bottom: 2px solid #000000 !important;
     page-break-inside: avoid;
     break-inside: avoid;
+    background: #ffffff !important;
+    color: #000000 !important;
   }
 
   .shift-timeline-header {
-    grid-template-columns: 64px 1fr !important;
+    grid-template-columns: 62px 1fr !important;
     border: 2px solid #000000 !important;
     border-bottom: none !important;
+    background: #111111 !important;
   }
 
   .shift-timeline-date-head {
     padding: 3px 2px !important;
     border-right: 2px solid #000000 !important;
-    font-size: 12px !important;
+    font-size: 13px !important;
+    color: #ffffff !important;
   }
 
   .shift-timeline-hours {
     position: relative !important;
     min-height: 20px !important;
     overflow: visible !important;
+    background: #111111 !important;
   }
 
   .shift-timeline-hour {
@@ -273,6 +278,7 @@
 
     font-size: 8px !important;
     border-right: none !important;
+    color: #ffffff !important;
   }
 
   .shift-timeline-hour:first-child {
@@ -286,34 +292,57 @@
   }
 
   .shift-timeline-row {
-    grid-template-columns: 64px 1fr !important;
+    grid-template-columns: 62px 1fr !important;
     border: 2px solid #000000 !important;
     border-bottom: none !important;
     page-break-inside: avoid;
     break-inside: avoid;
+    background: #ffffff !important;
   }
 
   .shift-timeline-date {
     border-right: 2px solid #000000 !important;
-    font-size: 13px !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 14px !important;
     line-height: 1.05 !important;
   }
 
   .shift-timeline-body {
-    min-height: 44px !important;
+    min-height: 43px !important;
     overflow: hidden !important;
+
+    background:
+      repeating-linear-gradient(
+        to right,
+        #ffffff 0,
+        #ffffff calc(100% / 24 - 1px),
+        #d1d5db calc(100% / 24 - 1px),
+        #d1d5db calc(100% / 24)
+      ),
+      repeating-linear-gradient(
+        to right,
+        transparent 0,
+        transparent calc((100% / 24) * 3 - 2px),
+        #777777 calc((100% / 24) * 3 - 2px),
+        #777777 calc((100% / 24) * 3)
+      ),
+      #ffffff !important;
   }
 
   .shift-bar {
-    height: 18px !important;
+    height: 17px !important;
     border: 1.7px solid #000000 !important;
     border-radius: 5px !important;
+    background: #ffffff !important;
+    color: #000000 !important;
   }
 
   .shift-bar-print-name {
     max-width: 100% !important;
     font-size: 9px !important;
     font-weight: 900 !important;
+    color: #000000 !important;
   }
 
   .shift-bar-delete,

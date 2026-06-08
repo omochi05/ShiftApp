@@ -67,12 +67,14 @@
   .shift-print-page {
     padding: 12px;
     overflow-x: auto;
+    background: #ffffff !important;
   }
 
   .shift-print-sheet {
     width: 1180px;
     max-width: none;
     margin: 0;
+    background: #ffffff !important;
   }
 
   .shift-print-sheet h1 {
@@ -86,7 +88,7 @@
 
 /* =========================
    印刷設定
-   スマホA3横印刷で崩れにくい版
+   A3横1枚・スマホ印刷対応
 ========================= */
 
 @media print {
@@ -128,17 +130,25 @@
     margin: 0 auto !important;
     padding: 0 !important;
     background: #ffffff !important;
+    color: #000000 !important;
 
-    zoom: 0.94;
+    /*
+      0.94だと小さすぎる。
+      1.04でA3に近づける。
+      土日が切れる場合は1.00へ下げる。
+    */
+    zoom: 1.04;
   }
 
   .shift-print-sheet h1 {
-    font-size: 22px !important;
+    font-size: 24px !important;
     margin: 0 0 2px !important;
+    color: #000000 !important;
   }
 
   .shift-print-period {
     font-size: 13px !important;
     margin: 0 0 3px !important;
+    color: #000000 !important;
   }
 }
