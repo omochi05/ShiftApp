@@ -52,17 +52,22 @@
 }
 
 .shift-print-sheet h1 {
-  margin: 0 0 8px;
-  text-align: center;
-  font-size: 24px;
-  color: #000000;
+  margin: 0 0 3mm !important;
+  padding: 0 !important;
+  text-align: center !important;
+  font-size: 22px !important;
+  line-height: 1.1 !important;
+  color: #000000 !important;
 }
 
 .shift-print-sheet p {
-  margin: 0 0 16px;
-  text-align: center;
-  font-weight: bold;
-  color: #000000;
+  margin: 0 0 4mm !important;
+  padding: 0 !important;
+  text-align: center !important;
+  font-size: 13px !important;
+  line-height: 1.1 !important;
+  font-weight: bold !important;
+  color: #000000 !important;
 }
 
 /* =========================
