@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from models import User, Shift
-from schemas import UserCreate, UserResponse
+from schemas import UserCreate, UserResponsefrom schemas import UserCreate, UserResponse, UserUpdate
 
 router = APIRouter(
     prefix="/users",
@@ -132,3 +132,39 @@ def delete_user(
         "message": "ユーザーを削除しました",
         "user_id": user_id
     }
+@router.put("/{user_id}", response_model=UserResponse)
+def update_user(
+    user_id: int,
+    user_data: UserUpdate,
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="ユーザーが見つかりません"
+        )
+
+    duplicated_user = (
+        db.query(User)
+        .filter(User.email == user_data.email)
+        .filter(User.id != user_id)
+        .first()
+    )
+
+    if duplicated_user:
+        raise HTTPException(
+            status_code=400,
+            detail="この従業員番号はすでに使われています"
+        )
+
+    user.name = user_data.name
+    user.email = user_data.email
+    user.role = user_data.role
+    user.hourly_wage = user_data.hourly_wage
+
+    db.commit()
+    db.refresh(user)
+
+    return user

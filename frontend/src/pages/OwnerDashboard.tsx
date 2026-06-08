@@ -220,6 +220,16 @@ function OwnerDashboard() {
   const [employeeMessage, setEmployeeMessage] = useState("");
   const [templateMessage, setTemplateMessage] = useState("");
 
+  const [editingEmployeeId, setEditingEmployeeId] = useState<number | null>(
+    null
+  );
+
+  const [editEmployee, setEditEmployee] = useState({
+    employee_number: "",
+    name: "",
+    hourly_wage: "",
+  });
+
   const employeeUsers = users.filter((user) => user.role === "employee");
 
   const uniqueShifts = Array.from(
@@ -601,6 +611,66 @@ function OwnerDashboard() {
     }
   };
 
+  const handleStartEditEmployee = (user: User) => {
+    setEditingEmployeeId(user.id);
+
+    setEditEmployee({
+      employee_number: user.email,
+      name: user.name,
+      hourly_wage: String(user.hourly_wage),
+    });
+
+    setEmployeeMessage("");
+  };
+
+  const handleCancelEditEmployee = () => {
+    setEditingEmployeeId(null);
+
+    setEditEmployee({
+      employee_number: "",
+      name: "",
+      hourly_wage: "",
+    });
+  };
+
+  const handleUpdateEmployee = async (userId: number) => {
+    if (!editEmployee.employee_number || !editEmployee.name) {
+      setEmployeeMessage("従業員番号と名前を入力してください");
+      return;
+    }
+
+    try {
+      setEmployeeMessage("");
+
+      await api.put(`/users/${userId}`, {
+        name: editEmployee.name,
+        email: editEmployee.employee_number,
+        role: "employee",
+        hourly_wage: Number(editEmployee.hourly_wage || 0),
+      });
+
+      setEmployeeMessage("従業員情報を更新しました");
+
+      setEditingEmployeeId(null);
+
+      setEditEmployee({
+        employee_number: "",
+        name: "",
+        hourly_wage: "",
+      });
+
+      await fetchUsers();
+      await fetchDashboard();
+      await fetchWeeklyDashboard();
+      await fetchWeekdayDashboard();
+    } catch (error: any) {
+      console.error("従業員更新失敗:", error);
+      console.error("レスポンス:", error.response?.data);
+
+      setEmployeeMessage(formatApiError(error, "従業員情報の更新に失敗しました"));
+    }
+  };
+
   const handleDeleteUser = async (userId: number) => {
     const targetUser = users.find((user) => user.id === userId);
 
@@ -881,22 +951,105 @@ function OwnerDashboard() {
             </thead>
 
             <tbody>
-              {employeeUsers.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.email}</td>
-                  <td>{user.name}</td>
-                  <td>{user.hourly_wage.toLocaleString()}円</td>
-                  <td>
-                    <button
-                      type="button"
-                      className="table-delete-button"
-                      onClick={() => handleDeleteUser(user.id)}
-                    >
-                      削除
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {employeeUsers.map((user) => {
+                const isEditing = editingEmployeeId === user.id;
+
+                return (
+                  <tr key={user.id}>
+                    <td>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={editEmployee.employee_number}
+                          onChange={(e) =>
+                            setEditEmployee({
+                              ...editEmployee,
+                              employee_number: e.target.value,
+                            })
+                          }
+                        />
+                      ) : (
+                        user.email
+                      )}
+                    </td>
+
+                    <td>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={editEmployee.name}
+                          onChange={(e) =>
+                            setEditEmployee({
+                              ...editEmployee,
+                              name: e.target.value,
+                            })
+                          }
+                        />
+                      ) : (
+                        user.name
+                      )}
+                    </td>
+
+                    <td>
+                      {isEditing ? (
+                        <input
+                          type="number"
+                          value={editEmployee.hourly_wage}
+                          onChange={(e) =>
+                            setEditEmployee({
+                              ...editEmployee,
+                              hourly_wage: e.target.value,
+                            })
+                          }
+                          min="0"
+                        />
+                      ) : (
+                        `${user.hourly_wage.toLocaleString()}円`
+                      )}
+                    </td>
+
+                    <td>
+                      {isEditing ? (
+                        <div className="table-action-buttons">
+                          <button
+                            type="button"
+                            className="table-save-button"
+                            onClick={() => handleUpdateEmployee(user.id)}
+                          >
+                            保存
+                          </button>
+
+                          <button
+                            type="button"
+                            className="table-cancel-button"
+                            onClick={handleCancelEditEmployee}
+                          >
+                            キャンセル
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="table-action-buttons">
+                          <button
+                            type="button"
+                            className="table-edit-button"
+                            onClick={() => handleStartEditEmployee(user)}
+                          >
+                            編集
+                          </button>
+
+                          <button
+                            type="button"
+                            className="table-delete-button"
+                            onClick={() => handleDeleteUser(user.id)}
+                          >
+                            削除
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -1114,23 +1267,24 @@ function OwnerDashboard() {
           />
         </div>
 
-          <div className="shift-template-actions-bottom print-hide">
-            <button type="button" onClick={handlePrevWeek}>
-              前の週
-            </button>
+        <div className="shift-template-actions-bottom print-hide">
+          <button type="button" onClick={handlePrevWeek}>
+            前の週
+          </button>
 
-            <button type="button" onClick={handleNextWeek}>
-              次の週
-            </button>
+          <button type="button" onClick={handleNextWeek}>
+            次の週
+          </button>
 
-            <button type="button" onClick={handleCreateTemplateFromWeek}>
-              この週をテンプレート化
-            </button>
+          <button type="button" onClick={handleCreateTemplateFromWeek}>
+            この週をテンプレート化
+          </button>
 
-            <button type="button" onClick={handleApplyTemplates}>
-              この週にテンプレートを反映
-            </button>
-          </div>
+          <button type="button" onClick={handleApplyTemplates}>
+            この週にテンプレートを反映
+          </button>
+        </div>
+
         {templateMessage && (
           <p className="form-message print-hide">{templateMessage}</p>
         )}

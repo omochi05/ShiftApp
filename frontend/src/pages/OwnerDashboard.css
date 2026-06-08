@@ -707,3 +707,75 @@ body {
     color: #000000 !important;
   }
 }
+
+.table-action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.weekday-table input {
+  width: 100%;
+  min-width: 100px;
+  padding: 8px;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.table-edit-button,
+.table-save-button,
+.table-cancel-button {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.table-edit-button {
+  border: 1px solid #60a5fa;
+  background: rgba(96, 165, 250, 0.12);
+  color: #bfdbfe;
+}
+
+.table-edit-button:hover {
+  background: rgba(96, 165, 250, 0.24);
+}
+
+.table-save-button {
+  border: 1px solid #22c55e;
+  background: rgba(34, 197, 94, 0.12);
+  color: #bbf7d0;
+}
+
+.table-save-button:hover {
+  background: rgba(34, 197, 94, 0.24);
+}
+
+.table-cancel-button {
+  border: 1px solid #64748b;
+  background: rgba(100, 116, 139, 0.12);
+  color: #e2e8f0;
+}
+
+.table-cancel-button:hover {
+  background: rgba(100, 116, 139, 0.24);
+}
+
+@media (max-width: 768px) {
+  .table-action-buttons {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .table-edit-button,
+  .table-save-button,
+  .table-cancel-button,
+  .table-delete-button {
+    width: 100%;
+  }
+}
