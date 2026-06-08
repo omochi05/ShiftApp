@@ -48,6 +48,7 @@
 }
 
 .timeline-hour-cell {
+  min-width: 50px;
   border-right: 1px solid #111111;
   border-bottom: 1px solid #111111;
   display: flex;
@@ -57,7 +58,6 @@
   font-weight: 700;
   background: #111111;
   color: #ffffff;
-  min-width: 50px;
 }
 
 .timeline-hour-cell:last-child {
@@ -80,9 +80,9 @@
 }
 
 .timeline-grid-cell {
+  min-width: 50px;
   border-right: 1px solid #111111;
   border-bottom: 1px solid #111111;
-  min-width: 50px;
 }
 
 .timeline-grid-cell:last-child {
@@ -211,7 +211,7 @@
 
 /* =========================
    Print / A3 Landscape
-   A3横向き・1ページ優先・4レーン固定
+   印刷時：名前だけ表示 / 4レーン固定
 ========================= */
 
 @media print {
@@ -282,8 +282,8 @@
     height: 10mm !important;
     min-height: 10mm !important;
     max-height: 10mm !important;
-    background: #ffffff !important;
-    color: #000000 !important;
+    background: #111111 !important;
+    color: #ffffff !important;
   }
 
   .timeline-hour-cell {
@@ -366,11 +366,12 @@
 
   .timeline-shift-text {
     display: flex !important;
-    gap: 1mm !important;
+    gap: 0 !important;
     align-items: center !important;
+    justify-content: center !important;
     width: 100% !important;
     color: #000000 !important;
-    font-size: 9px !important;
+    font-size: 10px !important;
     line-height: 6.7mm !important;
     font-weight: bold !important;
     white-space: nowrap !important;
@@ -380,7 +381,7 @@
 
   .timeline-shift-name {
     display: inline !important;
-    max-width: 28mm !important;
+    max-width: 100% !important;
     color: #000000 !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -389,9 +390,7 @@
   }
 
   .timeline-shift-time {
-    display: inline !important;
-    color: #000000 !important;
-    flex-shrink: 0 !important;
+    display: none !important;
   }
 
   .timeline-shift-memo {
