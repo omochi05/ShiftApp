@@ -1,6 +1,6 @@
 /* =========================
    ShiftTimeline.css
-   24時間横棒タイムライン
+   通常シフト用 + 印刷用
    6:00 〜 翌6:00
 ========================= */
 
@@ -35,28 +35,42 @@
 }
 
 .shift-timeline-hours {
-  display: grid;
-  grid-template-columns: repeat(25, 1fr);
+  position: relative;
+  min-height: 36px;
   background: #111111 !important;
+  overflow: visible;
 }
 
 .shift-timeline-hour {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+
   display: flex;
   align-items: center;
   justify-content: center;
+
+  width: 24px;
   min-height: 36px;
-  border-right: 1px solid #666666;
+
   color: #ffffff !important;
   font-size: 14px;
   font-weight: 900;
+  text-align: center;
+}
+
+.shift-timeline-hour:first-child {
+  transform: translateX(0);
+  justify-content: flex-start;
 }
 
 .shift-timeline-hour:last-child {
-  border-right: none;
+  transform: translateX(-100%);
+  justify-content: flex-end;
 }
 
 .shift-timeline-hour-strong {
-  background: #000000 !important;
+  color: #ffffff !important;
 }
 
 .shift-timeline-row {
@@ -85,7 +99,7 @@
 
 .shift-timeline-body {
   position: relative;
-  min-height: 62px;
+  min-height: 66px;
   background:
     repeating-linear-gradient(
       to right,
@@ -105,7 +119,6 @@
   overflow: hidden;
 }
 
-/* シフト横棒 */
 .shift-bar {
   position: absolute;
   height: 24px;
@@ -120,26 +133,32 @@
   overflow: hidden;
 }
 
-/* バー中央に名前だけ表示 */
-.shift-bar-center {
-  position: absolute;
-  left: 50%;
-  top: 50%;
+/* =========================
+   通常シフト用
+   名前 + 時間 + 削除ボタン
+========================= */
 
-  transform: translate(-50%, -50%);
-
-  display: inline-flex;
+.shift-timeline-normal .shift-bar {
+  display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 6px;
+}
 
-  max-width: calc(100% - 10px);
+.shift-bar-normal-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  width: 100%;
+  min-width: 0;
 
   color: #000000 !important;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
-  text-align: center;
 }
 
 .shift-bar-name {
@@ -149,15 +168,65 @@
   font-weight: 900;
 }
 
-.shift-bar-delete,
-.shift-bar button,
-.print-hide {
-  display: none !important;
+.shift-bar-time {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 900;
 }
+
+.shift-bar-delete {
+  flex-shrink: 0;
+
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 999px;
+
+  background: #dc2626;
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* =========================
+   印刷ページ用
+   名前だけ中央表示
+========================= */
 
 .shift-timeline-print {
   min-width: 0;
   width: 100%;
+}
+
+.shift-timeline-print .shift-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.shift-bar-print-name {
+  display: block;
+
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  color: #000000 !important;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.shift-timeline-print .shift-bar-delete,
+.shift-timeline-print .shift-bar button,
+.shift-timeline-print .print-hide {
+  display: none !important;
 }
 
 /* =========================
@@ -186,13 +255,31 @@
   }
 
   .shift-timeline-hours {
-    grid-template-columns: repeat(25, 1fr) !important;
+    position: relative !important;
+    min-height: 22px !important;
+    overflow: visible !important;
   }
 
   .shift-timeline-hour {
+    position: absolute !important;
+    top: 0 !important;
+    transform: translateX(-50%) !important;
+
+    width: 16px !important;
     min-height: 22px !important;
+
     font-size: 8px !important;
-    border-right: 1px solid #777777 !important;
+    border-right: none !important;
+  }
+
+  .shift-timeline-hour:first-child {
+    transform: translateX(0) !important;
+    justify-content: flex-start !important;
+  }
+
+  .shift-timeline-hour:last-child {
+    transform: translateX(-100%) !important;
+    justify-content: flex-end !important;
   }
 
   .shift-timeline-row {
@@ -220,25 +307,15 @@
     border-radius: 5px !important;
   }
 
-  .shift-bar-center {
-    left: 50% !important;
-    top: 50% !important;
-
-    transform: translate(-50%, -50%) !important;
-
-    max-width: calc(100% - 6px) !important;
-
+  .shift-bar-print-name {
+    max-width: 100% !important;
     font-size: 10px !important;
     font-weight: 900 !important;
   }
 
-  .shift-bar-name {
-    font-size: 10px !important;
-  }
-
-  .shift-bar-delete,
-  .shift-bar button,
-  .print-hide {
+  .shift-timeline-print .shift-bar-delete,
+  .shift-timeline-print .shift-bar button,
+  .shift-timeline-print .print-hide {
     display: none !important;
   }
 }

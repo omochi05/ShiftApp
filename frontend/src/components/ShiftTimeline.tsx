@@ -13,6 +13,7 @@ type ShiftForTimeline = {
 
 type ShiftTimelineProps = {
   shifts: ShiftForTimeline[];
+  onDeleteShift?: (shiftId: number) => void;
   printMode?: boolean;
 };
 
@@ -26,7 +27,7 @@ type PositionedShift = ShiftForTimeline & {
 
 const START_HOUR = 6;
 const TOTAL_HOURS = 24;
-const LANE_HEIGHT = 28;
+const LANE_HEIGHT = 30;
 const BAR_TOP_OFFSET = 8;
 
 const hourLabels = [
@@ -190,12 +191,17 @@ function positionShifts(shifts: ShiftForTimeline[]) {
 
 export default function ShiftTimeline({
   shifts,
+  onDeleteShift,
   printMode = false,
 }: ShiftTimelineProps) {
   const groupedShifts = groupShiftsByDate(shifts);
 
   return (
-    <div className={`shift-timeline ${printMode ? "shift-timeline-print" : ""}`}>
+    <div
+      className={`shift-timeline ${
+        printMode ? "shift-timeline-print" : "shift-timeline-normal"
+      }`}
+    >
       <div className="shift-timeline-header">
         <div className="shift-timeline-date-head">日付</div>
 
@@ -206,6 +212,9 @@ export default function ShiftTimeline({
               className={`shift-timeline-hour ${
                 index % 3 === 0 ? "shift-timeline-hour-strong" : ""
               }`}
+              style={{
+                left: `${(index / TOTAL_HOURS) * 100}%`,
+              }}
             >
               {hour}
             </div>
@@ -215,7 +224,7 @@ export default function ShiftTimeline({
 
       {groupedShifts.map(([date, dayShifts]) => {
         const { positioned, laneCount } = positionShifts(dayShifts);
-        const rowHeight = Math.max(62, laneCount * LANE_HEIGHT + 14);
+        const rowHeight = Math.max(66, laneCount * LANE_HEIGHT + 16);
 
         return (
           <div
@@ -247,9 +256,32 @@ export default function ShiftTimeline({
                     }}
                     title={`${shift.user_name} ${startTime}〜${endTime}`}
                   >
-                    <span className="shift-bar-center">
-                      <span className="shift-bar-name">{shift.user_name}</span>
-                    </span>
+                    {printMode ? (
+                      <span className="shift-bar-print-name">
+                        {shift.user_name}
+                      </span>
+                    ) : (
+                      <span className="shift-bar-normal-content">
+                        <span className="shift-bar-name">
+                          {shift.user_name}
+                        </span>
+
+                        <span className="shift-bar-time">
+                          {startTime}〜{endTime}
+                        </span>
+
+                        {onDeleteShift && shift.id > 0 && (
+                          <button
+                            type="button"
+                            className="shift-bar-delete print-hide"
+                            onClick={() => onDeleteShift(shift.id)}
+                            aria-label={`${shift.user_name}のシフトを削除`}
+                          >
+                            ×
+                          </button>
+                        )}
+                      </span>
+                    )}
                   </div>
                 );
               })}
