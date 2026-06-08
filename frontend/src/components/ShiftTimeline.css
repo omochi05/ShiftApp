@@ -2,7 +2,7 @@
   width: 100%;
   min-width: 0;
   overflow-x: auto;
-  border: 1px solid #cfcfcf;
+  border: 1px solid #111111;
   background: #ffffff;
   color: #111111;
 }
@@ -11,7 +11,7 @@
 .timeline-row {
   display: grid;
   grid-template-columns: 140px minmax(1200px, 1fr);
-  border-bottom: 1px solid #d9d9d9;
+  border-bottom: 1px solid #111111;
 }
 
 .timeline-header {
@@ -25,7 +25,7 @@
 }
 
 .timeline-date-cell {
-  border-right: 1px solid #d9d9d9;
+  border-right: 1px solid #111111;
   padding: 10px 8px;
   background: #f7f7f7;
   font-weight: 700;
@@ -48,7 +48,8 @@
 }
 
 .timeline-hour-cell {
-  border-right: 1px solid #d9d9d9;
+  border-right: 1px solid #111111;
+  border-bottom: 1px solid #111111;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -79,8 +80,8 @@
 }
 
 .timeline-grid-cell {
-  border-right: 1px solid #e5e7eb;
-  border-bottom: 1px solid #e5e7eb;
+  border-right: 1px solid #111111;
+  border-bottom: 1px solid #111111;
   min-width: 50px;
 }
 
@@ -134,7 +135,7 @@
   padding: 16px;
   background: #ffffff;
   color: #111111;
-  border: 1px solid #d9d9d9;
+  border: 1px solid #111111;
 }
 
 .timeline-overflow-badge {
@@ -186,30 +187,185 @@
 
 /* =========================
    Print / PDF support
-   OwnerDashboard.css の @media print から上書きされる前提
+   A3横向き・4レーン対応
 ========================= */
 
 @media print {
   .timeline-sheet {
+    width: 100% !important;
+    min-width: 0 !important;
     overflow: visible !important;
+    border: 1.4px solid #000000 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
   }
 
   .timeline-header,
   .timeline-row {
-    grid-template-columns: 18mm 1fr !important;
+    display: grid !important;
+    grid-template-columns: 20mm 1fr !important;
+    border-bottom: 1px solid #000000 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
-  .timeline-hours,
-  .timeline-grid {
+  .timeline-header {
+    position: static !important;
+    height: 8mm !important;
+    min-height: 8mm !important;
+    max-height: 8mm !important;
+  }
+
+  .timeline-row {
+    height: 24mm !important;
+    min-height: 24mm !important;
+    max-height: 24mm !important;
+  }
+
+  .timeline-date-cell {
+    width: 20mm !important;
+    min-width: 20mm !important;
+    max-width: 20mm !important;
+    padding: 0 !important;
+    border-right: 1px solid #000000 !important;
+    border-bottom: 1px solid #000000 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 9px !important;
+    font-weight: bold !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+  }
+
+  .timeline-date-label {
+    font-size: 9px !important;
+    color: #000000 !important;
+    font-weight: bold !important;
+  }
+
+  .timeline-hours {
+    display: grid !important;
     grid-template-columns: repeat(24, 1fr) !important;
+    height: 8mm !important;
+    min-height: 8mm !important;
+    max-height: 8mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
   }
 
-  .timeline-hour-cell,
+  .timeline-hour-cell {
+    min-width: 0 !important;
+    height: 8mm !important;
+    min-height: 8mm !important;
+    max-height: 8mm !important;
+    padding: 0 !important;
+    border-right: 1px solid #000000 !important;
+    border-bottom: 1px solid #000000 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 6.5px !important;
+    font-weight: bold !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .timeline-grid-area {
+    position: relative !important;
+    height: 24mm !important;
+    min-height: 24mm !important;
+    max-height: 24mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-left: 1px solid #000000 !important;
+    overflow: hidden !important;
+  }
+
+  .timeline-grid {
+    position: absolute !important;
+    inset: 0 !important;
+    display: grid !important;
+    grid-template-columns: repeat(24, 1fr) !important;
+    height: 100% !important;
+    background: #ffffff !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
+  }
+
   .timeline-grid-cell {
     min-width: 0 !important;
+    height: 100% !important;
+    background: #ffffff !important;
+    border-right: 1px solid #000000 !important;
+    border-bottom: 1px solid #000000 !important;
+  }
+
+  .timeline-shifts {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 2 !important;
+    background: transparent !important;
   }
 
   .timeline-shift-bar {
-    top: calc(var(--lane, 0) * 6.1mm + 1.4mm) !important;
+    position: absolute !important;
+    height: 5mm !important;
+    min-height: 5mm !important;
+    padding: 0 1mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 1.5px !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .timeline-shift-bar:nth-child(4n + 1) {
+    top: 1.2mm !important;
+  }
+
+  .timeline-shift-bar:nth-child(4n + 2) {
+    top: 6.8mm !important;
+  }
+
+  .timeline-shift-bar:nth-child(4n + 3) {
+    top: 12.4mm !important;
+  }
+
+  .timeline-shift-bar:nth-child(4n) {
+    top: 18mm !important;
+  }
+
+  .timeline-shift-text {
+    color: #000000 !important;
+    font-size: 6.5px !important;
+    line-height: 5mm !important;
+    font-weight: bold !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .timeline-row-spacer {
+    height: 24mm !important;
+    min-height: 24mm !important;
+    max-height: 24mm !important;
+  }
+
+  .timeline-overflow-badge {
+    right: 1mm !important;
+    bottom: 1mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    font-size: 7px !important;
+    font-weight: bold !important;
   }
 }
