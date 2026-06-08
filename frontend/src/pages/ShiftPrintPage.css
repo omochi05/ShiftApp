@@ -1,14 +1,13 @@
 /* =========================
    ShiftPrintPage.css
-   印刷専用ページ / A3横向き
-   ※ timeline系のCSSはここに書かない
+   ご年配の方にも見やすい印刷用シフト表
 ========================= */
 
 .shift-print-page {
   min-height: 100vh;
   padding: 24px;
-  background: #ffffff;
-  color: #000000;
+  background: #ffffff !important;
+  color: #000000 !important;
 }
 
 .shift-print-actions {
@@ -38,32 +37,148 @@
   background: #1d4ed8;
 }
 
-.shift-print-help {
-  margin: 8px 0 16px;
-  color: #334155;
-  font-size: 14px;
-  line-height: 1.6;
-  text-align: center;
-}
-
 .shift-print-sheet {
   width: 100%;
-  background: #ffffff;
-  color: #000000;
+  background: #ffffff !important;
+  color: #000000 !important;
 }
 
+.shift-print-title-area {
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.shift-print-title-area h1,
 .shift-print-sheet h1 {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   text-align: center;
-  font-size: 24px;
-  color: #000000;
+  font-size: 28px;
+  font-weight: 900;
+  color: #000000 !important;
 }
 
+.shift-print-title-area p,
 .shift-print-sheet p {
-  margin: 0 0 16px;
+  margin: 0 0 12px;
   text-align: center;
-  font-weight: bold;
-  color: #000000;
+  font-size: 16px;
+  font-weight: 700;
+  color: #000000 !important;
+}
+
+/* =========================
+   見やすい一覧シフト表
+========================= */
+
+.readable-shift-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  background: #ffffff !important;
+}
+
+.readable-shift-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 3px solid #000000;
+}
+
+.readable-shift-table th,
+.readable-shift-table td {
+  border: 2.2px solid #000000;
+  vertical-align: top;
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+.readable-shift-table th {
+  padding: 8px 6px;
+  text-align: center;
+  background: #111111 !important;
+  color: #ffffff !important;
+}
+
+.readable-date-header {
+  width: 90px;
+  background: #f3f4f6 !important;
+  color: #000000 !important;
+  font-size: 20px;
+  font-weight: 900;
+  border-right: 3px solid #000000 !important;
+}
+
+.readable-date-cell {
+  width: 90px;
+  text-align: center;
+  vertical-align: middle !important;
+  font-size: 20px;
+  font-weight: 900;
+  background: #f8fafc !important;
+  color: #000000 !important;
+  border-right: 3px solid #000000 !important;
+}
+
+.readable-group-label {
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.readable-group-time {
+  margin-top: 3px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.readable-shift-cell {
+  min-height: 86px;
+  padding: 8px;
+  background: #ffffff !important;
+}
+
+.readable-shift-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.readable-shift-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 2px solid #000000;
+  border-radius: 6px;
+  background: #ffffff !important;
+  color: #000000 !important;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.readable-staff-name {
+  font-size: 19px;
+  font-weight: 900;
+  color: #000000 !important;
+  white-space: nowrap;
+}
+
+.readable-time {
+  font-size: 15px;
+  font-weight: 800;
+  color: #000000 !important;
+  white-space: nowrap;
+}
+
+.readable-empty {
+  display: block;
+  text-align: center;
+  color: #555555;
+  font-size: 18px;
+  font-weight: 700;
+  padding-top: 12px;
 }
 
 /* =========================
@@ -73,7 +188,7 @@
 @media print {
   @page {
     size: A3 landscape;
-    margin: 3mm;
+    margin: 5mm;
   }
 
   .app-nav {
@@ -107,8 +222,7 @@
     overflow: visible !important;
   }
 
-  .shift-print-actions,
-  .shift-print-help {
+  .shift-print-actions {
     display: none !important;
   }
 
@@ -122,23 +236,113 @@
     break-inside: avoid !important;
   }
 
+  .shift-print-title-area {
+    margin-bottom: 4mm !important;
+  }
+
+  .shift-print-title-area h1,
   .shift-print-sheet h1 {
-    margin: 0 0 1.5mm !important;
+    margin: 0 0 2mm !important;
     padding: 0 !important;
     text-align: center !important;
-    font-size: 18px !important;
+    font-size: 24px !important;
     line-height: 1.1 !important;
     color: #000000 !important;
   }
 
+  .shift-print-title-area p,
   .shift-print-sheet p {
-    margin: 0 0 2mm !important;
+    margin: 0 0 3mm !important;
     padding: 0 !important;
     text-align: center !important;
-    font-size: 10px !important;
+    font-size: 13px !important;
     line-height: 1.1 !important;
     font-weight: bold !important;
     color: #000000 !important;
+  }
+
+  .readable-shift-table-wrapper {
+    overflow: visible !important;
+  }
+
+  .readable-shift-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: fixed !important;
+    border: 3px solid #000000 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .readable-shift-table th,
+  .readable-shift-table td {
+    border: 2.2px solid #000000 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .readable-shift-table th {
+    padding: 5px 4px !important;
+    background: #111111 !important;
+    color: #ffffff !important;
+  }
+
+  .readable-date-header {
+    width: 25mm !important;
+    font-size: 18px !important;
+    background: #f3f4f6 !important;
+    color: #000000 !important;
+    border-right: 3px solid #000000 !important;
+  }
+
+  .readable-date-cell {
+    width: 25mm !important;
+    font-size: 18px !important;
+    background: #f8fafc !important;
+    color: #000000 !important;
+    border-right: 3px solid #000000 !important;
+  }
+
+  .readable-group-label {
+    font-size: 18px !important;
+  }
+
+  .readable-group-time {
+    font-size: 12px !important;
+  }
+
+  .readable-shift-cell {
+    height: 27mm !important;
+    min-height: 27mm !important;
+    padding: 5px !important;
+  }
+
+  .readable-shift-list {
+    gap: 4px !important;
+  }
+
+  .readable-shift-item {
+    padding: 5px 6px !important;
+    border: 1.8px solid #000000 !important;
+    border-radius: 5px !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .readable-staff-name {
+    font-size: 16px !important;
+    font-weight: 900 !important;
+    color: #000000 !important;
+  }
+
+  .readable-time {
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    color: #000000 !important;
+  }
+
+  .readable-empty {
+    font-size: 16px !important;
   }
 }
 
@@ -149,6 +353,8 @@
 @media (max-width: 768px) {
   .shift-print-page {
     padding: 12px;
+    background: #ffffff !important;
+    color: #000000 !important;
   }
 
   .shift-print-actions {
@@ -163,11 +369,44 @@
     font-size: 16px;
   }
 
+  .shift-print-title-area h1,
   .shift-print-sheet h1 {
     font-size: 22px;
   }
 
+  .shift-print-title-area p,
   .shift-print-sheet p {
     font-size: 14px;
+  }
+
+  .readable-shift-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .readable-shift-table {
+    min-width: 900px;
+  }
+
+  .readable-date-header,
+  .readable-date-cell {
+    width: 80px;
+    font-size: 16px;
+  }
+
+  .readable-group-label {
+    font-size: 17px;
+  }
+
+  .readable-group-time {
+    font-size: 12px;
+  }
+
+  .readable-staff-name {
+    font-size: 16px;
+  }
+
+  .readable-time {
+    font-size: 13px;
   }
 }
