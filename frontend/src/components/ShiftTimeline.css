@@ -119,11 +119,35 @@
 }
 
 .timeline-shift-text {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  width: 100%;
   font-size: 12px;
   color: #111111;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.timeline-shift-name {
+  display: inline;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 1;
+}
+
+.timeline-shift-time {
+  display: inline;
+  flex-shrink: 0;
+}
+
+.timeline-shift-memo {
+  display: inline;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .timeline-row-spacer {
@@ -187,7 +211,7 @@
 
 /* =========================
    Print / A3 Landscape
-   A3横向き・4レーン・見やすい拡大版
+   A3横向き・1ページ優先・4レーン固定
 ========================= */
 
 @media print {
@@ -223,9 +247,9 @@
   }
 
   .timeline-row {
-    height: 25mm !important;
-    min-height: 25mm !important;
-    max-height: 25mm !important;
+    height: 26mm !important;
+    min-height: 26mm !important;
+    max-height: 26mm !important;
   }
 
   .timeline-date-cell {
@@ -285,9 +309,9 @@
 
   .timeline-grid-area {
     position: relative !important;
-    height: 25mm !important;
-    min-height: 25mm !important;
-    max-height: 25mm !important;
+    height: 26mm !important;
+    min-height: 26mm !important;
+    max-height: 26mm !important;
     background: #ffffff !important;
     color: #000000 !important;
     border-left: 1.2px solid #000000 !important;
@@ -326,9 +350,9 @@
 
   .timeline-shift-bar {
     position: absolute !important;
-    top: calc(var(--lane, 0) * 5.7mm + 1.2mm) !important;
-    height: 5.1mm !important;
-    min-height: 5.1mm !important;
+    top: calc(var(--lane, 0) * 5.8mm + 1.2mm) !important;
+    height: 5.2mm !important;
+    min-height: 5.2mm !important;
     padding: 0 1mm !important;
     background: #ffffff !important;
     color: #000000 !important;
@@ -340,12 +364,16 @@
     align-items: center !important;
   }
 
-  /* 重要：nth-childで位置を上書きしない */
+  /*
+    重要：
+    nth-childでtopを指定しない。
+    ShiftTimeline.tsx の --lane を使って位置を決める。
+  */
   .timeline-shift-bar:nth-child(4n + 1),
   .timeline-shift-bar:nth-child(4n + 2),
   .timeline-shift-bar:nth-child(4n + 3),
   .timeline-shift-bar:nth-child(4n) {
-    top: calc(var(--lane, 0) * 5.7mm + 1.2mm) !important;
+    top: calc(var(--lane, 0) * 5.8mm + 1.2mm) !important;
   }
 
   .timeline-shift-text {
@@ -355,7 +383,7 @@
     width: 100% !important;
     color: #000000 !important;
     font-size: 6.8px !important;
-    line-height: 5.1mm !important;
+    line-height: 5.2mm !important;
     font-weight: bold !important;
     white-space: nowrap !important;
     overflow: hidden !important;
@@ -364,7 +392,7 @@
 
   .timeline-shift-name {
     display: inline !important;
-    max-width: 20mm !important;
+    max-width: 18mm !important;
     color: #000000 !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -387,9 +415,9 @@
   }
 
   .timeline-row-spacer {
-    height: 25mm !important;
-    min-height: 25mm !important;
-    max-height: 25mm !important;
+    height: 26mm !important;
+    min-height: 26mm !important;
+    max-height: 26mm !important;
   }
 
   .timeline-overflow-badge {

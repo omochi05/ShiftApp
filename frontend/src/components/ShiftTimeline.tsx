@@ -133,7 +133,6 @@ function layoutShiftsForDay(dayShifts: ShiftItem[]) {
 
     let assignedLane = -1;
 
-    // 上から順番に、空いているレーンへ配置
     for (let lane = 0; lane < MAX_LANES; lane++) {
       if (startPos >= laneEndTimes[lane]) {
         assignedLane = lane;
@@ -142,8 +141,7 @@ function layoutShiftsForDay(dayShifts: ShiftItem[]) {
       }
     }
 
-    // 4レーンすべて同時間帯で埋まっている場合
-    // A3 1ページ固定を優先するため、行は増やさず一番下のレーンに置く
+    // 4レーンすべて埋まっている場合は、A3 1ページ固定を優先して一番下へ
     if (assignedLane === -1) {
       assignedLane = MAX_LANES - 1;
       laneEndTimes[assignedLane] = Math.max(
@@ -250,9 +248,9 @@ export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
               <div className="timeline-shifts">
                 {visible.map((shift) => {
                   const style = {
-                    ...getShiftStyle(shift.start_time, shift.end_time),
-                    "--lane": shift.lane,
-                  } as CSSProperties;
+                      ...getShiftStyle(shift.start_time, shift.end_time),
+                      "--lane": shift.lane,
+                    } as React.CSSProperties;
 
                   return (
                     <div
