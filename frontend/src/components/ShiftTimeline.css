@@ -13,31 +13,50 @@
   border-bottom: 3px solid #000000;
 }
 
-.shift-timeline-header {
+.shift-timeline-day {
   display: grid;
   grid-template-columns: 96px 1fr;
+  grid-template-rows: 36px auto;
+
   border: 3px solid #000000;
   border-bottom: none;
-  background: #111111 !important;
-  color: #ffffff !important;
+
+  background: #ffffff !important;
+  color: #000000 !important;
 }
 
-.shift-timeline-date-head {
+.shift-timeline-day:last-child {
+  border-bottom: 3px solid #000000;
+}
+
+.shift-timeline-date {
+  grid-column: 1;
+  grid-row: 1 / 3;
+
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8px 4px;
+
   border-right: 3px solid #000000;
+  background: #ffffff !important;
+  color: #000000 !important;
+
   text-align: center;
-  font-size: 20px;
+  font-size: 23px;
   font-weight: 900;
-  color: #ffffff !important;
+  line-height: 1.2;
 }
 
 .shift-timeline-hours {
+  grid-column: 2;
+  grid-row: 1;
+
   position: relative;
   min-height: 36px;
+
   background: #111111 !important;
+  color: #ffffff !important;
   overflow: visible;
 }
 
@@ -69,33 +88,11 @@
   justify-content: flex-end;
 }
 
-.shift-timeline-row {
-  display: grid;
-  grid-template-columns: 96px 1fr;
-  border: 3px solid #000000;
-  border-bottom: none;
-  background: #ffffff !important;
-}
-
-.shift-timeline-date {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  border-right: 3px solid #000000;
-  background: #ffffff !important;
-  color: #000000 !important;
-
-  text-align: center;
-  font-size: 23px;
-  font-weight: 900;
-  line-height: 1.2;
-}
-
 .shift-timeline-body {
+  grid-column: 2;
+  grid-row: 2;
+
   position: relative;
-  min-height: 66px;
 
   background:
     repeating-linear-gradient(
@@ -218,7 +215,7 @@
 
 /* =========================
    スマホ表示用
-   印刷ページで表を潰さない
+   表を潰さず横スクロール
 ========================= */
 
 @media screen and (max-width: 768px) {
@@ -233,39 +230,55 @@
 
 /* =========================
    印刷用 A3横 1枚向け
-   下余白を減らすために表を大きめにする
+   各日ごとに時間軸を表示
 ========================= */
 
 @media print {
   .shift-timeline {
     width: 100% !important;
     min-width: 0 !important;
+
     border-bottom: 2px solid #000000 !important;
     page-break-inside: avoid;
     break-inside: avoid;
+
     background: #ffffff !important;
     color: #000000 !important;
   }
 
-  .shift-timeline-header {
+  .shift-timeline-day {
     grid-template-columns: 62px 1fr !important;
+    grid-template-rows: 22px auto !important;
+
     border: 2px solid #000000 !important;
     border-bottom: none !important;
-    background: #111111 !important;
+
+    page-break-inside: avoid;
+    break-inside: avoid;
+
+    background: #ffffff !important;
   }
 
-  .shift-timeline-date-head {
-    padding: 3px 2px !important;
+  .shift-timeline-day:last-child {
+    border-bottom: 2px solid #000000 !important;
+  }
+
+  .shift-timeline-date {
     border-right: 2px solid #000000 !important;
-    font-size: 13px !important;
-    color: #ffffff !important;
+
+    background: #ffffff !important;
+    color: #000000 !important;
+
+    font-size: 15px !important;
+    line-height: 1.05 !important;
   }
 
   .shift-timeline-hours {
-    position: relative !important;
     min-height: 22px !important;
-    overflow: visible !important;
+
     background: #111111 !important;
+    color: #ffffff !important;
+    overflow: visible !important;
   }
 
   .shift-timeline-hour {
@@ -276,9 +289,9 @@
     width: 18px !important;
     min-height: 22px !important;
 
+    color: #ffffff !important;
     font-size: 8px !important;
     border-right: none !important;
-    color: #ffffff !important;
   }
 
   .shift-timeline-hour:first-child {
@@ -291,25 +304,7 @@
     justify-content: flex-end !important;
   }
 
-  .shift-timeline-row {
-    grid-template-columns: 62px 1fr !important;
-    border: 2px solid #000000 !important;
-    border-bottom: none !important;
-    page-break-inside: avoid;
-    break-inside: avoid;
-    background: #ffffff !important;
-  }
-
-  .shift-timeline-date {
-    border-right: 2px solid #000000 !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    font-size: 15px !important;
-    line-height: 1.05 !important;
-  }
-
   .shift-timeline-body {
-    min-height: 62px !important;
     overflow: hidden !important;
 
     background:
@@ -332,8 +327,10 @@
 
   .shift-bar {
     height: 22px !important;
+
     border: 1.8px solid #000000 !important;
     border-radius: 5px !important;
+
     background: #ffffff !important;
     color: #000000 !important;
   }

@@ -31,8 +31,8 @@ const TOTAL_HOURS = 24;
 const NORMAL_LANE_HEIGHT = 30;
 const NORMAL_BAR_TOP_OFFSET = 8;
 
-const PRINT_LANE_HEIGHT = 22;
-const PRINT_BAR_TOP_OFFSET = 5;
+const PRINT_LANE_HEIGHT = 28;
+const PRINT_BAR_TOP_OFFSET = 7;
 
 const hourLabels = [
   "6",
@@ -208,37 +208,15 @@ export default function ShiftTimeline({
         printMode ? "shift-timeline-print" : "shift-timeline-normal"
       }`}
     >
-      <div className="shift-timeline-header">
-        <div className="shift-timeline-date-head">日付</div>
-
-        <div className="shift-timeline-hours">
-          {hourLabels.map((hour, index) => (
-            <div
-              key={`${hour}-${index}`}
-              className="shift-timeline-hour"
-              style={{
-                left: `${(index / TOTAL_HOURS) * 100}%`,
-              }}
-            >
-              {hour}
-            </div>
-          ))}
-        </div>
-      </div>
-
       {groupedShifts.map(([date, dayShifts]) => {
         const { positioned, laneCount } = positionShifts(dayShifts);
 
-        const rowHeight = printMode
-          ? Math.max(46, laneCount * laneHeight + 8)
+        const bodyHeight = printMode
+          ? Math.max(64, laneCount * laneHeight + 14)
           : Math.max(66, laneCount * laneHeight + 16);
 
         return (
-          <div
-            key={date}
-            className="shift-timeline-row"
-            style={{ minHeight: `${rowHeight}px` }}
-          >
+          <div key={date} className="shift-timeline-day">
             <div className="shift-timeline-date">
               {formatDate(date)
                 .split("\n")
@@ -247,7 +225,24 @@ export default function ShiftTimeline({
                 ))}
             </div>
 
-            <div className="shift-timeline-body">
+            <div className="shift-timeline-hours">
+              {hourLabels.map((hour, index) => (
+                <div
+                  key={`${date}-${hour}-${index}`}
+                  className="shift-timeline-hour"
+                  style={{
+                    left: `${(index / TOTAL_HOURS) * 100}%`,
+                  }}
+                >
+                  {hour}
+                </div>
+              ))}
+            </div>
+
+            <div
+              className="shift-timeline-body"
+              style={{ minHeight: `${bodyHeight}px` }}
+            >
               {positioned.map((shift) => {
                 const startTime = formatDisplayTime(shift.start_time);
                 const endTime = formatDisplayTime(shift.end_time);
