@@ -39,25 +39,29 @@
 }
 
 .shift-print-sheet {
-  width: 1280px;
-  max-width: none;
-  margin: 0 auto;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
   background: #ffffff !important;
   color: #000000 !important;
+
+  /* A3の下余白を減らすため少し拡大 */
+  zoom: 1.10;
 }
 
 .shift-print-sheet h1 {
-  margin: 0 0 4px;
+  margin: 0 0 1px !important;
   text-align: center;
-  font-size: 30px;
+  font-size: 23px !important;
   font-weight: 900;
   color: #000000 !important;
 }
 
 .shift-print-period {
-  margin: 0 0 8px;
+  margin: 0 0 2px !important;
   text-align: center;
-  font-size: 18px;
+  font-size: 13px !important;
   font-weight: 900;
   color: #000000 !important;
 }
