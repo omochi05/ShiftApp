@@ -35,7 +35,15 @@ body {
   background: #0b1120;
 }
 
+/* =========================
+   Header
+========================= */
+
 .owner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 24px;
 }
 
@@ -50,6 +58,30 @@ body {
   margin: 8px 0 0;
   color: #cbd5e1;
   font-size: 15px;
+}
+
+.owner-header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.owner-header-actions button {
+  padding: 12px 18px;
+  border: 1px solid #475569;
+  border-radius: 12px;
+  background: #111827;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.owner-header-actions button:hover {
+  border-color: #60a5fa;
+  background: #1e293b;
 }
 
 /* =========================
@@ -187,6 +219,7 @@ body {
   margin: 12px 0 0;
   color: #93c5fd;
   font-weight: bold;
+  line-height: 1.6;
 }
 
 /* =========================
@@ -289,7 +322,6 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-/* ShiftTimeline 側のバー補助 */
 .timeline-shift-bar {
   cursor: pointer;
   user-select: none;
@@ -339,7 +371,10 @@ body {
   background: rgba(96, 165, 250, 0.24);
 }
 
-/* シフト表の下に置くテンプレート操作ボタン */
+/* =========================
+   Shift Actions
+========================= */
+
 .shift-template-actions-bottom {
   display: flex;
   flex-wrap: wrap;
@@ -362,7 +397,7 @@ body {
 }
 
 /* =========================
-   PDF Setting Panel
+   Print Panel
 ========================= */
 
 .pdf-setting-panel {
@@ -370,30 +405,7 @@ body {
   flex-wrap: wrap;
   gap: 12px;
   margin-top: 16px;
-  align-items: end;
-}
-
-.pdf-setting-panel label {
-  display: grid;
-  gap: 6px;
-  color: #e5e7eb;
-  font-size: 14px;
-}
-
-.pdf-setting-panel select {
-  min-width: 140px;
-  padding: 12px;
-  border: 1px solid #475569;
-  border-radius: 10px;
-  background: #0f172a;
-  color: #ffffff;
-  font-size: 16px;
-  outline: none;
-}
-
-.pdf-setting-panel select:focus {
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.25);
+  align-items: center;
 }
 
 .pdf-setting-panel button {
@@ -408,6 +420,48 @@ body {
 
 .pdf-setting-panel button:hover {
   background: rgba(96, 165, 250, 0.24);
+}
+
+/* =========================
+   Mobile Print Panel
+========================= */
+
+.mobile-print-panel {
+  display: none;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  background: #0f172a;
+}
+
+.mobile-print-panel p {
+  margin: 0 0 12px;
+  color: #cbd5e1;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.mobile-print-panel button {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #60a5fa;
+  border-radius: 10px;
+  background: rgba(96, 165, 250, 0.12);
+  color: #bfdbfe;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.mobile-print-panel button:hover {
+  background: rgba(96, 165, 250, 0.24);
+}
+
+.mobile-print-help {
+  margin-top: 12px !important;
+  color: #93c5fd !important;
+  font-size: 13px !important;
 }
 
 /* =========================
@@ -470,6 +524,8 @@ body {
   }
 
   .owner-header {
+    display: grid;
+    gap: 12px;
     margin-bottom: 16px;
   }
 
@@ -479,6 +535,19 @@ body {
 
   .owner-header p {
     font-size: 13px;
+  }
+
+  .owner-header-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .owner-header-actions button {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
   }
 
   .summary-grid {
@@ -571,13 +640,11 @@ body {
   }
 
   .pdf-setting-panel {
-    display: grid;
-    grid-template-columns: 1fr;
+    display: none;
   }
 
-  .pdf-setting-panel select,
-  .pdf-setting-panel button {
-    width: 100%;
+  .mobile-print-panel {
+    display: block;
   }
 
   .owner-loading,
@@ -609,279 +676,34 @@ body {
 }
 
 /* =========================
-   Print / PDF
+   Print
+   印刷専用ページ ShiftPrintPage.css 側で主に制御する
 ========================= */
 
 @media print {
-  @page {
-    size: A4 landscape;
-    margin: 4mm;
-  }
-
-  html,
-  body,
-  #root {
-    width: 100%;
-    height: auto;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    overflow: visible !important;
-  }
-
-  body * {
-    visibility: hidden !important;
-  }
-
-  .shift-print-area,
-  .shift-print-area * {
-    visibility: visible !important;
-  }
-
-  .shift-print-area {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
-    max-width: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    border-radius: 0 !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    overflow: visible !important;
-  }
-
-  .shift-print-area h2 {
-    margin: 0 0 2mm !important;
-    text-align: center !important;
-    color: #000000 !important;
-    font-size: 15px !important;
-    line-height: 1.1 !important;
-  }
-
-  .shift-print-area .form-message {
-    margin: 0 0 2mm !important;
-    text-align: center !important;
-    color: #000000 !important;
-    font-size: 9px !important;
-    line-height: 1.1 !important;
-  }
-
   .print-hide {
     display: none !important;
   }
 
-  .timeline-wrap {
-    width: 100% !important;
+  .owner-header,
+  .summary-grid,
+  .owner-section:not(.shift-print-area) {
+    display: none !important;
+  }
+
+  .owner-page {
     max-width: none !important;
-    overflow: visible !important;
-    background: #ffffff !important;
-    border-radius: 0 !important;
-  }
-
-  .timeline-sheet {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border: 1.5px solid #000000 !important;
-    box-shadow: none !important;
-    overflow: visible !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-
-  .timeline-header {
-    height: 10mm !important;
-    min-height: 10mm !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border-bottom: 1.5px solid #000000 !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-
-  .timeline-row {
-    height: 22mm !important;
-    min-height: 22mm !important;
-    max-height: 22mm !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border-bottom: 1.2px solid #000000 !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-
-  .timeline-grid-area {
-    position: relative !important;
-    height: 22mm !important;
-    min-height: 22mm !important;
-    max-height: 22mm !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border-left: 1.5px solid #000000 !important;
-    border-bottom: 1.2px solid #000000 !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-
-  .timeline-row-spacer {
-    height: 22mm !important;
-    min-height: 22mm !important;
-    max-height: 22mm !important;
-  }
-
-  .timeline-date-cell {
-    width: 18mm !important;
-    min-width: 18mm !important;
-    max-width: 18mm !important;
-    color: #000000 !important;
-    background: #ffffff !important;
-    border-right: 1.5px solid #000000 !important;
-    border-bottom: 1.2px solid #000000 !important;
-    font-size: 9px !important;
-    font-weight: bold !important;
-  }
-
-  .timeline-date-label {
-    color: #000000 !important;
-    font-size: 9px !important;
-    font-weight: bold !important;
-  }
-
-  .timeline-hours {
-    display: grid !important;
-    grid-template-columns: repeat(24, 1fr) !important;
+    padding: 0 !important;
     background: #ffffff !important;
     color: #000000 !important;
   }
 
-  .timeline-hour-cell {
-    height: 10mm !important;
-    min-height: 10mm !important;
-    color: #000000 !important;
-    background: #ffffff !important;
-    border-right: 1px solid #777777 !important;
-    border-bottom: 1.5px solid #000000 !important;
-    font-size: 7px !important;
-    font-weight: bold !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  .timeline-grid {
-    position: absolute !important;
-    inset: 0 !important;
-    display: grid !important;
-    grid-template-columns: repeat(24, 1fr) !important;
-    height: 100% !important;
+  .shift-print-area {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
     background: #ffffff !important;
     color: #000000 !important;
-    pointer-events: none !important;
-  }
-
-  .timeline-grid-cell {
-    height: 100% !important;
-    min-height: 100% !important;
-    max-height: none !important;
-    color: #000000 !important;
-    background: #ffffff !important;
-    border-right: 1px solid #999999 !important;
-    border-bottom: 1px solid #999999 !important;
-  }
-
-  .timeline-shifts {
-    position: absolute !important;
-    inset: 0 !important;
-    background: transparent !important;
-    color: #000000 !important;
-  }
-
-  .timeline-shift-bar {
-    height: 5.4mm !important;
-    min-height: 5.4mm !important;
-    top: calc(var(--lane, 0) * 6.1mm + 1.4mm) !important;
-    padding: 0 1.2mm !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border: 1.3px solid #000000 !important;
-    border-radius: 2px !important;
-    box-shadow: none !important;
-    overflow: hidden !important;
-  }
-
-  .timeline-shift-text {
-    color: #000000 !important;
-    font-size: 7px !important;
-    line-height: 5.4mm !important;
-    white-space: nowrap !important;
-    font-weight: bold !important;
-  }
-
-  .timeline-overflow-badge {
-    right: 1mm !important;
-    bottom: 1mm !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border: 1px solid #000000 !important;
-    font-size: 7px !important;
-    font-weight: bold !important;
-  }
-}
-/* =========================
-   Mobile Print Panel
-========================= */
-
-.mobile-print-panel {
-  display: none;
-  margin-top: 16px;
-  padding: 14px;
-  border: 1px solid #334155;
-  border-radius: 12px;
-  background: #0f172a;
-}
-
-.mobile-print-panel p {
-  margin: 0 0 12px;
-  color: #cbd5e1;
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.mobile-print-panel button {
-  width: 100%;
-  padding: 14px;
-  border: 1px solid #60a5fa;
-  border-radius: 10px;
-  background: rgba(96, 165, 250, 0.12);
-  color: #bfdbfe;
-  font-weight: bold;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.mobile-print-panel button:hover {
-  background: rgba(96, 165, 250, 0.24);
-}
-
-.mobile-print-help {
-  margin-top: 12px !important;
-  color: #93c5fd !important;
-  font-size: 13px !important;
-}
-
-/* スマホだけ表示 */
-@media (max-width: 768px) {
-  .mobile-print-panel {
-    display: block;
-  }
-
-  .pdf-setting-panel {
-    display: none;
   }
 }
