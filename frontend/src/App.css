@@ -182,3 +182,60 @@
     border-right-color: var(--border);
   }
 }
+
+.app-nav {
+  padding: 14px 16px;
+  border-bottom: 1px solid #334155;
+  background: #0f172a;
+  color: #ffffff;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.app-nav-title {
+  margin-right: auto;
+}
+
+.app-nav-link {
+  color: #dbeafe;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.app-nav-link:hover {
+  color: #93c5fd;
+}
+
+.app-nav-logout {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #475569;
+  background: #111827;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.app-nav-logout:hover {
+  border-color: #60a5fa;
+  background: #1e293b;
+}
+
+@media (max-width: 768px) {
+  .app-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .app-nav-title {
+    grid-column: 1 / -1;
+    margin-right: 0;
+  }
+
+  .app-nav-link,
+  .app-nav-logout {
+    text-align: center;
+  }
+}

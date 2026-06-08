@@ -15,9 +15,26 @@ function RequireOwnerLogin({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+function getMondayOfCurrentWeek() {
+  const now = new Date();
+  const day = now.getDay(); // 日=0, 月=1, 火=2...
+  const monday = new Date(now);
+
+  const diff = day === 0 ? -6 : 1 - day;
+  monday.setDate(now.getDate() + diff);
+
+  const yyyy = monday.getFullYear();
+  const mm = String(monday.getMonth() + 1).padStart(2, "0");
+  const dd = String(monday.getDate()).padStart(2, "0");
+
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 function App() {
   const isLoggedIn = localStorage.getItem("ownerLogin") === "true";
   const ownerName = localStorage.getItem("ownerName");
+
+  const printWeekStartDate = getMondayOfCurrentWeek();
 
   const handleLogout = () => {
     localStorage.removeItem("ownerLogin");
@@ -32,41 +49,26 @@ function App() {
     <HashRouter>
       <div>
         {isLoggedIn && (
-          <nav
-            style={{
-              padding: "14px 16px",
-              borderBottom: "1px solid #334155",
-              background: "#0f172a",
-              color: "#ffffff",
-              display: "flex",
-              gap: "14px",
-              alignItems: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <strong style={{ marginRight: "auto" }}>
+          <nav className="app-nav">
+            <strong className="app-nav-title">
               ShiftApp {ownerName ? ` / ${ownerName}` : ""}
             </strong>
 
-            <Link to="/owner" style={navLinkStyle}>
+            <Link to="/owner" className="app-nav-link">
               オーナー
             </Link>
 
-            <Link to="/print/shifts" style={navLinkStyle}>
+            <Link
+              to={`/print/shifts?weekStartDate=${printWeekStartDate}`}
+              className="app-nav-link"
+            >
               シフト表印刷
             </Link>
 
             <button
               type="button"
               onClick={handleLogout}
-              style={{
-                padding: "8px 12px",
-                borderRadius: "8px",
-                border: "1px solid #475569",
-                background: "#111827",
-                color: "#ffffff",
-                cursor: "pointer",
-              }}
+              className="app-nav-logout"
             >
               ログアウト
             </button>
@@ -95,6 +97,15 @@ function App() {
           />
 
           <Route
+            path="/owner/print/shifts"
+            element={
+              <RequireOwnerLogin>
+                <ShiftPrintPage />
+              </RequireOwnerLogin>
+            }
+          />
+
+          <Route
             path="*"
             element={
               isLoggedIn ? (
@@ -109,11 +120,5 @@ function App() {
     </HashRouter>
   );
 }
-
-const navLinkStyle: React.CSSProperties = {
-  color: "#dbeafe",
-  textDecoration: "none",
-  fontWeight: "bold",
-};
 
 export default App;
