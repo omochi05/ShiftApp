@@ -1012,29 +1012,40 @@ function OwnerDashboard() {
                       {isEditing ? (
                         <div className="table-action-buttons">
                           <button
-                            type="button"
-                            className="table-save-button"
-                            onClick={() => handleUpdateEmployee(user.id)}
+                              type="button"
+                              className="table-save-button"
+                              onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleUpdateEmployee(user.id);
+                            }}
                           >
                             保存
                           </button>
-
                           <button
-                            type="button"
-                            className="table-cancel-button"
-                            onClick={handleCancelEditEmployee}
-                          >
-                            キャンセル
-                          </button>
+                              type="button"
+                              className="table-cancel-button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleCancelEditEmployee();
+                              }}
+                            >
+                              キャンセル
+                        </button>
                         </div>
                       ) : (
                         <div className="table-action-buttons">
-                          <button
-                            type="button"
-                            className="table-edit-button"
-                            onClick={() => handleStartEditEmployee(user)}
+                         <button
+                              type="button"
+                              className="table-edit-button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleStartEditEmployee(user);
+                             }}
                           >
-                            編集
+                             編集
                           </button>
 
                           <button
