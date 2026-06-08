@@ -15,7 +15,7 @@ from schemas import (
 
 router = APIRouter(
     prefix="/owner",
-    tags=["owner"]
+    tags=["owner"],
 )
 
 
@@ -23,7 +23,7 @@ router = APIRouter(
 def get_owner_dashboard_month(
     year: int,
     month: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     月ごとの売上・人件費・人件費率を取得
@@ -50,9 +50,8 @@ def get_owner_dashboard_month(
     total_sales = int(total_sales or 0)
     total_labor_cost = int(total_labor_cost or 0)
 
-    if total_sales == 0:
-        labor_cost_rate = 0.0
-    else:
+    labor_cost_rate = 0.0
+    if total_sales > 0:
         labor_cost_rate = round(total_labor_cost / total_sales * 100, 2)
 
     return OwnerDashboardMonthlyResponse(
@@ -68,7 +67,7 @@ def get_owner_dashboard_month(
 def get_owner_dashboard_week(
     year: int,
     week: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     ISO週番号ごとの売上・人件費・利益・黒字/赤字判定を取得
@@ -96,9 +95,8 @@ def get_owner_dashboard_week(
     profit = total_sales - total_labor_cost
     status = "黒字" if profit >= 0 else "赤字"
 
-    if total_sales == 0:
-        labor_cost_rate = 0.0
-    else:
+    labor_cost_rate = 0.0
+    if total_sales > 0:
         labor_cost_rate = round(total_labor_cost / total_sales * 100, 2)
 
     return OwnerDashboardWeeklyResponse(
@@ -116,17 +114,17 @@ def get_owner_dashboard_week(
 
 @router.get(
     "/dashboard/weekday",
-    response_model=list[OwnerDashboardWeekdayResponse]
+    response_model=list[OwnerDashboardWeekdayResponse],
 )
 def get_owner_dashboard_weekday(
     year: int,
     month: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     月内の曜日ごとの売上・人件費・人件費率を取得
 
-    PostgreSQLの extract('dow') は以下の形式:
+    PostgreSQL の extract('dow') は以下の形式:
     0 = 日曜
     1 = 月曜
     2 = 火曜
@@ -190,9 +188,8 @@ def get_owner_dashboard_weekday(
         total_sales = sales_by_weekday.get(weekday_number, 0)
         total_labor_cost = labor_by_weekday.get(weekday_number, 0)
 
-        if total_sales == 0:
-            labor_cost_rate = 0.0
-        else:
+        labor_cost_rate = 0.0
+        if total_sales > 0:
             labor_cost_rate = round(total_labor_cost / total_sales * 100, 2)
 
         result.append(

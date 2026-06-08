@@ -1,7 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import auth, sales, shifts, shift_templates, users
+from routers import auth
+from routers import owner
+from routers import salary
+from routers import sales
+from routers import shifts
+from routers import shift_templates
+from routers import users
 
 app = FastAPI()
 
@@ -20,10 +26,12 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
-app.include_router(users.router)
-app.include_router(shifts.router)
+app.include_router(owner.router)
+app.include_router(salary.router)
 app.include_router(sales.router)
+app.include_router(shifts.router)
 app.include_router(shift_templates.router)
+app.include_router(users.router)
 
 
 @app.get("/")
