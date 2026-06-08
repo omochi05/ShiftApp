@@ -13,6 +13,7 @@
   border-bottom: 3px solid #000000;
 }
 
+/* 1日ごとのブロック */
 .shift-timeline-day {
   display: grid;
   grid-template-columns: 96px 1fr;
@@ -29,6 +30,7 @@
   border-bottom: 3px solid #000000;
 }
 
+/* 左の日付 */
 .shift-timeline-date {
   grid-column: 1;
   grid-row: 1 / 3;
@@ -48,6 +50,7 @@
   line-height: 1.2;
 }
 
+/* 各日ごとの時間帯 */
 .shift-timeline-hours {
   grid-column: 2;
   grid-row: 1;
@@ -88,6 +91,7 @@
   justify-content: flex-end;
 }
 
+/* シフトバーエリア */
 .shift-timeline-body {
   grid-column: 2;
   grid-row: 2;
@@ -114,6 +118,7 @@
   overflow: hidden;
 }
 
+/* シフトバー */
 .shift-bar {
   position: absolute;
   height: 24px;
@@ -128,12 +133,7 @@
   overflow: hidden;
 }
 
-/* =========================
-   通常シフト用
-   名前 + 時間
-   ×ボタンなし
-========================= */
-
+/* 通常シフト表：名前だけ中央 */
 .shift-timeline-normal .shift-bar {
   display: flex;
   align-items: center;
@@ -145,13 +145,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
 
   width: 100%;
   min-width: 0;
 
   color: #000000 !important;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
@@ -165,23 +164,15 @@
   font-weight: 900;
 }
 
-.shift-bar-time {
-  flex-shrink: 0;
-  font-size: 12px;
-  font-weight: 900;
-}
-
+/* ×ボタン・時間表示は完全に出さない */
 .shift-bar-delete,
 .shift-bar button,
+.shift-bar-time,
 .print-hide {
   display: none !important;
 }
 
-/* =========================
-   印刷ページ用
-   名前だけ中央表示
-========================= */
-
+/* 印刷ページ用：名前だけ中央 */
 .shift-timeline-print {
   width: 100%;
   min-width: 0;
@@ -213,11 +204,7 @@
   text-align: center;
 }
 
-/* =========================
-   スマホ表示用
-   表を潰さず横スクロール
-========================= */
-
+/* スマホ画面では潰さず横スクロール */
 @media screen and (max-width: 768px) {
   .shift-timeline {
     min-width: 1180px;
@@ -230,7 +217,6 @@
 
 /* =========================
    印刷用 A3横 1枚向け
-   各日ごとに時間軸を表示
 ========================= */
 
 @media print {
@@ -335,7 +321,8 @@
     color: #000000 !important;
   }
 
-  .shift-bar-print-name {
+  .shift-bar-print-name,
+  .shift-bar-normal-content {
     max-width: 100% !important;
     font-size: 10.5px !important;
     font-weight: 900 !important;
@@ -344,6 +331,7 @@
 
   .shift-bar-delete,
   .shift-bar button,
+  .shift-bar-time,
   .print-hide {
     display: none !important;
   }

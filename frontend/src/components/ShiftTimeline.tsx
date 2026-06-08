@@ -65,7 +65,7 @@ const hourLabels = [
 const weekDayLabels = ["日", "月", "火", "水", "木", "金", "土"];
 
 function parseTimeToHourValue(time: string) {
-  const [hourText, minuteText] = time.split(":");
+  const [hourText, minuteText] = time.slice(0, 5).split(":");
   const hour = Number(hourText);
   const minute = Number(minuteText);
 
@@ -121,8 +121,7 @@ function formatDate(dateText: string) {
 }
 
 function formatDisplayTime(time: string) {
-  const [hourText, minuteText] = time.split(":");
-
+  const [hourText, minuteText] = time.slice(0, 5).split(":");
   const hour = Number(hourText);
   const minute = Number(minuteText);
 
@@ -241,7 +240,9 @@ export default function ShiftTimeline({
 
             <div
               className="shift-timeline-body"
-              style={{ minHeight: `${bodyHeight}px` }}
+              style={{
+                minHeight: `${bodyHeight}px`,
+              }}
             >
               {positioned.map((shift) => {
                 const startTime = formatDisplayTime(shift.start_time);
