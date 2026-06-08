@@ -113,6 +113,19 @@ function formatDate(dateText: string) {
   return `${month}/${day}\n（${weekDay}）`;
 }
 
+function formatDisplayTime(time: string) {
+  const [hourText, minuteText] = time.split(":");
+
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+
+  if (Number.isNaN(hour) || Number.isNaN(minute)) {
+    return time;
+  }
+
+  return `${hour}:${String(minute).padStart(2, "0")}`;
+}
+
 function groupShiftsByDate(shifts: ShiftForTimeline[]) {
   const map = new Map<string, ShiftForTimeline[]>();
 
@@ -173,10 +186,7 @@ function positionShifts(shifts: ShiftForTimeline[]) {
   };
 }
 
-export default function ShiftTimeline({
-  shifts,
-  onDeleteShift,
-}: ShiftTimelineProps) {
+export default function ShiftTimeline({ shifts }: ShiftTimelineProps) {
   const groupedShifts = groupShiftsByDate(shifts);
 
   return (
@@ -227,23 +237,17 @@ export default function ShiftTimeline({
                     width: `${shift.width}%`,
                     top: `${10 + shift.lane * 38}px`,
                   }}
-                  title={`${shift.user_name} ${shift.start_time}〜${shift.end_time}`}
+                  title={`${shift.user_name} ${formatDisplayTime(
+                    shift.start_time
+                  )}〜${formatDisplayTime(shift.end_time)}`}
                 >
-                  <span className="shift-bar-name">{shift.user_name}</span>
-                  <span className="shift-bar-time">
-                    {shift.start_time}〜{shift.end_time}
+                  <span className="shift-bar-content">
+                    <span className="shift-bar-name">{shift.user_name}</span>
+                    <span className="shift-bar-time">
+                      {formatDisplayTime(shift.start_time)}〜
+                      {formatDisplayTime(shift.end_time)}
+                    </span>
                   </span>
-
-                  {onDeleteShift && shift.id > 0 && (
-                    <button
-                      type="button"
-                      className="shift-bar-delete print-hide"
-                      onClick={() => onDeleteShift(shift.id)}
-                      aria-label={`${shift.user_name}のシフトを削除`}
-                    >
-                      ×
-                    </button>
-                  )}
                 </div>
               ))}
             </div>
