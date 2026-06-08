@@ -23,3 +23,20 @@
   "theme_color": "#000000",
   "background_color": "#ffffff"
 }
+
+{
+  "name": "ShiftApp",
+  "short_name": "ShiftApp",
+  "description": "シフト管理・給与計算・売上管理アプリ",
+  "start_url": "/#/owner",
+  "display": "standalone",
+  "background_color": "#111318",
+  "theme_color": "#111318",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}

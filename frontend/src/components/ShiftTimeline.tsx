@@ -1,337 +1,251 @@
-import { useRef, type CSSProperties, type MouseEvent } from "react";
 import "./ShiftTimeline.css";
 
-export type ShiftItem = {
+type ShiftForTimeline = {
   id: number;
   user_id: number;
-  user_name?: string;
+  user_name: string;
   work_date: string;
   start_time: string;
   end_time: string;
-  break_minutes?: number;
-  memo?: string;
+  break_minutes: number;
+  created_by?: number | null;
 };
 
-type Props = {
-  shifts: ShiftItem[];
+type ShiftTimelineProps = {
+  shifts: ShiftForTimeline[];
   onDeleteShift?: (shiftId: number) => void;
-  printMode?: boolean;
 };
 
-type PositionedShift = ShiftItem & {
+type PositionedShift = ShiftForTimeline & {
+  left: number;
+  width: number;
   lane: number;
+  startValue: number;
+  endValue: number;
 };
 
-const HOURS = [
-  6, 7, 8, 9, 10, 11, 12,
-  13, 14, 15, 16, 17, 18, 19,
-  20, 21, 22, 23, 0, 1, 2, 3, 4, 5,
+const START_HOUR = 6;
+const TOTAL_HOURS = 24;
+
+const hourLabels = [
+  "6",
+  "7",
+  "8",
+  "9",
+  "10",
+  "11",
+  "12",
+  "13",
+  "14",
+  "15",
+  "16",
+  "17",
+  "18",
+  "19",
+  "20",
+  "21",
+  "22",
+  "23",
+  "0",
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
 ];
 
-const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
+const weekDayLabels = ["日", "月", "火", "水", "木", "金", "土"];
 
-const MAX_LANES = 4;
-const LANE_HEIGHT = 38;
-const ROW_BASE_PADDING = 8;
+function parseTimeToHourValue(time: string) {
+  const [hourText, minuteText] = time.split(":");
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
 
-function normalizeTime(time?: string) {
-  if (!time || typeof time !== "string") {
-    return "00:00";
+  if (Number.isNaN(hour) || Number.isNaN(minute)) {
+    return START_HOUR;
   }
 
-  return time.slice(0, 5);
+  return hour + minute / 60;
 }
 
-function timeToPosition(time?: string) {
-  const safeTime = normalizeTime(time);
-  const [h, m] = safeTime.split(":").map(Number);
+function convertToTimelineValue(time: string) {
+  let value = parseTimeToHourValue(time);
 
-  if (Number.isNaN(h) || Number.isNaN(m)) {
-    return 0;
+  if (value < START_HOUR) {
+    value += 24;
   }
 
-  let hour = h + m / 60;
-
-  // 0:00〜5:59 は翌日扱い
-  if (hour < 6) {
-    hour += 24;
-  }
-
-  return hour - 6;
+  return value;
 }
 
-function getShiftRange(start?: string, end?: string) {
-  const startPos = timeToPosition(start);
-  let endPos = timeToPosition(end);
+function getShiftPosition(shift: ShiftForTimeline) {
+  let startValue = convertToTimelineValue(shift.start_time);
+  let endValue = convertToTimelineValue(shift.end_time);
 
-  if (endPos <= startPos) {
-    endPos += 24;
+  if (endValue <= startValue) {
+    endValue += 24;
   }
 
-  return { startPos, endPos };
-}
+  const minValue = START_HOUR;
+  const maxValue = START_HOUR + TOTAL_HOURS;
 
-function getShiftStyle(start?: string, end?: string) {
-  const { startPos, endPos } = getShiftRange(start, end);
+  const clippedStart = Math.max(startValue, minValue);
+  const clippedEnd = Math.min(endValue, maxValue);
 
-  const left = `${(startPos / 24) * 100}%`;
-  const width = `${((endPos - startPos) / 24) * 100}%`;
-
-  return { left, width };
-}
-
-function groupByDate(shifts: ShiftItem[]) {
-  const map: Record<string, ShiftItem[]> = {};
-
-  for (const shift of shifts) {
-    if (!shift.work_date) {
-      continue;
-    }
-
-    if (!map[shift.work_date]) {
-      map[shift.work_date] = [];
-    }
-
-    map[shift.work_date].push(shift);
-  }
-
-  return map;
-}
-
-function formatDateLabel(dateStr: string) {
-  const d = new Date(`${dateStr}T00:00:00`);
-
-  if (Number.isNaN(d.getTime())) {
-    return dateStr;
-  }
-
-  const month = d.getMonth() + 1;
-  const date = d.getDate();
-  const weekday = WEEKDAYS[d.getDay()];
-
-  return `${month}/${date}（${weekday}）`;
-}
-
-function removeDuplicateShifts(shifts: ShiftItem[]) {
-  const seen = new Set<string>();
-  const uniqueShifts: ShiftItem[] = [];
-
-  for (const shift of shifts) {
-    const key = [
-      shift.work_date,
-      shift.user_id,
-      normalizeTime(shift.start_time),
-      normalizeTime(shift.end_time),
-    ].join("-");
-
-    if (seen.has(key)) {
-      continue;
-    }
-
-    seen.add(key);
-    uniqueShifts.push(shift);
-  }
-
-  return uniqueShifts;
-}
-
-function layoutShiftsForDay(dayShifts: ShiftItem[]) {
-  const sorted = [...dayShifts].sort((a, b) => {
-    const aRange = getShiftRange(a.start_time, a.end_time);
-    const bRange = getShiftRange(b.start_time, b.end_time);
-
-    if (aRange.startPos !== bRange.startPos) {
-      return aRange.startPos - bRange.startPos;
-    }
-
-    if (aRange.endPos !== bRange.endPos) {
-      return aRange.endPos - bRange.endPos;
-    }
-
-    return a.id - b.id;
-  });
-
-  const laneEndTimes = Array(MAX_LANES).fill(-1);
-  const visible: PositionedShift[] = [];
-
-  for (const shift of sorted) {
-    const { startPos, endPos } = getShiftRange(
-      shift.start_time,
-      shift.end_time
-    );
-
-    let assignedLane = -1;
-
-    // 上から順番に、時間が空いているレーンへ配置する
-    for (let lane = 0; lane < MAX_LANES; lane++) {
-      if (startPos >= laneEndTimes[lane]) {
-        assignedLane = lane;
-        laneEndTimes[lane] = endPos;
-        break;
-      }
-    }
-
-    // 4レーン全部埋まっている場合は、重ねずに表示しない
-    if (assignedLane === -1) {
-      continue;
-    }
-
-    visible.push({
-      ...shift,
-      lane: assignedLane,
-    });
-  }
+  const left = ((clippedStart - START_HOUR) / TOTAL_HOURS) * 100;
+  const width = ((clippedEnd - clippedStart) / TOTAL_HOURS) * 100;
 
   return {
-    visible,
-    laneCount: MAX_LANES,
-    rowHeight: MAX_LANES * LANE_HEIGHT + ROW_BASE_PADDING,
+    left,
+    width: Math.max(width, 1.5),
+    startValue,
+    endValue,
+  };
+}
+
+function formatDate(dateText: string) {
+  const date = new Date(`${dateText}T00:00:00`);
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const weekDay = weekDayLabels[date.getDay()];
+
+  return `${month}/${day}\n（${weekDay}）`;
+}
+
+function groupShiftsByDate(shifts: ShiftForTimeline[]) {
+  const map = new Map<string, ShiftForTimeline[]>();
+
+  shifts.forEach((shift) => {
+    if (!map.has(shift.work_date)) {
+      map.set(shift.work_date, []);
+    }
+
+    map.get(shift.work_date)?.push(shift);
+  });
+
+  return Array.from(map.entries()).sort(([dateA], [dateB]) =>
+    dateA.localeCompare(dateB)
+  );
+}
+
+function positionShifts(shifts: ShiftForTimeline[]) {
+  const realShifts = shifts
+    .filter((shift) => shift.user_name.trim() !== "")
+    .map((shift) => {
+      const position = getShiftPosition(shift);
+
+      return {
+        ...shift,
+        ...position,
+        lane: 0,
+      };
+    })
+    .sort((a, b) => {
+      if (a.startValue !== b.startValue) {
+        return a.startValue - b.startValue;
+      }
+
+      return a.endValue - b.endValue;
+    });
+
+  const laneEnds: number[] = [];
+
+  const positioned: PositionedShift[] = realShifts.map((shift) => {
+    let laneIndex = laneEnds.findIndex((end) => end <= shift.startValue);
+
+    if (laneIndex === -1) {
+      laneIndex = laneEnds.length;
+      laneEnds.push(shift.endValue);
+    } else {
+      laneEnds[laneIndex] = shift.endValue;
+    }
+
+    return {
+      ...shift,
+      lane: laneIndex,
+    };
+  });
+
+  return {
+    positioned,
+    laneCount: Math.max(laneEnds.length, 1),
   };
 }
 
 export default function ShiftTimeline({
   shifts,
   onDeleteShift,
-  printMode = false,
-}: Props) {
-  const longPressTimerRef = useRef<number | null>(null);
-
-  const safeShifts = Array.isArray(shifts) ? removeDuplicateShifts(shifts) : [];
-  const grouped = groupByDate(safeShifts);
-  const dates = Object.keys(grouped).sort();
-
-  const startLongPress = (shiftId: number) => {
-    cancelLongPress();
-
-    longPressTimerRef.current = window.setTimeout(() => {
-      if (onDeleteShift) {
-        onDeleteShift(shiftId);
-      }
-    }, 700);
-  };
-
-  const cancelLongPress = () => {
-    if (longPressTimerRef.current !== null) {
-      window.clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  };
-
-  const handleRightClickDelete = (
-    e: MouseEvent<HTMLDivElement>,
-    shiftId: number
-  ) => {
-    e.preventDefault();
-
-    if (onDeleteShift) {
-      onDeleteShift(shiftId);
-    }
-  };
-
-  if (dates.length === 0) {
-    return <p className="timeline-empty">シフトはありません</p>;
-  }
+}: ShiftTimelineProps) {
+  const groupedShifts = groupShiftsByDate(shifts);
 
   return (
-    <div className="timeline-sheet">
-      <div className="timeline-header">
-        <div className="timeline-date-cell">日付</div>
+    <div className="shift-timeline">
+      <div className="shift-timeline-header">
+        <div className="shift-timeline-date-head">日付</div>
 
-        <div className="timeline-hours">
-          {HOURS.map((hour, index) => (
-            <div key={`${hour}-${index}`} className="timeline-hour-cell">
+        <div className="shift-timeline-hours">
+          {hourLabels.map((hour, index) => (
+            <div
+              key={`${hour}-${index}`}
+              className={`shift-timeline-hour ${
+                index % 3 === 0 ? "shift-timeline-hour-strong" : ""
+              }`}
+            >
               {hour}
             </div>
           ))}
         </div>
       </div>
 
-      {dates.map((date) => {
-        const dayShifts = grouped[date];
-
-        // user_id が 0 のものは「空の日付行」用なので、バー表示には使わない
-        const realDayShifts = dayShifts.filter((shift) => shift.user_id !== 0);
-
-        const { visible, laneCount, rowHeight } =
-          layoutShiftsForDay(realDayShifts);
-
-        const rowStyle = {
-          "--lane-count": laneCount,
-        } as CSSProperties;
+      {groupedShifts.map(([date, dayShifts]) => {
+        const { positioned, laneCount } = positionShifts(dayShifts);
 
         return (
-          <div className="timeline-row" key={date} style={rowStyle}>
-            <div className="timeline-date-cell timeline-date-label">
-              {formatDateLabel(date)}
+          <div
+            key={date}
+            className="shift-timeline-row"
+            style={{
+              minHeight: `${Math.max(76, laneCount * 38 + 18)}px`,
+            }}
+          >
+            <div className="shift-timeline-date">
+              {formatDate(date)
+                .split("\n")
+                .map((line) => (
+                  <span key={line}>{line}</span>
+                ))}
             </div>
 
-            <div className="timeline-grid-area">
-              <div className="timeline-grid">
-                {HOURS.map((hour, index) => (
-                  <div
-                    key={`${hour}-${index}`}
-                    className="timeline-grid-cell"
-                  />
-                ))}
-              </div>
+            <div className="shift-timeline-body">
+              {positioned.map((shift) => (
+                <div
+                  key={shift.id}
+                  className="shift-bar"
+                  style={{
+                    left: `${shift.left}%`,
+                    width: `${shift.width}%`,
+                    top: `${10 + shift.lane * 38}px`,
+                  }}
+                  title={`${shift.user_name} ${shift.start_time}〜${shift.end_time}`}
+                >
+                  <span className="shift-bar-name">{shift.user_name}</span>
+                  <span className="shift-bar-time">
+                    {shift.start_time}〜{shift.end_time}
+                  </span>
 
-              <div className="timeline-shifts">
-                {visible.map((shift) => {
-                  const style = {
-                    ...getShiftStyle(shift.start_time, shift.end_time),
-                    "--lane": shift.lane,
-                  } as CSSProperties;
-
-                  const staffName =
-                    shift.user_name?.trim() || `従業員${shift.user_id}`;
-
-                  return (
-                    <div
-                      key={shift.id}
-                      className="timeline-shift-bar"
-                      style={style}
-                      title="PC: 右クリックで削除 / スマホ: 長押しで削除"
-                      onContextMenu={(e) => handleRightClickDelete(e, shift.id)}
-                      onTouchStart={() => startLongPress(shift.id)}
-                      onTouchEnd={cancelLongPress}
-                      onTouchMove={cancelLongPress}
-                      onTouchCancel={cancelLongPress}
+                  {onDeleteShift && shift.id > 0 && (
+                    <button
+                      type="button"
+                      className="shift-bar-delete print-hide"
+                      onClick={() => onDeleteShift(shift.id)}
+                      aria-label={`${shift.user_name}のシフトを削除`}
                     >
-                      <span className="timeline-shift-text">
-                        {printMode ? (
-                          <span className="timeline-shift-name">
-                            {staffName}
-                          </span>
-                        ) : (
-                          <>
-                            <span className="timeline-shift-name">
-                              {staffName}
-                            </span>
-
-                            <span className="timeline-shift-time">
-                              {normalizeTime(shift.start_time)}〜
-                              {normalizeTime(shift.end_time)}
-                            </span>
-
-                            {shift.memo ? (
-                              <span className="timeline-shift-memo">
-                                / {shift.memo}
-                              </span>
-                            ) : null}
-                          </>
-                        )}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div
-                className="timeline-row-spacer"
-                style={{
-                  height: `${rowHeight}px`,
-                }}
-              />
+                      ×
+                    </button>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         );

@@ -141,7 +141,7 @@ export default function ShiftPrintPage() {
   if (loading) {
     return (
       <div className="shift-print-page">
-        <p>印刷用シフト表を読み込み中...</p>
+        <p className="shift-print-loading">印刷用シフト表を読み込み中...</p>
       </div>
     );
   }
@@ -149,13 +149,15 @@ export default function ShiftPrintPage() {
   if (errorMessage) {
     return (
       <div className="shift-print-page">
-        <h1>エラー</h1>
-        <p>{errorMessage}</p>
+        <div className="shift-print-error">
+          <h1>エラー</h1>
+          <p>{errorMessage}</p>
 
-        <div className="shift-print-actions">
-          <button type="button" onClick={handleBack}>
-            戻る
-          </button>
+          <div className="shift-print-actions">
+            <button type="button" onClick={handleBack}>
+              戻る
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -174,17 +176,17 @@ export default function ShiftPrintPage() {
       </div>
 
       <p className="shift-print-help">
-        スマホで印刷画面が出ない場合は、ブラウザの共有・印刷メニューから印刷してください。
+        印刷時はA3横向きで出力されます。右側が切れる場合は、印刷設定で倍率を「用紙に合わせる」にしてください。
       </p>
 
       <section className="shift-print-sheet">
-        <h1>シフト表</h1>
+        <h1>週間シフト表</h1>
 
-        <p>
+        <p className="shift-print-period">
           表示期間：{weekStartDate} 〜 {weekEndDate}
         </p>
 
-       <ShiftTimeline shifts={printShifts} />
+        <ShiftTimeline shifts={printShifts} />
       </section>
     </div>
   );
