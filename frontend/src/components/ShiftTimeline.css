@@ -123,11 +123,13 @@
   gap: 4px;
   align-items: center;
   width: 100%;
-  font-size: 12px;
+  font-size: 6px !important;
   color: #111111;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 4.3mm !important;
+  justify-content: center !important;
 }
 
 .timeline-shift-name {
@@ -136,6 +138,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   flex-shrink: 1;
+  max-width: 14mm !important;
 }
 
 .timeline-shift-time {
@@ -151,8 +154,9 @@
 }
 
 .timeline-row-spacer {
-  position: relative;
-  z-index: 0;
+  height: 31mm !important;
+  min-height: 31mm !important;
+  max-height: 31mm !important;
 }
 
 .timeline-empty {
@@ -246,12 +250,11 @@
     max-height: 9mm !important;
   }
 
-  .timeline-row {
-    height: 26mm !important;
-    min-height: 26mm !important;
-    max-height: 26mm !important;
-  }
-
+    .timeline-row {
+        height: 31mm !important;
+        min-height: 31mm !important;
+        max-height: 31mm !important;
+    }
   .timeline-date-cell {
     width: 24mm !important;
     min-width: 24mm !important;
@@ -309,9 +312,9 @@
 
   .timeline-grid-area {
     position: relative !important;
-    height: 26mm !important;
-    min-height: 26mm !important;
-    max-height: 26mm !important;
+    height: 31mm !important;
+    min-height: 31mm !important;
+    max-height: 31mm !important;
     background: #ffffff !important;
     color: #000000 !important;
     border-left: 1.2px solid #000000 !important;
@@ -350,9 +353,9 @@
 
   .timeline-shift-bar {
     position: absolute !important;
-    top: calc(var(--lane, 0) * 5.8mm + 1.2mm) !important;
-    height: 5.2mm !important;
-    min-height: 5.2mm !important;
+    top: calc(var(--lane, 0) * 4.8mm + 1mm) !important;
+    height: 4.3mm !important;
+    min-height: 4.3mm !important;
     padding: 0 1mm !important;
     background: #ffffff !important;
     color: #000000 !important;
@@ -364,17 +367,6 @@
     align-items: center !important;
   }
 
-  /*
-    重要：
-    nth-childでtopを指定しない。
-    ShiftTimeline.tsx の --lane を使って位置を決める。
-  */
-  .timeline-shift-bar:nth-child(4n + 1),
-  .timeline-shift-bar:nth-child(4n + 2),
-  .timeline-shift-bar:nth-child(4n + 3),
-  .timeline-shift-bar:nth-child(4n) {
-    top: calc(var(--lane, 0) * 5.8mm + 1.2mm) !important;
-  }
 
   .timeline-shift-text {
     display: flex !important;
@@ -391,7 +383,7 @@
   }
 
   .timeline-shift-name {
-    display: inline !important;
+    display: none !important;
     max-width: 18mm !important;
     color: #000000 !important;
     overflow: hidden !important;

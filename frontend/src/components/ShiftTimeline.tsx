@@ -29,8 +29,8 @@ const HOURS = [
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
-const MAX_LANES = 4;
-const LANE_HEIGHT = 38;
+const MAX_LANES = 6;
+const LANE_HEIGHT = 30;
 const ROW_BASE_PADDING = 8;
 
 function normalizeTime(time?: string) {
@@ -51,6 +51,7 @@ function timeToPosition(time?: string) {
 
   let hour = h + m / 60;
 
+  // 0:00〜5:59 は翌日扱い
   if (hour < 6) {
     hour += 24;
   }
@@ -133,6 +134,7 @@ function layoutShiftsForDay(dayShifts: ShiftItem[]) {
 
     let assignedLane = -1;
 
+    // 上から順番に、時間が空いているレーンへ配置
     for (let lane = 0; lane < MAX_LANES; lane++) {
       if (startPos >= laneEndTimes[lane]) {
         assignedLane = lane;
@@ -141,7 +143,8 @@ function layoutShiftsForDay(dayShifts: ShiftItem[]) {
       }
     }
 
-    // 4レーンすべて埋まっている場合は、A3 1ページ固定を優先して一番下へ
+    // 4レーン全部埋まっている場合
+    // A3 1ページ固定を優先するため、行は増やさず一番下へ
     if (assignedLane === -1) {
       assignedLane = MAX_LANES - 1;
       laneEndTimes[assignedLane] = Math.max(
@@ -248,9 +251,9 @@ export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
               <div className="timeline-shifts">
                 {visible.map((shift) => {
                   const style = {
-                      ...getShiftStyle(shift.start_time, shift.end_time),
-                      "--lane": shift.lane,
-                    } as React.CSSProperties;
+                    ...getShiftStyle(shift.start_time, shift.end_time),
+                    "--lane": shift.lane,
+                  } as CSSProperties;
 
                   return (
                     <div
@@ -268,10 +271,12 @@ export default function ShiftTimeline({ shifts, onDeleteShift }: Props) {
                         <span className="timeline-shift-name">
                           {shift.user_name ?? `従業員${shift.user_id}`}
                         </span>
+
                         <span className="timeline-shift-time">
                           {normalizeTime(shift.start_time)}〜
                           {normalizeTime(shift.end_time)}
                         </span>
+
                         {shift.memo ? (
                           <span className="timeline-shift-memo">
                             / {shift.memo}
