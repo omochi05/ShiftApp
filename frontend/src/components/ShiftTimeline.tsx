@@ -29,8 +29,8 @@ const HOURS = [
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
-const MAX_LANES = 6;
-const LANE_HEIGHT = 30;
+const MAX_LANES = 4;
+const LANE_HEIGHT = 38;
 const ROW_BASE_PADDING = 8;
 
 function normalizeTime(time?: string) {

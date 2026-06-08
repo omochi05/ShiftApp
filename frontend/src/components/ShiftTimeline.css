@@ -123,13 +123,11 @@
   gap: 4px;
   align-items: center;
   width: 100%;
-  font-size: 6px !important;
+  font-size: 12px;
   color: #111111;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 4.3mm !important;
-  justify-content: center !important;
 }
 
 .timeline-shift-name {
@@ -138,7 +136,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   flex-shrink: 1;
-  max-width: 14mm !important;
 }
 
 .timeline-shift-time {
@@ -154,9 +151,8 @@
 }
 
 .timeline-row-spacer {
-  height: 31mm !important;
-  min-height: 31mm !important;
-  max-height: 31mm !important;
+  position: relative;
+  z-index: 0;
 }
 
 .timeline-empty {
@@ -250,11 +246,12 @@
     max-height: 9mm !important;
   }
 
-    .timeline-row {
-        height: 31mm !important;
-        min-height: 31mm !important;
-        max-height: 31mm !important;
-    }
+  .timeline-row {
+    height: 28mm !important;
+    min-height: 28mm !important;
+    max-height: 28mm !important;
+  }
+
   .timeline-date-cell {
     width: 24mm !important;
     min-width: 24mm !important;
@@ -312,9 +309,9 @@
 
   .timeline-grid-area {
     position: relative !important;
-    height: 31mm !important;
-    min-height: 31mm !important;
-    max-height: 31mm !important;
+    height: 28mm !important;
+    min-height: 28mm !important;
+    max-height: 28mm !important;
     background: #ffffff !important;
     color: #000000 !important;
     border-left: 1.2px solid #000000 !important;
@@ -353,10 +350,10 @@
 
   .timeline-shift-bar {
     position: absolute !important;
-    top: calc(var(--lane, 0) * 4.8mm + 1mm) !important;
-    height: 4.3mm !important;
-    min-height: 4.3mm !important;
-    padding: 0 1mm !important;
+    top: calc(var(--lane, 0) * 6.3mm + 1.4mm) !important;
+    height: 5.8mm !important;
+    min-height: 5.8mm !important;
+    padding: 0 1.2mm !important;
     background: #ffffff !important;
     color: #000000 !important;
     border: 1px solid #000000 !important;
@@ -367,15 +364,14 @@
     align-items: center !important;
   }
 
-
   .timeline-shift-text {
     display: flex !important;
     gap: 1mm !important;
     align-items: center !important;
     width: 100% !important;
     color: #000000 !important;
-    font-size: 6.8px !important;
-    line-height: 5.2mm !important;
+    font-size: 7.8px !important;
+    line-height: 5.8mm !important;
     font-weight: bold !important;
     white-space: nowrap !important;
     overflow: hidden !important;
@@ -383,8 +379,8 @@
   }
 
   .timeline-shift-name {
-    display: none !important;
-    max-width: 18mm !important;
+    display: inline !important;
+    max-width: 24mm !important;
     color: #000000 !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -399,17 +395,13 @@
   }
 
   .timeline-shift-memo {
-    display: inline !important;
-    color: #000000 !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
+    display: none !important;
   }
 
   .timeline-row-spacer {
-    height: 26mm !important;
-    min-height: 26mm !important;
-    max-height: 26mm !important;
+    height: 28mm !important;
+    min-height: 28mm !important;
+    max-height: 28mm !important;
   }
 
   .timeline-overflow-badge {
