@@ -241,15 +241,15 @@
 
   .timeline-header {
     position: static !important;
-    height: 9mm !important;
-    min-height: 9mm !important;
-    max-height: 9mm !important;
+    height: 10mm !important;
+    min-height: 10mm !important;
+    max-height: 10mm !important;
   }
 
   .timeline-row {
-    height: 28mm !important;
-    min-height: 28mm !important;
-    max-height: 28mm !important;
+    height: 32mm !important;
+    min-height: 32mm !important;
+    max-height: 32mm !important;
   }
 
   .timeline-date-cell {
@@ -261,7 +261,7 @@
     border-bottom: 1.2px solid #000000 !important;
     background: #ffffff !important;
     color: #000000 !important;
-    font-size: 10px !important;
+    font-size: 12px !important;
     font-weight: bold !important;
     display: flex !important;
     align-items: center !important;
@@ -271,7 +271,7 @@
   }
 
   .timeline-date-label {
-    font-size: 10px !important;
+    font-size: 12px !important;
     color: #000000 !important;
     font-weight: bold !important;
   }
@@ -279,24 +279,24 @@
   .timeline-hours {
     display: grid !important;
     grid-template-columns: repeat(24, 1fr) !important;
-    height: 9mm !important;
-    min-height: 9mm !important;
-    max-height: 9mm !important;
+    height: 10mm !important;
+    min-height: 10mm !important;
+    max-height: 10mm !important;
     background: #ffffff !important;
     color: #000000 !important;
   }
 
   .timeline-hour-cell {
     min-width: 0 !important;
-    height: 9mm !important;
-    min-height: 9mm !important;
-    max-height: 9mm !important;
+    height: 10mm !important;
+    min-height: 10mm !important;
+    max-height: 10mm !important;
     padding: 0 !important;
     border-right: 1.2px solid #000000 !important;
     border-bottom: 1.2px solid #000000 !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    font-size: 7px !important;
+    background: #111111 !important;
+    color: #ffffff !important;
+    font-size: 9px !important;
     font-weight: bold !important;
     display: flex !important;
     align-items: center !important;
@@ -309,9 +309,9 @@
 
   .timeline-grid-area {
     position: relative !important;
-    height: 28mm !important;
-    min-height: 28mm !important;
-    max-height: 28mm !important;
+    height: 32mm !important;
+    min-height: 32mm !important;
+    max-height: 32mm !important;
     background: #ffffff !important;
     color: #000000 !important;
     border-left: 1.2px solid #000000 !important;
@@ -350,14 +350,14 @@
 
   .timeline-shift-bar {
     position: absolute !important;
-    top: calc(var(--lane, 0) * 6.3mm + 1.4mm) !important;
-    height: 5.8mm !important;
-    min-height: 5.8mm !important;
-    padding: 0 1.2mm !important;
+    top: calc(var(--lane, 0) * 7.3mm + 1.6mm) !important;
+    height: 6.7mm !important;
+    min-height: 6.7mm !important;
+    padding: 0 1.4mm !important;
     background: #ffffff !important;
     color: #000000 !important;
     border: 1px solid #000000 !important;
-    border-radius: 1.5px !important;
+    border-radius: 2px !important;
     box-shadow: none !important;
     overflow: hidden !important;
     display: flex !important;
@@ -370,8 +370,8 @@
     align-items: center !important;
     width: 100% !important;
     color: #000000 !important;
-    font-size: 7.8px !important;
-    line-height: 5.8mm !important;
+    font-size: 9px !important;
+    line-height: 6.7mm !important;
     font-weight: bold !important;
     white-space: nowrap !important;
     overflow: hidden !important;
@@ -380,7 +380,7 @@
 
   .timeline-shift-name {
     display: inline !important;
-    max-width: 24mm !important;
+    max-width: 28mm !important;
     color: #000000 !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -399,9 +399,9 @@
   }
 
   .timeline-row-spacer {
-    height: 28mm !important;
-    min-height: 28mm !important;
-    max-height: 28mm !important;
+    height: 32mm !important;
+    min-height: 32mm !important;
+    max-height: 32mm !important;
   }
 
   .timeline-overflow-badge {

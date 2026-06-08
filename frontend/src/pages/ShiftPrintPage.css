@@ -1,6 +1,7 @@
 /* =========================
    ShiftPrintPage.css
    印刷専用ページ / A3横向き
+   ※ timeline系のCSSはここに書かない
 ========================= */
 
 .shift-print-page {
@@ -13,11 +14,11 @@
 .shift-print-actions {
   display: flex;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   justify-content: center;
   flex-wrap: wrap;
   position: relative;
-  z-index: 100;
+  z-index: 1000;
 }
 
 .shift-print-actions button {
@@ -52,43 +53,16 @@
 }
 
 .shift-print-sheet h1 {
-  margin: 0 0 2mm !important;
-  padding: 0 !important;
-  text-align: center !important;
-  font-size: 17px !important;
-  line-height: 1.1 !important;
-  color: #000000 !important;
+  margin: 0 0 8px;
+  text-align: center;
+  font-size: 24px;
+  color: #000000;
 }
 
 .shift-print-sheet p {
-  margin: 0 0 2mm !important;
-  padding: 0 !important;
-  text-align: center !important;
-  font-size: 10px !important;
-  line-height: 1.1 !important;
-  font-weight: bold !important;
-  color: #000000 !important;
-}
-
-.shift-print-sheet {
-  page-break-after: avoid !important;
-  page-break-before: avoid !important;
-  page-break-inside: avoid !important;
-  break-inside: avoid !important;
-}
-
-/* =========================
-   Screen Preview
-========================= */
-
-.shift-print-sheet .timeline-wrap {
-  width: 100%;
-  overflow-x: auto;
-  background: #ffffff;
-}
-
-.shift-print-sheet .timeline-sheet {
-  background: #ffffff;
+  margin: 0 0 16px;
+  text-align: center;
+  font-weight: bold;
   color: #000000;
 }
 
@@ -99,7 +73,7 @@
 @media print {
   @page {
     size: A3 landscape;
-    margin: 4mm;
+    margin: 3mm;
   }
 
   .app-nav {
@@ -149,207 +123,22 @@
   }
 
   .shift-print-sheet h1 {
-    margin: 0 0 2mm !important;
+    margin: 0 0 1.5mm !important;
     padding: 0 !important;
     text-align: center !important;
-    font-size: 17px !important;
+    font-size: 18px !important;
     line-height: 1.1 !important;
     color: #000000 !important;
   }
 
   .shift-print-sheet p {
-    margin: 0 0 2.5mm !important;
+    margin: 0 0 2mm !important;
     padding: 0 !important;
     text-align: center !important;
     font-size: 10px !important;
     line-height: 1.1 !important;
     font-weight: bold !important;
     color: #000000 !important;
-  }
-
-  .timeline-wrap {
-    width: 100% !important;
-    max-width: none !important;
-    overflow: visible !important;
-    background: #ffffff !important;
-    border-radius: 0 !important;
-  }
-
-  .timeline-sheet {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    overflow: visible !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border: 1.4px solid #000000 !important;
-    box-shadow: none !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-
-  .timeline-header,
-  .timeline-row {
-    display: grid !important;
-    grid-template-columns: 20mm 1fr !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border-bottom: 1px solid #000000 !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-
-  .timeline-header {
-    height: 8mm !important;
-    min-height: 8mm !important;
-    max-height: 8mm !important;
-  }
-
-  .timeline-row {
-    height: 20mm !important;
-    min-height: 20mm !important;
-    max-height: 20mm !important;
-  }
-
-  .timeline-date-cell {
-    width: 20mm !important;
-    min-width: 20mm !important;
-    max-width: 20mm !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border-right: 1px solid #000000 !important;
-    border-bottom: 1px solid #000000 !important;
-    font-size: 9px !important;
-    font-weight: bold !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-    white-space: nowrap !important;
-  }
-
-  .timeline-date-label {
-    font-size: 9px !important;
-    color: #000000 !important;
-    font-weight: bold !important;
-  }
-
-  .timeline-hours {
-    display: grid !important;
-    grid-template-columns: repeat(24, 1fr) !important;
-    height: 8mm !important;
-    min-height: 8mm !important;
-    max-height: 8mm !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-  }
-
-  .timeline-hour-cell {
-    min-width: 0 !important;
-    height: 8mm !important;
-    min-height: 8mm !important;
-    max-height: 8mm !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border-right: 1px solid #000000 !important;
-    border-bottom: 1px solid #000000 !important;
-    font-size: 6.5px !important;
-    font-weight: bold !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  .timeline-grid-area {
-    position: relative !important;
-    height: 20mm !important;
-    min-height: 20mm !important;
-    max-height: 20mm !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border-left: 1px solid #000000 !important;
-    overflow: hidden !important;
-  }
-
-  .timeline-grid {
-    position: absolute !important;
-    inset: 0 !important;
-    display: grid !important;
-    grid-template-columns: repeat(24, 1fr) !important;
-    height: 100% !important;
-    background: #ffffff !important;
-    z-index: 1 !important;
-    pointer-events: none !important;
-  }
-
-  .timeline-grid-cell {
-    min-width: 0 !important;
-    height: 100% !important;
-    background: #ffffff !important;
-    border-right: 1px solid #999999 !important;
-    border-bottom: 1px solid #999999 !important;
-  }
-
-  .timeline-shifts {
-    position: absolute !important;
-    inset: 0 !important;
-    z-index: 2 !important;
-    background: transparent !important;
-  }
-
-  .timeline-shift-bar {
-    position: absolute !important;
-    height: 5.1mm !important;
-    min-height: 5.1mm !important;
-    padding: 0 1mm !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border: 1px solid #000000 !important;
-    border-radius: 1.5px !important;
-    box-shadow: none !important;
-    overflow: hidden !important;
-    display: flex !important;
-    align-items: center !important;
-  }
-
-  .timeline-shift-bar:nth-child(3n + 1) {
-    top: 1.2mm !important;
-  }
-
-  .timeline-shift-bar:nth-child(3n + 2) {
-    top: 7.2mm !important;
-  }
-
-  .timeline-shift-bar:nth-child(3n) {
-    top: 13.2mm !important;
-  }
-
-  .timeline-shift-text {
-    color: #000000 !important;
-    font-size: 6.8px !important;
-    line-height: 5.1mm !important;
-    font-weight: bold !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  }
-
-  .timeline-row-spacer {
-    height: 20mm !important;
-    min-height: 20mm !important;
-    max-height: 20mm !important;
-  }
-
-  .timeline-overflow-badge {
-    right: 1mm !important;
-    bottom: 1mm !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border: 1px solid #000000 !important;
-    font-size: 7px !important;
-    font-weight: bold !important;
   }
 }
 
@@ -366,8 +155,6 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: 10px;
-    position: relative;
-    z-index: 100;
   }
 
   .shift-print-actions button {
