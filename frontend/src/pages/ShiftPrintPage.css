@@ -52,22 +52,29 @@
 }
 
 .shift-print-sheet h1 {
-  margin: 0 0 3mm !important;
+  margin: 0 0 2mm !important;
   padding: 0 !important;
   text-align: center !important;
-  font-size: 22px !important;
+  font-size: 17px !important;
   line-height: 1.1 !important;
   color: #000000 !important;
 }
 
 .shift-print-sheet p {
-  margin: 0 0 4mm !important;
+  margin: 0 0 2mm !important;
   padding: 0 !important;
   text-align: center !important;
-  font-size: 13px !important;
+  font-size: 10px !important;
   line-height: 1.1 !important;
   font-weight: bold !important;
   color: #000000 !important;
+}
+
+.shift-print-sheet {
+  page-break-after: avoid !important;
+  page-break-before: avoid !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
 }
 
 /* =========================

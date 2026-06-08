@@ -196,17 +196,19 @@
     min-width: 0 !important;
     max-width: none !important;
     overflow: visible !important;
-    border: 1.6px solid #000000 !important;
+    border: 1.5px solid #000000 !important;
     background: #ffffff !important;
     color: #000000 !important;
     box-shadow: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   .timeline-header,
   .timeline-row {
     display: grid !important;
     grid-template-columns: 24mm 1fr !important;
-    border-bottom: 1.3px solid #000000 !important;
+    border-bottom: 1.2px solid #000000 !important;
     background: #ffffff !important;
     color: #000000 !important;
     page-break-inside: avoid !important;
@@ -215,15 +217,15 @@
 
   .timeline-header {
     position: static !important;
-    height: 10mm !important;
-    min-height: 10mm !important;
-    max-height: 10mm !important;
+    height: 9mm !important;
+    min-height: 9mm !important;
+    max-height: 9mm !important;
   }
 
   .timeline-row {
-    height: calc(var(--lane-count, 4) * 7.4mm + 4mm) !important;
-    min-height: calc(var(--lane-count, 4) * 7.4mm + 4mm) !important;
-    max-height: none !important;
+    height: 25mm !important;
+    min-height: 25mm !important;
+    max-height: 25mm !important;
   }
 
   .timeline-date-cell {
@@ -231,11 +233,11 @@
     min-width: 24mm !important;
     max-width: 24mm !important;
     padding: 0 !important;
-    border-right: 1.3px solid #000000 !important;
-    border-bottom: 1.3px solid #000000 !important;
+    border-right: 1.2px solid #000000 !important;
+    border-bottom: 1.2px solid #000000 !important;
     background: #ffffff !important;
     color: #000000 !important;
-    font-size: 11px !important;
+    font-size: 10px !important;
     font-weight: bold !important;
     display: flex !important;
     align-items: center !important;
@@ -245,7 +247,7 @@
   }
 
   .timeline-date-label {
-    font-size: 11px !important;
+    font-size: 10px !important;
     color: #000000 !important;
     font-weight: bold !important;
   }
@@ -253,24 +255,24 @@
   .timeline-hours {
     display: grid !important;
     grid-template-columns: repeat(24, 1fr) !important;
-    height: 10mm !important;
-    min-height: 10mm !important;
-    max-height: 10mm !important;
+    height: 9mm !important;
+    min-height: 9mm !important;
+    max-height: 9mm !important;
     background: #ffffff !important;
     color: #000000 !important;
   }
 
   .timeline-hour-cell {
     min-width: 0 !important;
-    height: 10mm !important;
-    min-height: 10mm !important;
-    max-height: 10mm !important;
+    height: 9mm !important;
+    min-height: 9mm !important;
+    max-height: 9mm !important;
     padding: 0 !important;
-    border-right: 1.3px solid #000000 !important;
-    border-bottom: 1.3px solid #000000 !important;
+    border-right: 1.2px solid #000000 !important;
+    border-bottom: 1.2px solid #000000 !important;
     background: #ffffff !important;
     color: #000000 !important;
-    font-size: 8px !important;
+    font-size: 7px !important;
     font-weight: bold !important;
     display: flex !important;
     align-items: center !important;
@@ -283,12 +285,12 @@
 
   .timeline-grid-area {
     position: relative !important;
-    height: calc(var(--lane-count, 4) * 7.4mm + 4mm) !important;
-    min-height: calc(var(--lane-count, 4) * 7.4mm + 4mm) !important;
-    max-height: none !important;
+    height: 25mm !important;
+    min-height: 25mm !important;
+    max-height: 25mm !important;
     background: #ffffff !important;
     color: #000000 !important;
-    border-left: 1.3px solid #000000 !important;
+    border-left: 1.2px solid #000000 !important;
     overflow: hidden !important;
   }
 
@@ -307,8 +309,8 @@
     min-width: 0 !important;
     height: 100% !important;
     background: #ffffff !important;
-    border-right: 1.3px solid #000000 !important;
-    border-bottom: 1.3px solid #000000 !important;
+    border-right: 1.2px solid #000000 !important;
+    border-bottom: 1.2px solid #000000 !important;
   }
 
   .timeline-grid-cell:last-child {
@@ -324,27 +326,36 @@
 
   .timeline-shift-bar {
     position: absolute !important;
-    top: calc(var(--lane, 0) * 7.4mm + 2mm) !important;
-    height: 6.5mm !important;
-    min-height: 6.5mm !important;
+    top: calc(var(--lane, 0) * 5.7mm + 1.2mm) !important;
+    height: 5.1mm !important;
+    min-height: 5.1mm !important;
     padding: 0 1mm !important;
     background: #ffffff !important;
     color: #000000 !important;
-    border: 1.1px solid #000000 !important;
-    border-radius: 2px !important;
+    border: 1px solid #000000 !important;
+    border-radius: 1.5px !important;
     box-shadow: none !important;
     overflow: hidden !important;
     display: flex !important;
     align-items: center !important;
   }
 
+  /* 重要：nth-childで位置を上書きしない */
+  .timeline-shift-bar:nth-child(4n + 1),
+  .timeline-shift-bar:nth-child(4n + 2),
+  .timeline-shift-bar:nth-child(4n + 3),
+  .timeline-shift-bar:nth-child(4n) {
+    top: calc(var(--lane, 0) * 5.7mm + 1.2mm) !important;
+  }
+
   .timeline-shift-text {
     display: flex !important;
     gap: 1mm !important;
     align-items: center !important;
+    width: 100% !important;
     color: #000000 !important;
-    font-size: 7.5px !important;
-    line-height: 6.5mm !important;
+    font-size: 6.8px !important;
+    line-height: 5.1mm !important;
     font-weight: bold !important;
     white-space: nowrap !important;
     overflow: hidden !important;
@@ -352,27 +363,33 @@
   }
 
   .timeline-shift-name {
-    max-width: 22mm !important;
+    display: inline !important;
+    max-width: 20mm !important;
+    color: #000000 !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
-    display: none !important;
+    flex-shrink: 1 !important;
   }
 
   .timeline-shift-time {
+    display: inline !important;
+    color: #000000 !important;
     flex-shrink: 0 !important;
   }
 
   .timeline-shift-memo {
+    display: inline !important;
+    color: #000000 !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
   }
 
   .timeline-row-spacer {
-    height: calc(var(--lane-count, 4) * 7.4mm + 4mm) !important;
-    min-height: calc(var(--lane-count, 4) * 7.4mm + 4mm) !important;
-    max-height: none !important;
+    height: 25mm !important;
+    min-height: 25mm !important;
+    max-height: 25mm !important;
   }
 
   .timeline-overflow-badge {

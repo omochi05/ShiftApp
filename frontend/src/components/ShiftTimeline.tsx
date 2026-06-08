@@ -29,8 +29,9 @@ const HOURS = [
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
+const MAX_LANES = 4;
 const LANE_HEIGHT = 38;
-const ROW_BASE_PADDING = 12;
+const ROW_BASE_PADDING = 8;
 
 function normalizeTime(time?: string) {
   if (!time || typeof time !== "string") {
@@ -113,22 +114,18 @@ function layoutShiftsForDay(dayShifts: ShiftItem[]) {
   const sorted = [...dayShifts].sort((a, b) => {
     const aStart = getShiftRange(a.start_time, a.end_time).startPos;
     const bStart = getShiftRange(b.start_time, b.end_time).startPos;
-
     return aStart - bStart;
   });
 
-  const laneEndTimes: number[] = [];
+  const laneEndTimes = Array(MAX_LANES).fill(-1);
   const visible: PositionedShift[] = [];
 
   for (const shift of sorted) {
-    const { startPos, endPos } = getShiftRange(
-      shift.start_time,
-      shift.end_time
-    );
+    const { startPos, endPos } = getShiftRange(shift.start_time, shift.end_time);
 
     let assignedLane = -1;
 
-    for (let lane = 0; lane < laneEndTimes.length; lane++) {
+    for (let lane = 0; lane < MAX_LANES; lane++) {
       if (startPos >= laneEndTimes[lane]) {
         assignedLane = lane;
         laneEndTimes[lane] = endPos;
@@ -136,9 +133,19 @@ function layoutShiftsForDay(dayShifts: ShiftItem[]) {
       }
     }
 
+    // 4レーン全部埋まっている場合は、一番早く終わるレーンに入れる
+    // A3 1ページ固定を優先するため、行は伸ばさない
     if (assignedLane === -1) {
-      assignedLane = laneEndTimes.length;
-      laneEndTimes.push(endPos);
+      let earliestLane = 0;
+
+      for (let lane = 1; lane < MAX_LANES; lane++) {
+        if (laneEndTimes[lane] < laneEndTimes[earliestLane]) {
+          earliestLane = lane;
+        }
+      }
+
+      assignedLane = earliestLane;
+      laneEndTimes[earliestLane] = Math.max(laneEndTimes[earliestLane], endPos);
     }
 
     visible.push({
@@ -147,13 +154,10 @@ function layoutShiftsForDay(dayShifts: ShiftItem[]) {
     });
   }
 
-  const laneCount = Math.max(laneEndTimes.length, 1);
-  const rowHeight = laneCount * LANE_HEIGHT + ROW_BASE_PADDING;
-
   return {
     visible,
-    laneCount,
-    rowHeight,
+    laneCount: MAX_LANES,
+    rowHeight: MAX_LANES * LANE_HEIGHT + ROW_BASE_PADDING,
   };
 }
 
