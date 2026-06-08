@@ -112,19 +112,28 @@ function formatDateLabel(dateStr: string) {
 
 function layoutShiftsForDay(dayShifts: ShiftItem[]) {
   const sorted = [...dayShifts].sort((a, b) => {
-    const aStart = getShiftRange(a.start_time, a.end_time).startPos;
-    const bStart = getShiftRange(b.start_time, b.end_time).startPos;
-    return aStart - bStart;
+    const aRange = getShiftRange(a.start_time, a.end_time);
+    const bRange = getShiftRange(b.start_time, b.end_time);
+
+    if (aRange.startPos !== bRange.startPos) {
+      return aRange.startPos - bRange.startPos;
+    }
+
+    return aRange.endPos - bRange.endPos;
   });
 
   const laneEndTimes = Array(MAX_LANES).fill(-1);
   const visible: PositionedShift[] = [];
 
   for (const shift of sorted) {
-    const { startPos, endPos } = getShiftRange(shift.start_time, shift.end_time);
+    const { startPos, endPos } = getShiftRange(
+      shift.start_time,
+      shift.end_time
+    );
 
     let assignedLane = -1;
 
+    // 上から順番に、空いているレーンへ配置
     for (let lane = 0; lane < MAX_LANES; lane++) {
       if (startPos >= laneEndTimes[lane]) {
         assignedLane = lane;
@@ -133,19 +142,14 @@ function layoutShiftsForDay(dayShifts: ShiftItem[]) {
       }
     }
 
-    // 4レーン全部埋まっている場合は、一番早く終わるレーンに入れる
-    // A3 1ページ固定を優先するため、行は伸ばさない
+    // 4レーンすべて同時間帯で埋まっている場合
+    // A3 1ページ固定を優先するため、行は増やさず一番下のレーンに置く
     if (assignedLane === -1) {
-      let earliestLane = 0;
-
-      for (let lane = 1; lane < MAX_LANES; lane++) {
-        if (laneEndTimes[lane] < laneEndTimes[earliestLane]) {
-          earliestLane = lane;
-        }
-      }
-
-      assignedLane = earliestLane;
-      laneEndTimes[earliestLane] = Math.max(laneEndTimes[earliestLane], endPos);
+      assignedLane = MAX_LANES - 1;
+      laneEndTimes[assignedLane] = Math.max(
+        laneEndTimes[assignedLane],
+        endPos
+      );
     }
 
     visible.push({
