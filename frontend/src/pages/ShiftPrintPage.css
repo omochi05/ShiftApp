@@ -1,3 +1,8 @@
+/* =========================
+   ShiftPrintPage.css
+   印刷専用ページ / A3横向き
+========================= */
+
 .shift-print-page {
   min-height: 100vh;
   padding: 24px;
@@ -9,6 +14,8 @@
   display: flex;
   gap: 12px;
   margin-bottom: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .shift-print-actions button {
@@ -18,10 +25,24 @@
   background: #2563eb;
   color: #ffffff;
   font-weight: bold;
+  font-size: 16px;
   cursor: pointer;
 }
 
+.shift-print-actions button:hover {
+  background: #1d4ed8;
+}
+
+.shift-print-help {
+  margin: 8px 0 16px;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+}
+
 .shift-print-sheet {
+  width: 100%;
   background: #ffffff;
   color: #000000;
 }
@@ -30,130 +51,303 @@
   margin: 0 0 8px;
   text-align: center;
   font-size: 24px;
+  color: #000000;
 }
 
 .shift-print-sheet p {
   margin: 0 0 16px;
   text-align: center;
   font-weight: bold;
+  color: #000000;
 }
+
+/* =========================
+   Screen Preview
+========================= */
+
+.shift-print-sheet .timeline-wrap {
+  width: 100%;
+  overflow-x: auto;
+  background: #ffffff;
+}
+
+.shift-print-sheet .timeline-sheet {
+  background: #ffffff;
+  color: #000000;
+}
+
+/* =========================
+   Print / A3 Landscape
+========================= */
 
 @media print {
   @page {
-    size: A4 landscape;
-    margin: 4mm;
+    size: A3 landscape;
+    margin: 5mm;
   }
 
   html,
   body,
   #root {
+    width: 100% !important;
+    height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
     background: #ffffff !important;
     color: #000000 !important;
+    overflow: visible !important;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .shift-print-page {
+    width: 100% !important;
+    min-height: auto !important;
+    margin: 0 !important;
     padding: 0 !important;
     background: #ffffff !important;
+    color: #000000 !important;
+    overflow: visible !important;
   }
 
-  .shift-print-actions {
+  .shift-print-actions,
+  .shift-print-help {
     display: none !important;
   }
 
   .shift-print-sheet {
     width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
     background: #ffffff !important;
     color: #000000 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   .shift-print-sheet h1 {
-    font-size: 16px !important;
-    margin-bottom: 2mm !important;
+    margin: 0 0 3mm !important;
+    padding: 0 !important;
+    text-align: center !important;
+    font-size: 22px !important;
+    line-height: 1.2 !important;
+    color: #000000 !important;
   }
 
   .shift-print-sheet p {
-    font-size: 10px !important;
-    margin-bottom: 2mm !important;
+    margin: 0 0 4mm !important;
+    padding: 0 !important;
+    text-align: center !important;
+    font-size: 13px !important;
+    line-height: 1.2 !important;
+    font-weight: bold !important;
+    color: #000000 !important;
+  }
+
+  .timeline-wrap {
+    width: 100% !important;
+    max-width: none !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    border-radius: 0 !important;
   }
 
   .timeline-sheet {
     width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
     overflow: visible !important;
+    background: #ffffff !important;
+    color: #000000 !important;
     border: 1.5px solid #000000 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   .timeline-header,
   .timeline-row {
-    grid-template-columns: 18mm 1fr !important;
+    display: grid !important;
+    grid-template-columns: 24mm 1fr !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-bottom: 1px solid #000000 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
-  .timeline-hours,
-  .timeline-grid {
-    grid-template-columns: repeat(24, 1fr) !important;
+  .timeline-header {
+    height: 11mm !important;
+    min-height: 11mm !important;
+    max-height: 11mm !important;
+  }
+
+  .timeline-row {
+    height: 24mm !important;
+    min-height: 24mm !important;
+    max-height: 24mm !important;
   }
 
   .timeline-date-cell {
-    width: 18mm !important;
-    min-width: 18mm !important;
-    max-width: 18mm !important;
+    width: 24mm !important;
+    min-width: 24mm !important;
+    max-width: 24mm !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
     border-right: 1px solid #000000 !important;
     border-bottom: 1px solid #000000 !important;
-    font-size: 8px !important;
+    font-size: 11px !important;
+    font-weight: bold !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+  }
+
+  .timeline-date-label {
+    font-size: 11px !important;
+    color: #000000 !important;
+    font-weight: bold !important;
+  }
+
+  .timeline-hours {
+    display: grid !important;
+    grid-template-columns: repeat(24, 1fr) !important;
+    height: 11mm !important;
+    min-height: 11mm !important;
+    max-height: 11mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
   }
 
   .timeline-hour-cell {
     min-width: 0 !important;
-    height: 8mm !important;
+    height: 11mm !important;
+    min-height: 11mm !important;
+    max-height: 11mm !important;
+    padding: 0 !important;
     background: #ffffff !important;
     color: #000000 !important;
     border-right: 1px solid #000000 !important;
     border-bottom: 1px solid #000000 !important;
-    font-size: 6px !important;
-  }
-
-  .timeline-row {
-    height: 18mm !important;
-    min-height: 18mm !important;
-    max-height: 18mm !important;
-    border-bottom: 1px solid #000000 !important;
+    font-size: 8px !important;
+    font-weight: bold !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
   .timeline-grid-area {
-    height: 18mm !important;
-    min-height: 18mm !important;
-    max-height: 18mm !important;
+    position: relative !important;
+    height: 24mm !important;
+    min-height: 24mm !important;
+    max-height: 24mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
     border-left: 1px solid #000000 !important;
+    overflow: hidden !important;
   }
 
-  .timeline-row-spacer {
-    height: 18mm !important;
-    min-height: 18mm !important;
-    max-height: 18mm !important;
+  .timeline-grid {
+    position: absolute !important;
+    inset: 0 !important;
+    display: grid !important;
+    grid-template-columns: repeat(24, 1fr) !important;
+    height: 100% !important;
+    background: #ffffff !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
   }
 
   .timeline-grid-cell {
     min-width: 0 !important;
+    height: 100% !important;
+    background: #ffffff !important;
     border-right: 1px solid #999999 !important;
     border-bottom: 1px solid #999999 !important;
   }
 
+  .timeline-shifts {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 2 !important;
+    background: transparent !important;
+  }
+
   .timeline-shift-bar {
-    top: calc(var(--lane, 0) * 5.6mm + 1.2mm) !important;
-    height: 5mm !important;
-    min-height: 5mm !important;
-    border: 1.2px solid #000000 !important;
+    position: absolute !important;
+    top: calc(var(--lane, 0) * 7.2mm + 1.5mm) !important;
+    height: 6.4mm !important;
+    min-height: 6.4mm !important;
+    padding: 0 1.5mm !important;
     background: #ffffff !important;
     color: #000000 !important;
+    border: 1.2px solid #000000 !important;
     border-radius: 2px !important;
-    padding: 0 1mm !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
   }
 
   .timeline-shift-text {
-    font-size: 6.5px !important;
-    line-height: 5mm !important;
     color: #000000 !important;
+    font-size: 8px !important;
+    line-height: 6.4mm !important;
     font-weight: bold !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .timeline-row-spacer {
+    height: 24mm !important;
+    min-height: 24mm !important;
+    max-height: 24mm !important;
+  }
+
+  .timeline-overflow-badge {
+    right: 1mm !important;
+    bottom: 1mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    font-size: 8px !important;
+    font-weight: bold !important;
+  }
+}
+
+/* =========================
+   Smartphone
+========================= */
+
+@media (max-width: 768px) {
+  .shift-print-page {
+    padding: 12px;
+  }
+
+  .shift-print-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .shift-print-actions button {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+  }
+
+  .shift-print-sheet h1 {
+    font-size: 22px;
+  }
+
+  .shift-print-sheet p {
+    font-size: 14px;
   }
 }
