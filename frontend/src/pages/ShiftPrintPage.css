@@ -9,6 +9,7 @@
   background: #ffffff !important;
   color: #000000 !important;
   overflow-x: auto;
+  -webkit-text-size-adjust: 100%;
 }
 
 .shift-print-actions {
@@ -38,8 +39,8 @@
 }
 
 .shift-print-sheet {
-  width: 100%;
-  max-width: 1780px;
+  width: 1280px;
+  max-width: none;
   margin: 0 auto;
   background: #ffffff !important;
   color: #000000 !important;
@@ -61,9 +62,31 @@
   color: #000000 !important;
 }
 
+/* スマホの印刷ページ表示では表を潰さず横スクロール */
+@media screen and (max-width: 768px) {
+  .shift-print-page {
+    padding: 12px;
+    overflow-x: auto;
+  }
+
+  .shift-print-sheet {
+    width: 1180px;
+    max-width: none;
+    margin: 0;
+  }
+
+  .shift-print-sheet h1 {
+    font-size: 26px;
+  }
+
+  .shift-print-period {
+    font-size: 16px;
+  }
+}
+
 /* =========================
    印刷設定
-   スマホA3横印刷で土日が切れにくい版
+   スマホA3横印刷で崩れにくい版
 ========================= */
 
 @media print {
@@ -106,17 +129,16 @@
     padding: 0 !important;
     background: #ffffff !important;
 
-    /* スマホ印刷でもA3横1枚に収めやすい倍率 */
-    zoom: 0.98;
+    zoom: 0.94;
   }
 
   .shift-print-sheet h1 {
-    font-size: 24px !important;
+    font-size: 22px !important;
     margin: 0 0 2px !important;
   }
 
   .shift-print-period {
-    font-size: 14px !important;
-    margin: 0 0 4px !important;
+    font-size: 13px !important;
+    margin: 0 0 3px !important;
   }
 }

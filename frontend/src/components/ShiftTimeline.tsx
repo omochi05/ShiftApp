@@ -27,8 +27,12 @@ type PositionedShift = ShiftForTimeline & {
 
 const START_HOUR = 6;
 const TOTAL_HOURS = 24;
-const LANE_HEIGHT = 30;
-const BAR_TOP_OFFSET = 8;
+
+const NORMAL_LANE_HEIGHT = 30;
+const NORMAL_BAR_TOP_OFFSET = 8;
+
+const PRINT_LANE_HEIGHT = 22;
+const PRINT_BAR_TOP_OFFSET = 5;
 
 const hourLabels = [
   "6",
@@ -195,6 +199,9 @@ export default function ShiftTimeline({
 }: ShiftTimelineProps) {
   const groupedShifts = groupShiftsByDate(shifts);
 
+  const laneHeight = printMode ? PRINT_LANE_HEIGHT : NORMAL_LANE_HEIGHT;
+  const barTopOffset = printMode ? PRINT_BAR_TOP_OFFSET : NORMAL_BAR_TOP_OFFSET;
+
   return (
     <div
       className={`shift-timeline ${
@@ -221,7 +228,10 @@ export default function ShiftTimeline({
 
       {groupedShifts.map(([date, dayShifts]) => {
         const { positioned, laneCount } = positionShifts(dayShifts);
-        const rowHeight = Math.max(66, laneCount * LANE_HEIGHT + 16);
+
+        const rowHeight = printMode
+          ? Math.max(46, laneCount * laneHeight + 8)
+          : Math.max(66, laneCount * laneHeight + 16);
 
         return (
           <div
@@ -249,7 +259,7 @@ export default function ShiftTimeline({
                     style={{
                       left: `${shift.left}%`,
                       width: `${shift.width}%`,
-                      top: `${BAR_TOP_OFFSET + shift.lane * LANE_HEIGHT}px`,
+                      top: `${barTopOffset + shift.lane * laneHeight}px`,
                     }}
                     title={`${shift.user_name} ${startTime}〜${endTime}`}
                   >

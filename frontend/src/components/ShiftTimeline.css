@@ -6,7 +6,7 @@
 
 .shift-timeline {
   width: 100%;
-  min-width: 1300px;
+  min-width: 1280px;
   background: #ffffff !important;
   color: #000000 !important;
   font-weight: 800;
@@ -186,15 +186,19 @@
 ========================= */
 
 .shift-timeline-print {
-  min-width: 0;
   width: 100%;
+  min-width: 0;
 }
 
 .shift-timeline-print .shift-bar {
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 5px;
+  padding: 0 4px;
+
+  border: 1.8px solid #000000;
+  border-radius: 5px;
 }
 
 .shift-bar-print-name {
@@ -205,7 +209,7 @@
   text-overflow: ellipsis;
 
   color: #000000 !important;
-  font-size: 15px;
+  font-size: 9.5px;
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
@@ -213,8 +217,23 @@
 }
 
 /* =========================
+   スマホ表示用
+   印刷ページで表を潰さない
+========================= */
+
+@media screen and (max-width: 768px) {
+  .shift-timeline {
+    min-width: 1180px;
+  }
+
+  .shift-timeline-print {
+    min-width: 1180px;
+  }
+}
+
+/* =========================
    印刷用 A3横 1枚向け
-   スマホ印刷で土日が切れにくい版
+   スマホ印刷で崩れにくい版
 ========================= */
 
 @media print {
@@ -227,7 +246,7 @@
   }
 
   .shift-timeline-header {
-    grid-template-columns: 66px 1fr !important;
+    grid-template-columns: 64px 1fr !important;
     border: 2px solid #000000 !important;
     border-bottom: none !important;
   }
@@ -235,12 +254,12 @@
   .shift-timeline-date-head {
     padding: 3px 2px !important;
     border-right: 2px solid #000000 !important;
-    font-size: 13px !important;
+    font-size: 12px !important;
   }
 
   .shift-timeline-hours {
     position: relative !important;
-    min-height: 22px !important;
+    min-height: 20px !important;
     overflow: visible !important;
   }
 
@@ -250,7 +269,7 @@
     transform: translateX(-50%) !important;
 
     width: 18px !important;
-    min-height: 22px !important;
+    min-height: 20px !important;
 
     font-size: 8px !important;
     border-right: none !important;
@@ -267,7 +286,7 @@
   }
 
   .shift-timeline-row {
-    grid-template-columns: 66px 1fr !important;
+    grid-template-columns: 64px 1fr !important;
     border: 2px solid #000000 !important;
     border-bottom: none !important;
     page-break-inside: avoid;
@@ -276,24 +295,24 @@
 
   .shift-timeline-date {
     border-right: 2px solid #000000 !important;
-    font-size: 14px !important;
+    font-size: 13px !important;
     line-height: 1.05 !important;
   }
 
   .shift-timeline-body {
-    min-height: 48px !important;
+    min-height: 44px !important;
     overflow: hidden !important;
   }
 
   .shift-bar {
-    height: 19px !important;
-    border: 1.8px solid #000000 !important;
+    height: 18px !important;
+    border: 1.7px solid #000000 !important;
     border-radius: 5px !important;
   }
 
   .shift-bar-print-name {
     max-width: 100% !important;
-    font-size: 9.5px !important;
+    font-size: 9px !important;
     font-weight: 900 !important;
   }
 
