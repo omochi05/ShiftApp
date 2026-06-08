@@ -15,7 +15,7 @@
 
 .shift-timeline-header {
   display: grid;
-  grid-template-columns: 115px 1fr;
+  grid-template-columns: 105px 1fr;
   border: 3px solid #000000;
   border-bottom: none;
   background: #111111 !important;
@@ -26,10 +26,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 6px;
+  padding: 8px 4px;
   border-right: 3px solid #000000;
   text-align: center;
-  font-size: 21px;
+  font-size: 20px;
   font-weight: 900;
   color: #ffffff !important;
 }
@@ -44,10 +44,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 42px;
+  min-height: 36px;
   border-right: 1px solid #666666;
   color: #ffffff !important;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 900;
 }
 
@@ -61,7 +61,7 @@
 
 .shift-timeline-row {
   display: grid;
-  grid-template-columns: 115px 1fr;
+  grid-template-columns: 105px 1fr;
   border: 3px solid #000000;
   border-bottom: none;
   background: #ffffff !important;
@@ -78,14 +78,14 @@
   color: #000000 !important;
 
   text-align: center;
-  font-size: 25px;
+  font-size: 24px;
   font-weight: 900;
-  line-height: 1.25;
+  line-height: 1.2;
 }
 
 .shift-timeline-body {
   position: relative;
-  min-height: 76px;
+  min-height: 62px;
   background:
     repeating-linear-gradient(
       to right,
@@ -108,84 +108,81 @@
 /* シフト横棒 */
 .shift-bar {
   position: absolute;
-  height: 32px;
+  height: 24px;
   box-sizing: border-box;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 0 8px;
-  border: 3px solid #000000;
-  border-radius: 8px;
+  border: 2.5px solid #000000;
+  border-radius: 7px;
 
   background: #ffffff !important;
   color: #000000 !important;
 
-  font-size: 17px;
-  font-weight: 900;
-  white-space: nowrap;
   overflow: hidden;
 }
 
-/* バー内は中央に 名前 + 時間 だけ */
-.shift-bar-content {
-  display: flex;
+/* バー中央に名前だけ表示 */
+.shift-bar-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+
+  transform: translate(-50%, -50%);
+
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
 
-  width: 100%;
-  min-width: 0;
+  max-width: calc(100% - 10px);
 
-  overflow: hidden;
+  color: #000000 !important;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
   text-align: center;
 }
 
 .shift-bar-name {
-  flex-shrink: 0;
-  max-width: 45%;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 900;
 }
 
-.shift-bar-time {
-  flex-shrink: 0;
-  font-size: 15px;
-  font-weight: 900;
-}
-
-/* 削除ボタンはこのシフト表では表示しない */
 .shift-bar-delete,
 .shift-bar button,
 .print-hide {
   display: none !important;
 }
 
+.shift-timeline-print {
+  min-width: 0;
+  width: 100%;
+}
+
 /* =========================
-   印刷用
+   印刷用 A3 1枚
 ========================= */
 
 @media print {
   .shift-timeline {
     width: 100% !important;
     min-width: 0 !important;
-    border-bottom: 3px solid #000000 !important;
+    border-bottom: 2.5px solid #000000 !important;
     page-break-inside: avoid;
     break-inside: avoid;
   }
 
   .shift-timeline-header {
-    grid-template-columns: 88px 1fr !important;
-    border: 3px solid #000000 !important;
+    grid-template-columns: 78px 1fr !important;
+    border: 2.5px solid #000000 !important;
     border-bottom: none !important;
   }
 
   .shift-timeline-date-head {
-    padding: 6px 4px !important;
-    border-right: 3px solid #000000 !important;
-    font-size: 16px !important;
+    padding: 4px 3px !important;
+    border-right: 2.5px solid #000000 !important;
+    font-size: 14px !important;
   }
 
   .shift-timeline-hours {
@@ -193,59 +190,54 @@
   }
 
   .shift-timeline-hour {
-    min-height: 28px !important;
-    font-size: 9px !important;
+    min-height: 22px !important;
+    font-size: 8px !important;
     border-right: 1px solid #777777 !important;
   }
 
   .shift-timeline-row {
-    grid-template-columns: 88px 1fr !important;
-    border: 3px solid #000000 !important;
+    grid-template-columns: 78px 1fr !important;
+    border: 2.5px solid #000000 !important;
     border-bottom: none !important;
     page-break-inside: avoid;
     break-inside: avoid;
   }
 
   .shift-timeline-date {
-    border-right: 3px solid #000000 !important;
-    font-size: 18px !important;
-    line-height: 1.2 !important;
+    border-right: 2.5px solid #000000 !important;
+    font-size: 16px !important;
+    line-height: 1.15 !important;
   }
 
   .shift-timeline-body {
-    min-height: 62px !important;
+    min-height: 54px !important;
     overflow: hidden !important;
   }
 
   .shift-bar {
-    height: 27px !important;
-    padding: 0 5px !important;
+    height: 21px !important;
     border: 2px solid #000000 !important;
-    border-radius: 6px !important;
-    font-size: 12px !important;
-
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    border-radius: 5px !important;
   }
 
-  .shift-bar-content {
-    gap: 7px !important;
-    justify-content: center !important;
+  .shift-bar-center {
+    left: 50% !important;
+    top: 50% !important;
+
+    transform: translate(-50%, -50%) !important;
+
+    max-width: calc(100% - 6px) !important;
+
+    font-size: 10px !important;
+    font-weight: 900 !important;
   }
 
   .shift-bar-name {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-weight: 900;
-}
-
-  .shift-bar-time {
     font-size: 10px !important;
   }
 
   .shift-bar-delete,
+  .shift-bar button,
   .print-hide {
     display: none !important;
   }

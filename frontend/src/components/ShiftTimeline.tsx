@@ -249,9 +249,6 @@ export default function ShiftTimeline({
                   >
                     <span className="shift-bar-center">
                       <span className="shift-bar-name">{shift.user_name}</span>
-                      <span className="shift-bar-time">
-                        {startTime}〜{endTime}
-                      </span>
                     </span>
                   </div>
                 );
