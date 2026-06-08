@@ -141,7 +141,7 @@ export default function ShiftPrintPage() {
   if (loading) {
     return (
       <div className="shift-print-page">
-        <p className="shift-print-loading">印刷用シフト表を読み込み中...</p>
+        <p className="shift-print-message">印刷用シフト表を読み込み中...</p>
       </div>
     );
   }
@@ -175,10 +175,6 @@ export default function ShiftPrintPage() {
         </button>
       </div>
 
-      <p className="shift-print-help">
-        印刷時はA3横向きで出力されます。右側が切れる場合は、印刷設定で倍率を「用紙に合わせる」にしてください。
-      </p>
-
       <section className="shift-print-sheet">
         <h1>週間シフト表</h1>
 
@@ -186,7 +182,7 @@ export default function ShiftPrintPage() {
           表示期間：{weekStartDate} 〜 {weekEndDate}
         </p>
 
-        <ShiftTimeline shifts={printShifts} />
+        <ShiftTimeline shifts={printShifts} printMode />
       </section>
     </div>
   );
