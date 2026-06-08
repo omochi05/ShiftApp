@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState , useRef} from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import ShiftTimeline from "../components/ShiftTimeline";
@@ -48,14 +48,25 @@ export default function ShiftPrintPage() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const weekDates = weekStartDate
+const weekDates = weekStartDate
     ? Array.from({ length: 7 }, (_, index) => addDays(weekStartDate, index))
     : [];
 
-  const handlePrint = () => {
-    window.print();
-  };
+const lastPrintTapRef = useRef(0);
 
+        const handlePrint = () => {
+        const now = Date.now();
+
+        // スマホで touch と click が二重発火するのを防ぐ
+        if (now - lastPrintTapRef.current < 800) {
+            return;
+        }
+
+        lastPrintTapRef.current = now;
+
+        window.focus();
+        window.print();
+        };
   useEffect(() => {
     const loadData = async () => {
       if (!weekStartDate) {
@@ -131,8 +142,15 @@ export default function ShiftPrintPage() {
   return (
     <div className="shift-print-page">
       <div className="shift-print-actions">
-        <button type="button" onClick={handlePrint}>
-          このシフト表を印刷
+        <button
+            type="button"
+            onClick={handlePrint}
+            onTouchEnd={(e) => {
+                e.preventDefault();
+                handlePrint();
+            }}
+            >
+            このシフト表を印刷
         </button>
 
         <button type="button" onClick={() => window.close()}>
