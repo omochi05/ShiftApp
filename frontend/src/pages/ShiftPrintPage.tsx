@@ -1,5 +1,5 @@
-import { useEffect, useState , useRef} from "react";
-import { useSearchParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import ShiftTimeline from "../components/ShiftTimeline";
 import "./ShiftPrintPage.css";
@@ -39,6 +39,9 @@ function addDays(dateText: string, days: number) {
 
 export default function ShiftPrintPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const lastPrintTapRef = useRef(0);
 
   const weekStartDate = searchParams.get("weekStartDate") ?? "";
   const weekEndDate = weekStartDate ? addDays(weekStartDate, 6) : "";
@@ -48,25 +51,32 @@ export default function ShiftPrintPage() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
-const weekDates = weekStartDate
+  const weekDates = weekStartDate
     ? Array.from({ length: 7 }, (_, index) => addDays(weekStartDate, index))
     : [];
 
-const lastPrintTapRef = useRef(0);
+  const handlePrint = () => {
+    const now = Date.now();
 
-        const handlePrint = () => {
-        const now = Date.now();
+    // スマホで連打・二重発火するのを防ぐ
+    if (now - lastPrintTapRef.current < 800) {
+      return;
+    }
 
-        // スマホで touch と click が二重発火するのを防ぐ
-        if (now - lastPrintTapRef.current < 800) {
-            return;
-        }
+    lastPrintTapRef.current = now;
 
-        lastPrintTapRef.current = now;
+    window.focus();
 
-        window.focus();
-        window.print();
-        };
+    // iPhone / Android でもなるべく反応しやすくする
+    setTimeout(() => {
+      window.print();
+    }, 100);
+  };
+
+  const handleBack = () => {
+    navigate("/owner");
+  };
+
   useEffect(() => {
     const loadData = async () => {
       if (!weekStartDate) {
@@ -77,6 +87,7 @@ const lastPrintTapRef = useRef(0);
 
       try {
         setLoading(true);
+        setErrorMessage("");
 
         const [usersRes, shiftsRes] = await Promise.all([
           api.get<User[]>("/users/"),
@@ -96,10 +107,18 @@ const lastPrintTapRef = useRef(0);
     loadData();
   }, [weekStartDate]);
 
-  const weeklyShifts = shifts.filter(
-    (shift) =>
-      shift.work_date >= weekStartDate && shift.work_date <= weekEndDate
-  );
+  const weeklyShifts = shifts
+    .filter(
+      (shift) =>
+        shift.work_date >= weekStartDate && shift.work_date <= weekEndDate
+    )
+    .sort((a, b) => {
+      if (a.work_date !== b.work_date) {
+        return a.work_date.localeCompare(b.work_date);
+      }
+
+      return a.start_time.localeCompare(b.start_time);
+    });
 
   const timelineShifts: ShiftForTimeline[] = weeklyShifts.map((shift) => {
     const user = users.find((u) => u.id === shift.user_id);
@@ -135,6 +154,12 @@ const lastPrintTapRef = useRef(0);
       <div className="shift-print-page">
         <h1>エラー</h1>
         <p>{errorMessage}</p>
+
+        <div className="shift-print-actions">
+          <button type="button" onClick={handleBack}>
+            戻る
+          </button>
+        </div>
       </div>
     );
   }
@@ -142,21 +167,18 @@ const lastPrintTapRef = useRef(0);
   return (
     <div className="shift-print-page">
       <div className="shift-print-actions">
-        <button
-            type="button"
-            onClick={handlePrint}
-            onTouchEnd={(e) => {
-                e.preventDefault();
-                handlePrint();
-            }}
-            >
-            このシフト表を印刷
+        <button type="button" onClick={handlePrint}>
+          このシフト表を印刷
         </button>
 
-        <button type="button" onClick={() => window.close()}>
-          閉じる
+        <button type="button" onClick={handleBack}>
+          戻る
         </button>
       </div>
+
+      <p className="shift-print-help">
+        スマホで印刷画面が出ない場合は、ブラウザの共有・印刷メニューから印刷してください。
+      </p>
 
       <section className="shift-print-sheet">
         <h1>シフト表</h1>
