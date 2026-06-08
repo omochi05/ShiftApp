@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 from database import get_db
 from models import User, Shift
@@ -18,13 +20,32 @@ def get_users(db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=UserResponse)
-def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    existing_user = db.query(User).filter(User.email == user.email).first()
+def create_user(
+    user: UserCreate,
+    db: Session = Depends(get_db)
+):
+    existing_email = (
+        db.query(User)
+        .filter(User.email == user.email)
+        .first()
+    )
 
-    if existing_user:
+    if existing_email:
         raise HTTPException(
             status_code=400,
             detail="この従業員番号はすでに登録されています"
+        )
+
+    existing_name = (
+        db.query(User)
+        .filter(User.name == user.name)
+        .first()
+    )
+
+    if existing_name:
+        raise HTTPException(
+            status_code=400,
+            detail="同じ名前の従業員はすでに登録されています"
         )
 
     new_user = User(
@@ -50,12 +71,78 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     return new_user
 
 
+@router.put("/{user_id}", response_model=UserResponse)
+def update_user(
+    user_id: int,
+    user_data: UserUpdate,
+    db: Session = Depends(get_db)
+):
+    user = (
+        db.query(User)
+        .filter(User.id == user_id)
+        .first()
+    )
+
+    if user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="ユーザーが見つかりません"
+        )
+
+    duplicated_email = (
+        db.query(User)
+        .filter(User.email == user_data.email)
+        .filter(User.id != user_id)
+        .first()
+    )
+
+    if duplicated_email:
+        raise HTTPException(
+            status_code=400,
+            detail="この従業員番号はすでに使われています"
+        )
+
+    duplicated_name = (
+        db.query(User)
+        .filter(User.name == user_data.name)
+        .filter(User.id != user_id)
+        .first()
+    )
+
+    if duplicated_name:
+        raise HTTPException(
+            status_code=400,
+            detail="同じ名前の従業員はすでに登録されています"
+        )
+
+    user.name = user_data.name
+    user.email = user_data.email
+    user.role = user_data.role
+    user.hourly_wage = user_data.hourly_wage
+
+    try:
+        db.commit()
+        db.refresh(user)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="従業員情報の更新に失敗しました。従業員番号が重複している可能性があります"
+        )
+
+    return user
+
+
 @router.delete("/{user_id}")
 def delete_user(
     user_id: int,
     db: Session = Depends(get_db)
 ):
-    user = db.query(User).filter(User.id == user_id).first()
+    user = (
+        db.query(User)
+        .filter(User.id == user_id)
+        .first()
+    )
 
     if user is None:
         raise HTTPException(
@@ -130,39 +217,3 @@ def delete_user(
         "message": "ユーザーを削除しました",
         "user_id": user_id
     }
-@router.put("/{user_id}", response_model=UserResponse)
-def update_user(
-    user_id: int,
-    user_data: UserUpdate,
-    db: Session = Depends(get_db)
-):
-    user = db.query(User).filter(User.id == user_id).first()
-
-    if user is None:
-        raise HTTPException(
-            status_code=404,
-            detail="ユーザーが見つかりません"
-        )
-
-    duplicated_user = (
-        db.query(User)
-        .filter(User.email == user_data.email)
-        .filter(User.id != user_id)
-        .first()
-    )
-
-    if duplicated_user:
-        raise HTTPException(
-            status_code=400,
-            detail="この従業員番号はすでに使われています"
-        )
-
-    user.name = user_data.name
-    user.email = user_data.email
-    user.role = user_data.role
-    user.hourly_wage = user_data.hourly_wage
-
-    db.commit()
-    db.refresh(user)
-
-    return user
