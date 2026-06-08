@@ -101,7 +101,7 @@ function getShiftPosition(shift: ShiftForTimeline) {
 
   return {
     left,
-    width: Math.max(width, 1.4),
+    width: Math.max(width, 1.5),
     startValue,
     endValue,
   };
@@ -191,7 +191,6 @@ function positionShifts(shifts: ShiftForTimeline[]) {
 
 export default function ShiftTimeline({
   shifts,
-  onDeleteShift,
   printMode = false,
 }: ShiftTimelineProps) {
   const groupedShifts = groupShiftsByDate(shifts);
@@ -269,17 +268,6 @@ export default function ShiftTimeline({
                         <span className="shift-bar-time">
                           {startTime}〜{endTime}
                         </span>
-
-                        {onDeleteShift && shift.id > 0 && (
-                          <button
-                            type="button"
-                            className="shift-bar-delete print-hide"
-                            onClick={() => onDeleteShift(shift.id)}
-                            aria-label={`${shift.user_name}のシフトを削除`}
-                          >
-                            ×
-                          </button>
-                        )}
                       </span>
                     )}
                   </div>
