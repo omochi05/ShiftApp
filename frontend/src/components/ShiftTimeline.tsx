@@ -13,7 +13,6 @@ type ShiftForTimeline = {
 
 type ShiftTimelineProps = {
   shifts: ShiftForTimeline[];
-  onDeleteShift?: (shiftId: number) => void;
 };
 
 type PositionedShift = ShiftForTimeline & {
@@ -228,28 +227,30 @@ export default function ShiftTimeline({ shifts }: ShiftTimelineProps) {
             </div>
 
             <div className="shift-timeline-body">
-              {positioned.map((shift) => (
-                <div
-                  key={shift.id}
-                  className="shift-bar"
-                  style={{
-                    left: `${shift.left}%`,
-                    width: `${shift.width}%`,
-                    top: `${10 + shift.lane * 38}px`,
-                  }}
-                  title={`${shift.user_name} ${formatDisplayTime(
-                    shift.start_time
-                  )}〜${formatDisplayTime(shift.end_time)}`}
-                >
-                  <span className="shift-bar-content">
-                    <span className="shift-bar-name">{shift.user_name}</span>
-                    <span className="shift-bar-time">
-                      {formatDisplayTime(shift.start_time)}〜
-                      {formatDisplayTime(shift.end_time)}
+              {positioned.map((shift) => {
+                const startTime = formatDisplayTime(shift.start_time);
+                const endTime = formatDisplayTime(shift.end_time);
+
+                return (
+                  <div
+                    key={shift.id}
+                    className="shift-bar"
+                    style={{
+                      left: `${shift.left}%`,
+                      width: `${shift.width}%`,
+                      top: `${10 + shift.lane * 38}px`,
+                    }}
+                    title={`${shift.user_name} ${startTime}〜${endTime}`}
+                  >
+                    <span className="shift-bar-content">
+                      <span className="shift-bar-name">{shift.user_name}</span>
+                      <span className="shift-bar-time">
+                        {startTime}〜{endTime}
+                      </span>
                     </span>
-                  </span>
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           </div>
         );
