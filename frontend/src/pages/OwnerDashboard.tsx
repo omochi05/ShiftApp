@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import ShiftTimeline from "../components/ShiftTimeline";
 import "./OwnerDashboard.css";
@@ -163,6 +164,7 @@ function formatApiError(error: any, fallbackMessage: string) {
 }
 
 function OwnerDashboard() {
+  const navigate = useNavigate();
   const now = new Date();
 
   const [year, setYear] = useState(now.getFullYear());
@@ -362,7 +364,16 @@ function OwnerDashboard() {
   };
 
   const handleOpenPrintPage = () => {
-    window.open(`/print/shifts?weekStartDate=${weekStartDate}`, "_blank");
+    navigate(`/owner/print/shifts?weekStartDate=${weekStartDate}`);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("ownerLogin");
+    localStorage.removeItem("ownerId");
+    localStorage.removeItem("ownerName");
+    localStorage.removeItem("ownerNumber");
+
+    navigate("/");
   };
 
   const handleCreateSale = async (e: React.FormEvent) => {
@@ -654,8 +665,20 @@ function OwnerDashboard() {
   return (
     <div className="owner-page">
       <header className="owner-header">
-        <h1>オーナーダッシュボード</h1>
-        <p>売上・人件費・シフトを管理できます</p>
+        <div>
+          <h1>オーナーダッシュボード</h1>
+          <p>売上・人件費・シフトを管理できます</p>
+        </div>
+
+        <div className="owner-header-actions">
+          <button type="button" onClick={handleOpenPrintPage}>
+            シフト表印刷
+          </button>
+
+          <button type="button" onClick={handleLogout}>
+            ログアウト
+          </button>
+        </div>
       </header>
 
       <section className="summary-grid">
@@ -1081,7 +1104,7 @@ function OwnerDashboard() {
         </p>
 
         <p className="form-message print-hide">
-          PC・スマホどちらも「印刷画面を開く」から、サイト内の印刷専用ページで印刷できます。
+          PC・スマホどちらも上部の「シフト表印刷」ボタンから印刷専用ページで印刷できます。
         </p>
 
         <div className="timeline-wrap">
@@ -1091,44 +1114,23 @@ function OwnerDashboard() {
           />
         </div>
 
-        <div className="shift-template-actions-bottom print-hide">
-          <button type="button" onClick={handlePrevWeek}>
-            前の週
-          </button>
+          <div className="shift-template-actions-bottom print-hide">
+            <button type="button" onClick={handlePrevWeek}>
+              前の週
+            </button>
 
-          <button type="button" onClick={handleNextWeek}>
-            次の週
-          </button>
+            <button type="button" onClick={handleNextWeek}>
+              次の週
+            </button>
 
-          <button type="button" onClick={handleCreateTemplateFromWeek}>
-            この週をテンプレート化
-          </button>
+            <button type="button" onClick={handleCreateTemplateFromWeek}>
+              この週をテンプレート化
+            </button>
 
-          <button type="button" onClick={handleApplyTemplates}>
-            この週にテンプレートを反映
-          </button>
-        </div>
-
-        <div className="pdf-setting-panel print-hide">
-          <button type="button" onClick={handleOpenPrintPage}>
-            印刷画面を開く
-          </button>
-        </div>
-
-        <div className="mobile-print-panel print-hide">
-          <p>
-            スマホで印刷する場合は、下のボタンから印刷専用ページを開いてください。
-          </p>
-
-          <button type="button" onClick={handleOpenPrintPage}>
-            スマホ用印刷画面を開く
-          </button>
-
-          <p className="mobile-print-help">
-            印刷画面が開いたら「このシフト表を印刷」を押してください。
-          </p>
-        </div>
-
+            <button type="button" onClick={handleApplyTemplates}>
+              この週にテンプレートを反映
+            </button>
+          </div>
         {templateMessage && (
           <p className="form-message print-hide">{templateMessage}</p>
         )}
