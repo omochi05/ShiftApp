@@ -13,6 +13,7 @@ type ShiftForTimeline = {
 
 type ShiftTimelineProps = {
   shifts: ShiftForTimeline[];
+  printMode?: boolean;
 };
 
 type PositionedShift = ShiftForTimeline & {
@@ -25,6 +26,8 @@ type PositionedShift = ShiftForTimeline & {
 
 const START_HOUR = 6;
 const TOTAL_HOURS = 24;
+const LANE_HEIGHT = 28;
+const BAR_TOP_OFFSET = 8;
 
 const hourLabels = [
   "6",
@@ -97,7 +100,7 @@ function getShiftPosition(shift: ShiftForTimeline) {
 
   return {
     left,
-    width: Math.max(width, 1.5),
+    width: Math.max(width, 1.4),
     startValue,
     endValue,
   };
@@ -185,11 +188,14 @@ function positionShifts(shifts: ShiftForTimeline[]) {
   };
 }
 
-export default function ShiftTimeline({ shifts }: ShiftTimelineProps) {
+export default function ShiftTimeline({
+  shifts,
+  printMode = false,
+}: ShiftTimelineProps) {
   const groupedShifts = groupShiftsByDate(shifts);
 
   return (
-    <div className="shift-timeline">
+    <div className={`shift-timeline ${printMode ? "shift-timeline-print" : ""}`}>
       <div className="shift-timeline-header">
         <div className="shift-timeline-date-head">日付</div>
 
@@ -209,14 +215,13 @@ export default function ShiftTimeline({ shifts }: ShiftTimelineProps) {
 
       {groupedShifts.map(([date, dayShifts]) => {
         const { positioned, laneCount } = positionShifts(dayShifts);
+        const rowHeight = Math.max(62, laneCount * LANE_HEIGHT + 14);
 
         return (
           <div
             key={date}
             className="shift-timeline-row"
-            style={{
-              minHeight: `${Math.max(76, laneCount * 38 + 18)}px`,
-            }}
+            style={{ minHeight: `${rowHeight}px` }}
           >
             <div className="shift-timeline-date">
               {formatDate(date)
@@ -238,11 +243,11 @@ export default function ShiftTimeline({ shifts }: ShiftTimelineProps) {
                     style={{
                       left: `${shift.left}%`,
                       width: `${shift.width}%`,
-                      top: `${10 + shift.lane * 38}px`,
+                      top: `${BAR_TOP_OFFSET + shift.lane * LANE_HEIGHT}px`,
                     }}
                     title={`${shift.user_name} ${startTime}〜${endTime}`}
                   >
-                    <span className="shift-bar-content">
+                    <span className="shift-bar-center">
                       <span className="shift-bar-name">{shift.user_name}</span>
                       <span className="shift-bar-time">
                         {startTime}〜{endTime}
