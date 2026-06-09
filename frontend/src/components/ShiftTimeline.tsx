@@ -31,14 +31,36 @@ const TOTAL_HOURS = 24;
 const NORMAL_LANE_HEIGHT = 30;
 const NORMAL_BAR_TOP_OFFSET = 8;
 
-/* 印刷時はさらに圧縮 */
-const PRINT_LANE_HEIGHT = 20;
-const PRINT_BAR_TOP_OFFSET = 3;
+/* A3横1枚に収めつつ、小さすぎない設定 */
+const PRINT_LANE_HEIGHT = 22;
+const PRINT_BAR_TOP_OFFSET = 4;
 
 const hourLabels = [
-  "6", "7", "8", "9", "10", "11", "12", "13",
-  "14", "15", "16", "17", "18", "19", "20", "21",
-  "22", "23", "0", "1", "2", "3", "4", "5", "6",
+  "6",
+  "7",
+  "8",
+  "9",
+  "10",
+  "11",
+  "12",
+  "13",
+  "14",
+  "15",
+  "16",
+  "17",
+  "18",
+  "19",
+  "20",
+  "21",
+  "22",
+  "23",
+  "0",
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
 ];
 
 const weekDayLabels = ["日", "月", "火", "水", "木", "金", "土"];
@@ -190,7 +212,7 @@ export default function ShiftTimeline({
         const { positioned, laneCount } = positionShifts(dayShifts);
 
         const bodyHeight = printMode
-          ? Math.max(40, laneCount * laneHeight + 6)
+          ? Math.max(46, laneCount * laneHeight + 8)
           : Math.max(66, laneCount * laneHeight + 16);
 
         return (
@@ -245,9 +267,7 @@ export default function ShiftTimeline({
                           : "shift-bar-normal-content"
                       }
                     >
-                      <span className="shift-bar-name">
-                        {shift.user_name}
-                      </span>
+                      <span className="shift-bar-name">{shift.user_name}</span>
                     </span>
                   </div>
                 );

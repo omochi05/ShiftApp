@@ -1,5 +1,6 @@
 /* =========================
    ShiftPrintPage.css
+   A3横印刷ページ
 ========================= */
 
 .shift-print-page {
@@ -30,6 +31,13 @@
   cursor: pointer;
 }
 
+.shift-print-message,
+.shift-print-error {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 900;
+}
+
 .shift-print-sheet {
   width: 1400px;
   max-width: none;
@@ -40,23 +48,24 @@
 }
 
 .shift-print-sheet h1 {
-  margin: 0 0 1px;
+  margin: 0 0 2px;
   text-align: center;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 900;
-  line-height: 1.05;
+  line-height: 1.1;
   color: #000000 !important;
 }
 
 .shift-print-period {
-  margin: 0 0 3px;
+  margin: 0 0 4px;
   text-align: center;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 900;
-  line-height: 1.05;
+  line-height: 1.1;
   color: #000000 !important;
 }
 
+/* スマホ表示 */
 @media screen and (max-width: 768px) {
   .shift-print-page {
     padding: 8px;
@@ -68,7 +77,7 @@
     position: sticky;
     left: 0;
     justify-content: flex-start;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
   }
 
   .shift-print-actions button {
@@ -85,15 +94,19 @@
   }
 
   .shift-print-sheet h1 {
-    font-size: 22px;
-    margin: 0 0 1px;
+    font-size: 24px;
+    margin: 0 0 2px;
   }
 
   .shift-print-period {
-    font-size: 13px;
+    font-size: 14px;
     margin: 0 0 4px;
   }
 }
+
+/* =========================
+   印刷設定
+========================= */
 
 @media print {
   @page {
@@ -136,18 +149,24 @@
     padding: 0 !important;
     background: #ffffff !important;
     color: #000000 !important;
-    zoom: 0.88;
+
+    /*
+      ぴったり寄せ設定
+      小さい → 0.95
+      日曜が2枚目 → 0.92
+    */
+    zoom: 0.94;
   }
 
   .shift-print-sheet h1 {
-    font-size: 17px !important;
+    font-size: 19px !important;
     margin: 0 0 1px !important;
     line-height: 1 !important;
     color: #000000 !important;
   }
 
   .shift-print-period {
-    font-size: 9.5px !important;
+    font-size: 10.5px !important;
     margin: 0 0 1px !important;
     line-height: 1 !important;
     color: #000000 !important;
