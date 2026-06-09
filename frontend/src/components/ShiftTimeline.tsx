@@ -31,9 +31,12 @@ const TOTAL_HOURS = 24;
 const NORMAL_LANE_HEIGHT = 30;
 const NORMAL_BAR_TOP_OFFSET = 8;
 
-/* A3横1枚に収めつつ、余白を減らす設定 */
-const PRINT_LANE_HEIGHT = 24;
-const PRINT_BAR_TOP_OFFSET = 5;
+/*
+  A3横印刷用。
+  写真のように1日あたりを細めにして、7日分を1枚に収める。
+*/
+const PRINT_LANE_HEIGHT = 21;
+const PRINT_BAR_TOP_OFFSET = 4;
 
 const hourLabels = [
   "6",
@@ -212,7 +215,7 @@ export default function ShiftTimeline({
         const { positioned, laneCount } = positionShifts(dayShifts);
 
         const bodyHeight = printMode
-          ? Math.max(52, laneCount * laneHeight + 10)
+          ? Math.max(48, laneCount * laneHeight + 8)
           : Math.max(66, laneCount * laneHeight + 16);
 
         return (
