@@ -171,13 +171,13 @@
 }
 
 .shift-timeline-print .shift-bar {
-  height: 18px;
+  height: 19px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0 4px;
 
-  border: 1.5px solid #000000;
+  border: 1.6px solid #000000;
   border-radius: 4px;
 }
 
@@ -189,7 +189,7 @@
   text-overflow: ellipsis;
 
   color: #000000 !important;
-  font-size: 9.2px;
+  font-size: 9.7px;
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
@@ -225,8 +225,8 @@
   }
 
   .shift-timeline-day {
-    grid-template-columns: 60px 1fr !important;
-    grid-template-rows: 18px auto !important;
+    grid-template-columns: 62px 1fr !important;
+    grid-template-rows: 19px auto !important;
 
     border: 1.8px solid #000000 !important;
     border-bottom: none !important;
@@ -247,12 +247,12 @@
     background: #ffffff !important;
     color: #000000 !important;
 
-    font-size: 13px !important;
+    font-size: 13.5px !important;
     line-height: 1.05 !important;
   }
 
   .shift-timeline-hours {
-    min-height: 18px !important;
+    min-height: 19px !important;
 
     background: #111111 !important;
     color: #ffffff !important;
@@ -264,11 +264,11 @@
     top: 0 !important;
     transform: translateX(-50%) !important;
 
-    width: 18px !important;
-    min-height: 18px !important;
+    width: 19px !important;
+    min-height: 19px !important;
 
     color: #ffffff !important;
-    font-size: 7.5px !important;
+    font-size: 8px !important;
     font-weight: 900 !important;
     border-right: none !important;
   }
@@ -305,9 +305,9 @@
   }
 
   .shift-bar {
-    height: 18px !important;
+    height: 19px !important;
 
-    border: 1.5px solid #000000 !important;
+    border: 1.6px solid #000000 !important;
     border-radius: 4px !important;
 
     background: #ffffff !important;
@@ -317,7 +317,7 @@
   .shift-bar-print-name,
   .shift-bar-normal-content {
     max-width: 100% !important;
-    font-size: 9.2px !important;
+    font-size: 9.7px !important;
     font-weight: 900 !important;
     color: #000000 !important;
   }
