@@ -33,10 +33,10 @@ const NORMAL_BAR_TOP_OFFSET = 8;
 
 /*
   A3横印刷用。
-  名前の枠と文字を大きくする。
+  名前の枠と文字をさらに大きくする。
 */
-const PRINT_LANE_HEIGHT = 34;
-const PRINT_BAR_TOP_OFFSET = 7;
+const PRINT_LANE_HEIGHT = 38;
+const PRINT_BAR_TOP_OFFSET = 8;
 
 const hourLabels = [
   "6",
@@ -215,7 +215,7 @@ export default function ShiftTimeline({
         const { positioned, laneCount } = positionShifts(dayShifts);
 
         const bodyHeight = printMode
-          ? Math.max(76, laneCount * laneHeight + 16)
+          ? Math.max(84, laneCount * laneHeight + 18)
           : Math.max(66, laneCount * laneHeight + 16);
 
         return (
