@@ -779,3 +779,67 @@ body {
     width: 100%;
   }
 }
+/* =========================
+   シフト表下の週切り替え・テンプレートボタン
+========================= */
+
+.shift-template-actions-bottom {
+  margin-top: 18px;
+  padding: 16px;
+
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  border: 2px solid #dbeafe;
+  border-radius: 14px;
+  background: #eff6ff;
+}
+
+.shift-template-actions-bottom button {
+  padding: 12px 18px;
+
+  border: none;
+  border-radius: 10px;
+
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.shift-template-actions-bottom button:nth-child(3),
+.shift-template-actions-bottom button:nth-child(4) {
+  background: #16a34a;
+}
+
+.shift-template-actions-bottom button:hover {
+  opacity: 0.9;
+}
+
+@media screen and (max-width: 768px) {
+  .shift-template-actions-bottom {
+    margin-top: 14px;
+    padding: 12px;
+
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .shift-template-actions-bottom button {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 16px;
+  }
+}
+
+@media print {
+  .shift-template-actions-bottom {
+    display: none !important;
+  }
+}

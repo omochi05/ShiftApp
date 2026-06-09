@@ -157,10 +157,14 @@
   font-weight: 900;
 }
 
+/*
+  通常画面では print-hide を消さない。
+  ここで .print-hide を消すと、
+  シフト表下の「前の週」「次の週」「テンプレート」ボタンも消える。
+*/
 .shift-bar-delete,
 .shift-bar button,
-.shift-bar-time,
-.print-hide {
+.shift-bar-time {
   display: none !important;
 }
 
