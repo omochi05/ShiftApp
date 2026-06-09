@@ -151,22 +151,22 @@
     color: #000000 !important;
 
     /*
-      ぴったり寄せ設定
-      小さい → 0.95
-      日曜が2枚目 → 0.92
+      余白を減らす設定
+      まだ余白が大きい → 0.97
+      日曜が2枚目に行く → 0.94
     */
-    zoom: 0.94;
+    zoom: 0.96;
   }
 
   .shift-print-sheet h1 {
-    font-size: 19px !important;
+    font-size: 20px !important;
     margin: 0 0 1px !important;
     line-height: 1 !important;
     color: #000000 !important;
   }
 
   .shift-print-period {
-    font-size: 10.5px !important;
+    font-size: 11px !important;
     margin: 0 0 1px !important;
     line-height: 1 !important;
     color: #000000 !important;
