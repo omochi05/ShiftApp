@@ -1,7 +1,7 @@
 /* =========================
    ShiftPrintPage.css
    A3横印刷ページ
-   印刷ボタン修正版 + 写真寄せサイズ
+   名前枠大きめ版
 ========================= */
 
 .shift-print-page {
@@ -90,7 +90,6 @@
 
 /* =========================
    スマホ表示
-   ボタンを固定して必ず押せるようにする
 ========================= */
 
 @media screen and (max-width: 768px) {
@@ -223,22 +222,22 @@
     color: #000000 !important;
 
     /*
-      写真寄せ。
-      日曜が2枚目に行く → 0.99
-      まだ下に余白がある → 1.01
+      名前枠を大きくした分、少しだけ倍率を抑える。
+      日曜が2枚目に行く → 0.97
+      まだ小さい → 1.00
     */
-    zoom: 1.00;
+    zoom: 0.99;
   }
 
   .shift-print-sheet h1 {
-    font-size: 21px !important;
+    font-size: 22px !important;
     margin: 0 0 1px !important;
     line-height: 1 !important;
     color: #000000 !important;
   }
 
   .shift-print-period {
-    font-size: 11.5px !important;
+    font-size: 12px !important;
     margin: 0 0 1px !important;
     line-height: 1 !important;
     color: #000000 !important;

@@ -33,10 +33,10 @@ const NORMAL_BAR_TOP_OFFSET = 8;
 
 /*
   A3横印刷用。
-  写真のように1日あたりを細めにして、7日分を1枚に収める。
+  名前の枠と文字を大きくするために少し高めにしている。
 */
-const PRINT_LANE_HEIGHT = 21;
-const PRINT_BAR_TOP_OFFSET = 4;
+const PRINT_LANE_HEIGHT = 28;
+const PRINT_BAR_TOP_OFFSET = 6;
 
 const hourLabels = [
   "6",
@@ -215,7 +215,7 @@ export default function ShiftTimeline({
         const { positioned, laneCount } = positionShifts(dayShifts);
 
         const bodyHeight = printMode
-          ? Math.max(48, laneCount * laneHeight + 8)
+          ? Math.max(62, laneCount * laneHeight + 12)
           : Math.max(66, laneCount * laneHeight + 16);
 
         return (
