@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ShiftTimeline from "../components/ShiftTimeline";
 import { api } from "../api/client";
 import "./ShiftPrintPage.css";
@@ -74,8 +74,6 @@ export default function ShiftPrintPage() {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const lastPrintTapRef = useRef(0);
 
   const weekStartDate =
     getQueryParam("weekStartDate") || getDefaultWeekStartDate();
@@ -165,23 +163,7 @@ export default function ShiftPrintPage() {
   }, [shifts, userNameMap, weekDates]);
 
   const handlePrint = () => {
-    const now = Date.now();
-
-    // 連打防止
-    if (now - lastPrintTapRef.current < 800) {
-      return;
-    }
-
-    lastPrintTapRef.current = now;
-
-    // スマホで反応しやすくする
-    window.focus();
     window.print();
-  };
-
-  const handlePrintTouchEnd = (event: React.TouchEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    handlePrint();
   };
 
   const handleBack = () => {
@@ -217,7 +199,6 @@ export default function ShiftPrintPage() {
           type="button"
           className="print-main-button"
           onClick={handlePrint}
-          onTouchEnd={handlePrintTouchEnd}
         >
           このシフト表を印刷
         </button>
