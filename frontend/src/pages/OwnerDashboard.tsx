@@ -232,10 +232,34 @@ function OwnerDashboard() {
 
   const employeeUsers = users.filter((user) => user.role === "employee");
 
-  const uniqueShifts = Array.from(
-    shifts
+  /*
+    シフト表表示用データを作成する。
+    user_id から user_name を付ける。
+  */
+  const timelineShiftsBeforeDedup: ShiftForTimeline[] = shifts.map((shift) => {
+    const user = users.find((u) => u.id === shift.user_id);
+
+    return {
+      ...shift,
+      user_name: user?.name ?? `従業員${shift.user_id}`,
+    };
+  });
+
+  /*
+    同じ日付 + 同じ名前のシフトが複数ある場合は1件にまとめる。
+    同じ名前の従業員が別IDで重複登録されていても、
+    シフト表では重複表示しない。
+
+    残すルール:
+    1. 勤務時間が長い方を残す
+    2. 勤務時間が同じなら id が新しい方を残す
+  */
+  const timelineShifts: ShiftForTimeline[] = Array.from(
+    timelineShiftsBeforeDedup
       .reduce((map, shift) => {
-        const key = `${shift.work_date}-${shift.user_id}`;
+        const normalizedName = shift.user_name.trim();
+        const key = `${shift.work_date}-${normalizedName}`;
+
         const existing = map.get(key);
 
         if (!existing) {
@@ -246,23 +270,17 @@ function OwnerDashboard() {
         const existingDuration = getShiftDurationMinutes(existing);
         const currentDuration = getShiftDurationMinutes(shift);
 
-        if (currentDuration > existingDuration) {
+        if (
+          currentDuration > existingDuration ||
+          (currentDuration === existingDuration && shift.id > existing.id)
+        ) {
           map.set(key, shift);
         }
 
         return map;
-      }, new Map<string, Shift>())
+      }, new Map<string, ShiftForTimeline>())
       .values()
   );
-
-  const timelineShifts: ShiftForTimeline[] = uniqueShifts.map((shift) => {
-    const user = users.find((u) => u.id === shift.user_id);
-
-    return {
-      ...shift,
-      user_name: user?.name ?? `従業員${shift.user_id}`,
-    };
-  });
 
   const weekDates = Array.from({ length: 7 }, (_, index) =>
     addDays(weekStartDate, index)
@@ -430,11 +448,22 @@ function OwnerDashboard() {
       return;
     }
 
-    const alreadyExists = shifts.some(
-      (shift) =>
-        shift.user_id === Number(shiftForm.user_id) &&
-        shift.work_date === shiftForm.work_date
+    const targetUser = users.find(
+      (user) => user.id === Number(shiftForm.user_id)
     );
+
+    const targetUserName = targetUser?.name?.trim() ?? "";
+
+    const alreadyExists = shifts.some((shift) => {
+      const shiftUser = users.find((user) => user.id === shift.user_id);
+      const shiftUserName = shiftUser?.name?.trim() ?? "";
+
+      return (
+        shift.work_date === shiftForm.work_date &&
+        shiftUserName !== "" &&
+        shiftUserName === targetUserName
+      );
+    });
 
     if (alreadyExists) {
       setShiftMessage("この従業員は同じ日にすでにシフトが登録されています");
@@ -541,17 +570,22 @@ function OwnerDashboard() {
       return;
     }
 
-    const sameUserSameDateShifts = shifts.filter(
-      (shift) =>
-        shift.user_id === targetShift.user_id &&
-        shift.work_date === targetShift.work_date
-    );
-
     const targetUser = users.find((user) => user.id === targetShift.user_id);
-    const userName = targetUser?.name ?? `従業員${targetShift.user_id}`;
+    const userName = targetUser?.name?.trim() ?? `従業員${targetShift.user_id}`;
+
+    const sameNameSameDateShifts = shifts.filter((shift) => {
+      const shiftUser = users.find((user) => user.id === shift.user_id);
+      const shiftUserName = shiftUser?.name?.trim() ?? "";
+
+      return (
+        shift.work_date === targetShift.work_date &&
+        shiftUserName !== "" &&
+        shiftUserName === userName
+      );
+    });
 
     const confirmMessage =
-      sameUserSameDateShifts.length > 1
+      sameNameSameDateShifts.length > 1
         ? `${userName}の${targetShift.work_date}の重複シフトをまとめて削除しますか？`
         : `${userName}の${targetShift.work_date}のシフトを削除しますか？`;
 
@@ -565,7 +599,7 @@ function OwnerDashboard() {
       setShiftMessage("");
 
       await Promise.all(
-        sameUserSameDateShifts.map((shift) => api.delete(`/shifts/${shift.id}`))
+        sameNameSameDateShifts.map((shift) => api.delete(`/shifts/${shift.id}`))
       );
 
       setShiftMessage("シフトを削除しました");
@@ -1012,9 +1046,9 @@ function OwnerDashboard() {
                       {isEditing ? (
                         <div className="table-action-buttons">
                           <button
-                              type="button"
-                              className="table-save-button"
-                              onClick={(e) => {
+                            type="button"
+                            className="table-save-button"
+                            onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
                               handleUpdateEmployee(user.id);
@@ -1022,30 +1056,31 @@ function OwnerDashboard() {
                           >
                             保存
                           </button>
+
                           <button
-                              type="button"
-                              className="table-cancel-button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleCancelEditEmployee();
-                              }}
-                            >
-                              キャンセル
-                        </button>
+                            type="button"
+                            className="table-cancel-button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleCancelEditEmployee();
+                            }}
+                          >
+                            キャンセル
+                          </button>
                         </div>
                       ) : (
                         <div className="table-action-buttons">
-                         <button
-                              type="button"
-                              className="table-edit-button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleStartEditEmployee(user);
-                             }}
+                          <button
+                            type="button"
+                            className="table-edit-button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleStartEditEmployee(user);
+                            }}
                           >
-                             編集
+                            編集
                           </button>
 
                           <button
