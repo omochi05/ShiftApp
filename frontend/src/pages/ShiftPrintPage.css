@@ -13,7 +13,6 @@
   -webkit-text-size-adjust: 100%;
 }
 
-/* 印刷ボタンエリア */
 .shift-print-actions {
   position: relative;
   z-index: 9999;
@@ -28,7 +27,8 @@
   pointer-events: auto;
 }
 
-.shift-print-actions button {
+.shift-print-actions button,
+.print-main-button {
   position: relative;
   z-index: 10000;
 
@@ -55,7 +55,6 @@
   font-weight: 900;
 }
 
-/* 印刷シート */
 .shift-print-sheet {
   position: relative;
   z-index: 1;
@@ -87,11 +86,7 @@
   color: #000000 !important;
 }
 
-/* =========================
-   スマホ表示
-   ボタンがシートに被られないようにする
-========================= */
-
+/* スマホ表示 */
 @media screen and (max-width: 768px) {
   .shift-print-page {
     padding: 8px;
@@ -118,15 +113,15 @@
 
     background: #ffffff !important;
     box-sizing: border-box;
-
     pointer-events: auto;
   }
 
-  .shift-print-actions button {
+  .shift-print-actions button,
+  .print-main-button {
     position: relative;
     z-index: 10000;
 
-    padding: 10px 18px;
+    padding: 12px 18px;
     font-size: 16px;
     font-weight: 900;
 
@@ -152,7 +147,6 @@
     padding: 0;
 
     background: #ffffff !important;
-    pointer-events: auto;
   }
 
   .shift-print-sheet h1 {
@@ -166,10 +160,7 @@
   }
 }
 
-/* =========================
-   印刷設定
-========================= */
-
+/* 印刷設定 */
 @media print {
   @page {
     size: A3 landscape;
@@ -202,7 +193,6 @@
     color: #000000 !important;
   }
 
-  /* 印刷時はボタンやナビを消す */
   .shift-print-actions,
   .app-nav,
   .owner-header,
@@ -222,7 +212,7 @@
     color: #000000 !important;
 
     /*
-      少し大きめ設定
+      A3横 少し大きめ設定
       日曜が2枚目に行く → 0.97
       まだ小さい → 0.99
     */

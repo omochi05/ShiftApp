@@ -174,8 +174,14 @@ export default function ShiftPrintPage() {
 
     lastPrintTapRef.current = now;
 
-    // スマホでは setTimeout を挟むと印刷が反応しないことがあるため直接呼ぶ
+    // スマホで反応しやすくする
+    window.focus();
     window.print();
+  };
+
+  const handlePrintTouchEnd = (event: React.TouchEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    handlePrint();
   };
 
   const handleBack = () => {
@@ -207,7 +213,12 @@ export default function ShiftPrintPage() {
   return (
     <div className="shift-print-page">
       <div className="shift-print-actions">
-        <button type="button" onClick={handlePrint}>
+        <button
+          type="button"
+          className="print-main-button"
+          onClick={handlePrint}
+          onTouchEnd={handlePrintTouchEnd}
+        >
           このシフト表を印刷
         </button>
 
