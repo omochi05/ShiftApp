@@ -171,14 +171,14 @@
 }
 
 .shift-timeline-print .shift-bar {
-  height: 22px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 5px;
+  padding: 0 8px;
 
-  border: 1.8px solid #000000;
-  border-radius: 5px;
+  border: 2.2px solid #000000;
+  border-radius: 7px;
 }
 
 .shift-bar-print-name {
@@ -189,7 +189,7 @@
   text-overflow: ellipsis;
 
   color: #000000 !important;
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
@@ -208,7 +208,7 @@
 
 /* =========================
    A3横 印刷用
-   名前の枠と名前文字を大きめにする
+   名前の枠と名前文字を大きくする
 ========================= */
 
 @media print {
@@ -322,16 +322,16 @@
   }
 
   .shift-bar {
-    height: 22px !important;
+    height: 28px !important;
 
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
 
-    padding: 0 5px !important;
+    padding: 0 8px !important;
 
-    border: 1.8px solid #000000 !important;
-    border-radius: 5px !important;
+    border: 2.2px solid #000000 !important;
+    border-radius: 7px !important;
 
     background: #ffffff !important;
     color: #000000 !important;
@@ -340,17 +340,12 @@
   }
 
   .shift-bar-print-name,
-  .shift-bar-normal-content {
+  .shift-bar-normal-content,
+  .shift-bar-name {
     max-width: 100% !important;
-    font-size: 11px !important;
+    font-size: 15px !important;
     font-weight: 900 !important;
     line-height: 1 !important;
-    color: #000000 !important;
-  }
-
-  .shift-bar-name {
-    font-size: 11px !important;
-    font-weight: 900 !important;
     color: #000000 !important;
   }
 

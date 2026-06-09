@@ -6,7 +6,9 @@ import "./ShiftPrintPage.css";
 type User = {
   id: number;
   name: string;
-  hourly_wage?: number;
+  email: string;
+  role: string;
+  hourly_wage: number;
 };
 
 type Shift = {
@@ -17,150 +19,168 @@ type Shift = {
   end_time: string;
   break_minutes: number;
   created_by?: number | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 };
 
-type ShiftForTimeline = {
-  id: number;
-  user_id: number;
+type ShiftForTimeline = Shift & {
   user_name: string;
-  work_date: string;
-  start_time: string;
-  end_time: string;
-  break_minutes: number;
-  created_by?: number | null;
 };
 
-function addDays(date: Date, days: number) {
-  const copied = new Date(date);
-  copied.setDate(copied.getDate() + days);
-  return copied;
+function getMondayOfCurrentWeek() {
+  const now = new Date();
+  const day = now.getDay();
+  const monday = new Date(now);
+
+  const diff = day === 0 ? -6 : 1 - day;
+  monday.setDate(now.getDate() + diff);
+
+  const yyyy = monday.getFullYear();
+  const mm = String(monday.getMonth() + 1).padStart(2, "0");
+  const dd = String(monday.getDate()).padStart(2, "0");
+
+  return `${yyyy}-${mm}-${dd}`;
 }
 
-function toDateText(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
-
-function formatJapaneseDate(dateText: string) {
+function addDays(dateText: string, days: number) {
   const date = new Date(`${dateText}T00:00:00`);
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const weekDays = ["日", "月", "火", "水", "木", "金", "土"];
+  date.setDate(date.getDate() + days);
 
-  return `${month}/${day}（${weekDays[date.getDay()]}）`;
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+
+  return `${yyyy}-${mm}-${dd}`;
 }
 
-function getQueryParam(name: string) {
-  const searchParams = new URLSearchParams(window.location.search);
-  return searchParams.get(name);
+function timeToMinutes(time: string) {
+  const [hourText, minuteText] = time.slice(0, 5).split(":");
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+
+  if (Number.isNaN(hour) || Number.isNaN(minute)) {
+    return 0;
+  }
+
+  return hour * 60 + minute;
 }
 
-function getDefaultWeekStartDate() {
-  const today = new Date();
-  const day = today.getDay();
+function getShiftDurationMinutes(shift: Shift) {
+  let start = timeToMinutes(shift.start_time);
+  let end = timeToMinutes(shift.end_time);
 
-  // 月曜日始まり
-  const diffToMonday = day === 0 ? -6 : 1 - day;
-  const monday = addDays(today, diffToMonday);
+  if (end <= start) {
+    end += 24 * 60;
+  }
 
-  return toDateText(monday);
+  return end - start;
+}
+
+function getWeekStartDateFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const weekStartDate = params.get("weekStartDate");
+
+  if (weekStartDate) {
+    return weekStartDate;
+  }
+
+  return getMondayOfCurrentWeek();
 }
 
 export default function ShiftPrintPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const weekStartDate =
-    getQueryParam("weekStartDate") || getDefaultWeekStartDate();
+  const weekStartDate = useMemo(() => getWeekStartDateFromUrl(), []);
+  const weekEndDate = addDays(weekStartDate, 6);
 
-  const weekDates = useMemo(() => {
-    const start = new Date(`${weekStartDate}T00:00:00`);
+  const weekDates = useMemo(
+    () => Array.from({ length: 7 }, (_, index) => addDays(weekStartDate, index)),
+    [weekStartDate]
+  );
 
-    return Array.from({ length: 7 }, (_, index) => {
-      return toDateText(addDays(start, index));
-    });
-  }, [weekStartDate]);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setErrorMessage("");
 
-  const weekEndDate = weekDates[6];
+      const [usersRes, shiftsRes] = await Promise.all([
+        api.get<User[]>("/users/"),
+        api.get<Shift[]>("/shifts/"),
+      ]);
+
+      setUsers(usersRes.data);
+      setShifts(shiftsRes.data);
+    } catch (error) {
+      console.error("印刷用シフト取得失敗:", error);
+      setErrorMessage("シフト表の取得に失敗しました。");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError("");
-
-        const [usersRes, shiftsRes] = await Promise.all([
-          api.get<User[]>("/users/"),
-          api.get<Shift[]>("/shifts/"),
-        ]);
-
-        setUsers(usersRes.data);
-        setShifts(shiftsRes.data);
-      } catch (err) {
-        console.error(err);
-        setError("シフト表の取得に失敗しました。");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
 
-  const userNameMap = useMemo(() => {
-    const map = new Map<number, string>();
+  const timelineShiftsBeforeDedup: ShiftForTimeline[] = shifts.map((shift) => {
+    const user = users.find((u) => u.id === shift.user_id);
 
-    users.forEach((user) => {
-      map.set(user.id, user.name);
-    });
+    return {
+      ...shift,
+      user_name: user?.name ?? `従業員${shift.user_id}`,
+    };
+  });
 
-    return map;
-  }, [users]);
+  const timelineShifts: ShiftForTimeline[] = Array.from(
+    timelineShiftsBeforeDedup
+      .reduce((map, shift) => {
+        const normalizedName = shift.user_name.trim();
+        const key = `${shift.work_date}-${normalizedName}`;
 
-  const printShifts = useMemo<ShiftForTimeline[]>(() => {
-    const weekDateSet = new Set(weekDates);
+        const existing = map.get(key);
 
-    const realShifts: ShiftForTimeline[] = shifts
-      .filter((shift) => weekDateSet.has(shift.work_date))
-      .map((shift) => ({
-        id: shift.id,
-        user_id: shift.user_id,
-        user_name: userNameMap.get(shift.user_id) || "未設定",
-        work_date: shift.work_date,
-        start_time: shift.start_time,
-        end_time: shift.end_time,
-        break_minutes: shift.break_minutes,
-        created_by: shift.created_by,
-      }));
+        if (!existing) {
+          map.set(key, shift);
+          return map;
+        }
 
-    const existingDateSet = new Set(realShifts.map((shift) => shift.work_date));
+        const existingDuration = getShiftDurationMinutes(existing);
+        const currentDuration = getShiftDurationMinutes(shift);
 
-    const emptyRows: ShiftForTimeline[] = weekDates
-      .filter((date) => !existingDateSet.has(date))
-      .map((date, index) => ({
-        id: -10000 - index,
-        user_id: 0,
-        user_name: "",
-        work_date: date,
-        start_time: "06:00",
-        end_time: "06:01",
-        break_minutes: 0,
-        created_by: null,
-      }));
+        if (
+          currentDuration > existingDuration ||
+          (currentDuration === existingDuration && shift.id > existing.id)
+        ) {
+          map.set(key, shift);
+        }
 
-    return [...realShifts, ...emptyRows].sort((a, b) => {
-      if (a.work_date !== b.work_date) {
-        return a.work_date.localeCompare(b.work_date);
-      }
+        return map;
+      }, new Map<string, ShiftForTimeline>())
+      .values()
+  );
 
-      return a.start_time.localeCompare(b.start_time);
-    });
-  }, [shifts, userNameMap, weekDates]);
+  const realWeeklyTimelineShifts = timelineShifts.filter(
+    (shift) =>
+      shift.work_date >= weekStartDate && shift.work_date <= weekEndDate
+  );
+
+  const emptyWeekRows: ShiftForTimeline[] = weekDates.map((date, index) => ({
+    id: -1000 - index,
+    user_id: 0,
+    user_name: "",
+    work_date: date,
+    start_time: "00:00",
+    end_time: "00:00",
+    break_minutes: 0,
+  }));
+
+  const weeklyTimelineShifts = [
+    ...emptyWeekRows,
+    ...realWeeklyTimelineShifts,
+  ];
 
   const handlePrint = () => {
     window.print();
@@ -173,21 +193,25 @@ export default function ShiftPrintPage() {
   if (loading) {
     return (
       <div className="shift-print-page">
-        <p className="shift-print-message">シフト表を読み込み中です...</p>
+        <p className="shift-print-message">シフト表を読み込み中...</p>
       </div>
     );
   }
 
-  if (error) {
+  if (errorMessage) {
     return (
       <div className="shift-print-page">
+        <p className="shift-print-error">{errorMessage}</p>
+
         <div className="shift-print-actions">
+          <button type="button" onClick={fetchData}>
+            再読み込み
+          </button>
+
           <button type="button" onClick={handleBack}>
             戻る
           </button>
         </div>
-
-        <p className="shift-print-error">{error}</p>
       </div>
     );
   }
@@ -195,11 +219,7 @@ export default function ShiftPrintPage() {
   return (
     <div className="shift-print-page">
       <div className="shift-print-actions">
-        <button
-          type="button"
-          className="print-main-button"
-          onClick={handlePrint}
-        >
+        <button type="button" className="print-main-button" onClick={handlePrint}>
           このシフト表を印刷
         </button>
 
@@ -208,16 +228,15 @@ export default function ShiftPrintPage() {
         </button>
       </div>
 
-      <div className="shift-print-sheet">
+      <main className="shift-print-sheet">
         <h1>週間シフト表</h1>
 
         <p className="shift-print-period">
-          {formatJapaneseDate(weekStartDate)} 〜{" "}
-          {formatJapaneseDate(weekEndDate)}
+          {weekStartDate} 〜 {weekEndDate}
         </p>
 
-        <ShiftTimeline shifts={printShifts} printMode />
-      </div>
+        <ShiftTimeline shifts={weeklyTimelineShifts} printMode />
+      </main>
     </div>
   );
 }
