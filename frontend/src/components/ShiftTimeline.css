@@ -158,9 +158,8 @@
 }
 
 /*
-  通常画面では print-hide を消さない。
-  ここで .print-hide を消すと、
-  シフト表下の「前の週」「次の週」「テンプレート」ボタンも消える。
+  通常画面では .print-hide を消さない。
+  .print-hide をここに入れると、シフト表下の週切り替え・テンプレートボタンも消える。
 */
 .shift-bar-delete,
 .shift-bar button,
@@ -210,27 +209,39 @@
   }
 }
 
-/* A3横 印刷用 */
+/* =========================
+   A3横 印刷用
+   線が消えないように border + inset shadow で補強
+========================= */
+
 @media print {
   .shift-timeline {
     width: 100% !important;
     min-width: 0 !important;
 
-    border-bottom: 1.8px solid #000000 !important;
+    border: 2px solid #000000 !important;
+    border-bottom: 2px solid #000000 !important;
 
     page-break-inside: avoid;
     break-inside: avoid;
 
     background: #ffffff !important;
     color: #000000 !important;
+
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .shift-timeline-day {
     grid-template-columns: 62px 1fr !important;
     grid-template-rows: 19px auto !important;
 
-    border: 1.8px solid #000000 !important;
-    border-bottom: none !important;
+    border-left: 2px solid #000000 !important;
+    border-right: 2px solid #000000 !important;
+    border-top: 2px solid #000000 !important;
+    border-bottom: 2px solid #000000 !important;
+
+    box-shadow: inset 0 0 0 1px #000000 !important;
 
     page-break-inside: avoid;
     break-inside: avoid;
@@ -238,18 +249,20 @@
     background: #ffffff !important;
   }
 
-  .shift-timeline-day:last-child {
-    border-bottom: 1.8px solid #000000 !important;
+  .shift-timeline-day + .shift-timeline-day {
+    margin-top: -2px !important;
   }
 
   .shift-timeline-date {
-    border-right: 1.8px solid #000000 !important;
+    border-right: 2px solid #000000 !important;
 
     background: #ffffff !important;
     color: #000000 !important;
 
     font-size: 13.5px !important;
     line-height: 1.05 !important;
+
+    box-shadow: inset -1px 0 0 #000000 !important;
   }
 
   .shift-timeline-hours {
@@ -258,6 +271,9 @@
     background: #111111 !important;
     color: #ffffff !important;
     overflow: visible !important;
+
+    border-bottom: 2px solid #000000 !important;
+    box-shadow: inset 0 -1px 0 #000000 !important;
   }
 
   .shift-timeline-hour {
@@ -286,33 +302,38 @@
 
   .shift-timeline-body {
     overflow: hidden !important;
+    border-top: none !important;
 
     background:
       repeating-linear-gradient(
         to right,
         #ffffff 0,
-        #ffffff calc(100% / 24 - 1px),
-        #d1d5db calc(100% / 24 - 1px),
-        #d1d5db calc(100% / 24)
+        #ffffff calc(100% / 24 - 1.2px),
+        #9ca3af calc(100% / 24 - 1.2px),
+        #9ca3af calc(100% / 24)
       ),
       repeating-linear-gradient(
         to right,
         transparent 0,
         transparent calc((100% / 24) * 3 - 2px),
-        #777777 calc((100% / 24) * 3 - 2px),
-        #777777 calc((100% / 24) * 3)
+        #4b5563 calc((100% / 24) * 3 - 2px),
+        #4b5563 calc((100% / 24) * 3)
       ),
       #ffffff !important;
+
+    box-shadow: inset 0 0 0 1px #000000 !important;
   }
 
   .shift-bar {
     height: 19px !important;
 
-    border: 1.6px solid #000000 !important;
+    border: 1.7px solid #000000 !important;
     border-radius: 4px !important;
 
     background: #ffffff !important;
     color: #000000 !important;
+
+    box-shadow: inset 0 0 0 0.5px #000000 !important;
   }
 
   .shift-bar-print-name,
