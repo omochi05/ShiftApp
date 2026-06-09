@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import ShiftTimeline from "../components/ShiftTimeline";
-import api from "../api/client";
+import { api } from "../api/client";
 import "./ShiftPrintPage.css";
 
 type User = {
@@ -77,7 +77,8 @@ export default function ShiftPrintPage() {
 
   const lastPrintTapRef = useRef(0);
 
-  const weekStartDate = getQueryParam("weekStartDate") || getDefaultWeekStartDate();
+  const weekStartDate =
+    getQueryParam("weekStartDate") || getDefaultWeekStartDate();
 
   const weekDates = useMemo(() => {
     const start = new Date(`${weekStartDate}T00:00:00`);
@@ -219,7 +220,8 @@ export default function ShiftPrintPage() {
         <h1>週間シフト表</h1>
 
         <p className="shift-print-period">
-          {formatJapaneseDate(weekStartDate)} 〜 {formatJapaneseDate(weekEndDate)}
+          {formatJapaneseDate(weekStartDate)} 〜{" "}
+          {formatJapaneseDate(weekEndDate)}
         </p>
 
         <ShiftTimeline shifts={printShifts} printMode />
