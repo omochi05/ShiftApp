@@ -1,7 +1,7 @@
 /* =========================
    ShiftTimeline.css
    通常表示 + A3印刷 + PDF出力対応
-   名前を枠いっぱいに大きく表示
+   名前を横に広げて枠いっぱいに表示
 ========================= */
 
 .shift-timeline {
@@ -93,13 +93,7 @@
   grid-row: 2;
 
   position: relative;
-
-  /*
-    縦線は background ではなく .shift-grid-line で描画する。
-    PDF化しても消えにくくするため。
-  */
   background: #ffffff !important;
-
   overflow: hidden;
 }
 
@@ -140,14 +134,22 @@
   letter-spacing: 0.08em;
   white-space: nowrap;
   text-align: center;
+
+  transform: scaleX(1.25);
+  transform-origin: center;
 }
 
 .shift-bar-name {
+  display: inline-block;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+
   font-weight: 900;
   letter-spacing: 0.08em;
+
+  transform: scaleX(1.25);
+  transform-origin: center;
 }
 
 .shift-bar-delete,
@@ -189,6 +191,9 @@
   letter-spacing: 0.08em;
   white-space: nowrap;
   text-align: center;
+
+  transform: scaleX(1.25);
+  transform-origin: center;
 }
 
 /* =========================
@@ -352,6 +357,9 @@
     line-height: 1 !important;
     letter-spacing: 0.08em !important;
     color: #000000 !important;
+
+    transform: scaleX(1.25) !important;
+    transform-origin: center !important;
   }
 
   .shift-bar-delete,
@@ -424,4 +432,7 @@
   font-size: 15px !important;
   font-weight: 900 !important;
   letter-spacing: 0.08em !important;
+
+  transform: scaleX(1.25) !important;
+  transform-origin: center !important;
 }
