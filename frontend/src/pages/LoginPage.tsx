@@ -1,222 +1,210 @@
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 
-function LoginPage() {
+type User = {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  hourly_wage: number;
+};
+
+export default function LoginPage() {
   const navigate = useNavigate();
 
-  const [employeeNumber, setEmployeeNumber] = useState("");
-  const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [loginId, setLoginId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
+
+    if (!loginId.trim()) {
+      setMessage("ログインIDを入力してください");
+      return;
+    }
 
     try {
       setLoading(true);
       setMessage("");
 
-      const res = await api.post("/login", {
-        employee_number: employeeNumber,
-        password: password,
-      });
+      const res = await api.get<User[]>("/users/");
+      const users = res.data;
 
-      localStorage.setItem("ownerLogin", "true");
-      localStorage.setItem("ownerId", String(res.data.id));
-      localStorage.setItem("ownerName", res.data.name);
-      localStorage.setItem("ownerNumber", res.data.employee_number);
+      const targetUser = users.find(
+        (user) =>
+          user.email.trim().toLowerCase() === loginId.trim().toLowerCase()
+      );
 
-      navigate("/owner");
-    } catch (error: any) {
-      console.error("ログイン失敗:", error);
-
-      const detail = error.response?.data?.detail;
-
-      if (detail) {
-        setMessage(detail);
-      } else {
-        setMessage("ログインできませんでした。従業員番号とパスワードを確認してください。");
+      if (!targetUser) {
+        setMessage("ログインIDが見つかりません");
+        return;
       }
+
+      if (targetUser.role === "owner") {
+        localStorage.setItem("ownerLogin", "true");
+        localStorage.setItem("ownerId", String(targetUser.id));
+        localStorage.setItem("ownerName", targetUser.name);
+        localStorage.setItem("ownerNumber", targetUser.email);
+
+        localStorage.removeItem("managerLogin");
+        localStorage.removeItem("managerId");
+        localStorage.removeItem("managerName");
+        localStorage.removeItem("managerNumber");
+
+        navigate("/owner");
+        return;
+      }
+
+      if (targetUser.role === "manager") {
+        localStorage.setItem("managerLogin", "true");
+        localStorage.setItem("managerId", String(targetUser.id));
+        localStorage.setItem("managerName", targetUser.name);
+        localStorage.setItem("managerNumber", targetUser.email);
+
+        localStorage.removeItem("ownerLogin");
+        localStorage.removeItem("ownerId");
+        localStorage.removeItem("ownerName");
+        localStorage.removeItem("ownerNumber");
+
+        navigate("/manager");
+        return;
+      }
+
+      setMessage("このユーザーは管理画面にログインできません");
+    } catch (error) {
+      console.error("ログイン失敗:", error);
+      setMessage("ログインに失敗しました。API接続を確認してください。");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={styles.page}>
-      <div style={styles.backgroundGlow} />
+    <main style={styles.page}>
+      <section style={styles.card}>
+        <h1 style={styles.title}>ShiftApp</h1>
+        <p style={styles.subtitle}>オーナー・管理者ログイン</p>
 
-      <form style={styles.card} onSubmit={handleLogin}>
-        <div style={styles.logoArea}>
-          <div style={styles.logo}>S</div>
-          <h1 style={styles.title}>ShiftApp</h1>
-          <p style={styles.subtitle}>オーナー専用ログイン</p>
+        <form onSubmit={handleLogin} style={styles.form}>
+          <label style={styles.label}>
+            ログインID
+            <input
+              type="text"
+              value={loginId}
+              onChange={(e) => setLoginId(e.target.value)}
+              placeholder="例：OWNER001 / manager@example.com"
+              style={styles.input}
+              autoFocus
+            />
+          </label>
+
+          <button type="submit" style={styles.button} disabled={loading}>
+            {loading ? "ログイン中..." : "ログイン"}
+          </button>
+        </form>
+
+        {message && <p style={styles.message}>{message}</p>}
+
+        <div style={styles.hintBox}>
+          <p style={styles.hintTitle}>ログイン例</p>
+          <p style={styles.hint}>オーナー：OWNER001</p>
+          <p style={styles.hint}>管理者：manager@example.com</p>
         </div>
-
-        <div style={styles.notice}>
-          <strong>管理者専用</strong>
-          <span>ログイン後、売上・人件費・シフト表を管理できます。</span>
-        </div>
-
-        <label style={styles.label}>
-          従業員番号
-          <input
-            style={styles.input}
-            type="text"
-            value={employeeNumber}
-            onChange={(e) => setEmployeeNumber(e.target.value)}
-            placeholder="例：OWNER001"
-            autoComplete="username"
-            required
-          />
-        </label>
-
-        <label style={styles.label}>
-          パスワード
-          <input
-            style={styles.input}
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="パスワード"
-            autoComplete="current-password"
-            required
-          />
-        </label>
-
-        <button style={styles.button} type="submit" disabled={loading}>
-          {loading ? "ログイン中..." : "オーナーとしてログイン"}
-        </button>
-
-        {message && <p style={styles.error}>{message}</p>}
-
-        <p style={styles.helpText}>
-          ※ 従業員ログインはありません。オーナーのみ利用できます。
-        </p>
-      </form>
-    </div>
+      </section>
+    </main>
   );
 }
 
 const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: "100vh",
-    display: "grid",
-    placeItems: "center",
-    padding: "16px",
-    background:
-      "linear-gradient(135deg, #020617 0%, #0f172a 50%, #111827 100%)",
-    color: "#ffffff",
-    position: "relative",
-    overflow: "hidden",
-  },
-  backgroundGlow: {
-    position: "absolute",
-    width: "280px",
-    height: "280px",
-    borderRadius: "999px",
-    background: "rgba(37, 99, 235, 0.25)",
-    filter: "blur(70px)",
-    top: "-80px",
-    right: "-80px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+    background: "#f4f7fb",
   },
   card: {
-    width: "100%",
-    maxWidth: "420px",
-    display: "grid",
-    gap: "16px",
-    padding: "26px",
-    border: "1px solid rgba(148, 163, 184, 0.25)",
-    borderRadius: "20px",
-    background: "rgba(15, 23, 42, 0.92)",
-    boxShadow: "0 24px 80px rgba(0, 0, 0, 0.35)",
-    backdropFilter: "blur(10px)",
-    zIndex: 1,
-  },
-  logoArea: {
-    display: "grid",
-    justifyItems: "center",
-    gap: "8px",
-    marginBottom: "6px",
-  },
-  logo: {
-    width: "54px",
-    height: "54px",
-    borderRadius: "16px",
-    display: "grid",
-    placeItems: "center",
-    background: "#2563eb",
-    color: "#ffffff",
-    fontSize: "28px",
-    fontWeight: "bold",
+    width: "min(100%, 460px)",
+    padding: 32,
+    borderRadius: 24,
+    background: "#ffffff",
+    boxShadow: "0 16px 40px rgba(15, 23, 42, 0.12)",
+    border: "1px solid #d1d5db",
   },
   title: {
     margin: 0,
-    fontSize: "32px",
-    lineHeight: 1.2,
+    fontSize: 40,
+    fontWeight: 900,
+    color: "#111827",
+    textAlign: "center",
   },
   subtitle: {
-    margin: 0,
-    color: "#cbd5e1",
-    fontSize: "14px",
+    margin: "10px 0 28px",
+    fontSize: 17,
+    fontWeight: 800,
+    color: "#64748b",
+    textAlign: "center",
   },
-  notice: {
-    display: "grid",
-    gap: "4px",
-    padding: "12px",
-    borderRadius: "12px",
-    background: "rgba(37, 99, 235, 0.12)",
-    border: "1px solid rgba(96, 165, 250, 0.25)",
-    color: "#dbeafe",
-    fontSize: "13px",
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 18,
   },
   label: {
-    display: "grid",
-    gap: "8px",
-    color: "#e5e7eb",
-    fontSize: "14px",
-    fontWeight: 600,
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+    fontSize: 15,
+    fontWeight: 900,
+    color: "#111827",
   },
   input: {
     width: "100%",
-    padding: "13px 14px",
-    borderRadius: "12px",
-    border: "1px solid #475569",
-    background: "#020617",
-    color: "#ffffff",
-    fontSize: "16px",
+    minHeight: 48,
+    padding: "12px 14px",
+    borderRadius: 14,
+    border: "1px solid #cbd5e1",
+    fontSize: 16,
+    fontWeight: 700,
     outline: "none",
-    boxSizing: "border-box",
   },
   button: {
-    width: "100%",
-    marginTop: "4px",
-    padding: "14px",
-    borderRadius: "12px",
+    minHeight: 50,
     border: "none",
+    borderRadius: 14,
     background: "#2563eb",
     color: "#ffffff",
-    fontWeight: "bold",
-    fontSize: "16px",
+    fontSize: 17,
+    fontWeight: 900,
     cursor: "pointer",
   },
-  error: {
-    margin: 0,
-    padding: "10px",
-    borderRadius: "10px",
-    background: "rgba(239, 68, 68, 0.12)",
-    border: "1px solid rgba(248, 113, 113, 0.35)",
-    color: "#fecaca",
-    fontSize: "13px",
+  message: {
+    margin: "18px 0 0",
+    color: "#dc2626",
+    fontSize: 15,
+    fontWeight: 800,
     textAlign: "center",
   },
-  helpText: {
-    margin: 0,
-    color: "#94a3b8",
-    fontSize: "12px",
-    textAlign: "center",
+  hintBox: {
+    marginTop: 24,
+    padding: 16,
+    borderRadius: 16,
+    background: "#f8fafc",
+    border: "1px solid #e5e7eb",
+  },
+  hintTitle: {
+    margin: "0 0 8px",
+    color: "#111827",
+    fontSize: 14,
+    fontWeight: 900,
+  },
+  hint: {
+    margin: "4px 0",
+    color: "#64748b",
+    fontSize: 14,
+    fontWeight: 800,
   },
 };
-
-export default LoginPage;

@@ -1,53 +1,14 @@
-import type { ReactNode } from "react";
-import {
-  HashRouter,
-  Routes,
-  Route,
-  Link,
-  Navigate,
-  useLocation,
-} from "react-router-dom";
+import { HashRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import OwnerDashboard from "./pages/OwnerDashboard";
+import ManagerDashboard from "./pages/ManagerDashboard";
 import ShiftPrintPage from "./pages/ShiftPrintPage";
-import "./App.css";
 
-function RequireOwnerLogin({ children }: { children: ReactNode }) {
-  const isLoggedIn = localStorage.getItem("ownerLogin") === "true";
+function AppLayout() {
+  const navigate = useNavigate();
 
-  if (!isLoggedIn) {
-    return <Navigate to="/" replace />;
-  }
-
-  return <>{children}</>;
-}
-
-function getMondayOfCurrentWeek() {
-  const now = new Date();
-  const day = now.getDay();
-  const monday = new Date(now);
-
-  const diff = day === 0 ? -6 : 1 - day;
-  monday.setDate(now.getDate() + diff);
-
-  const yyyy = monday.getFullYear();
-  const mm = String(monday.getMonth() + 1).padStart(2, "0");
-  const dd = String(monday.getDate()).padStart(2, "0");
-
-  return `${yyyy}-${mm}-${dd}`;
-}
-
-function AppContent() {
-  const location = useLocation();
-
-  const isLoggedIn = localStorage.getItem("ownerLogin") === "true";
-  const ownerName = localStorage.getItem("ownerName");
-
-  const printWeekStartDate = getMondayOfCurrentWeek();
-
-  const isPrintPage =
-    location.pathname === "/print/shifts" ||
-    location.pathname === "/owner/print/shifts";
+  const isOwnerLogin = localStorage.getItem("ownerLogin") === "true";
+  const isManagerLogin = localStorage.getItem("managerLogin") === "true";
 
   const handleLogout = () => {
     localStorage.removeItem("ownerLogin");
@@ -55,70 +16,72 @@ function AppContent() {
     localStorage.removeItem("ownerName");
     localStorage.removeItem("ownerNumber");
 
-    window.location.href = "/#/";
+    localStorage.removeItem("managerLogin");
+    localStorage.removeItem("managerId");
+    localStorage.removeItem("managerName");
+    localStorage.removeItem("managerNumber");
+
+    navigate("/");
   };
 
   return (
-    <div>
-      {isLoggedIn && !isPrintPage && (
-        <nav className="app-nav">
-          <strong className="app-nav-title">
-            ShiftApp {ownerName ? ` / ${ownerName}` : ""}
-          </strong>
-        </nav>
-      )}
-
+    <>
       <Routes>
-        <Route path="/" element={<LoginPage />} />
-
         <Route
-          path="/owner"
+          path="/"
           element={
-            <RequireOwnerLogin>
-              <OwnerDashboard />
-            </RequireOwnerLogin>
+            isOwnerLogin ? (
+              <Navigate to="/owner" replace />
+            ) : isManagerLogin ? (
+              <Navigate to="/manager" replace />
+            ) : (
+              <LoginPage />
+            )
           }
         />
 
         <Route
-          path="/print/shifts"
+          path="/owner"
+          element={isOwnerLogin ? <OwnerDashboard /> : <Navigate to="/" replace />}
+        />
+
+        <Route
+          path="/manager"
           element={
-            <RequireOwnerLogin>
-              <ShiftPrintPage />
-            </RequireOwnerLogin>
+            isManagerLogin ? <ManagerDashboard /> : <Navigate to="/" replace />
           }
         />
 
         <Route
           path="/owner/print/shifts"
           element={
-            <RequireOwnerLogin>
+            isOwnerLogin || isManagerLogin ? (
               <ShiftPrintPage />
-            </RequireOwnerLogin>
-          }
-        />
-
-        <Route
-          path="*"
-          element={
-            isLoggedIn ? (
-              <Navigate to="/owner" replace />
             ) : (
               <Navigate to="/" replace />
             )
           }
         />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </div>
+
+      <button
+        type="button"
+        onClick={handleLogout}
+        style={{ display: "none" }}
+        aria-hidden="true"
+      >
+        logout
+      </button>
+    </>
   );
 }
 
-function App() {
+export default function App() {
   return (
     <HashRouter>
-      <AppContent />
+      <AppLayout />
     </HashRouter>
   );
 }
-
-export default App;
