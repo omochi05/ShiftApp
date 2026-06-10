@@ -873,3 +873,135 @@ body {
     display: none !important;
   }
 }
+
+/* =========================
+   シフト表 編集モード
+========================= */
+
+.shift-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.shift-section-header h2 {
+  margin-bottom: 8px;
+}
+
+.shift-edit-mode-button {
+  min-width: 150px;
+  min-height: 48px;
+  padding: 0 18px;
+
+  background: #111111 !important;
+  color: #ffffff !important;
+
+  border: 2px solid #111111 !important;
+  border-radius: 14px !important;
+
+  font-size: 15px;
+  font-weight: 900;
+
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.shift-edit-mode-button-on {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+.shift-edit-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 16px;
+
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.shift-edit-modal {
+  width: min(100%, 440px);
+
+  padding: 22px;
+
+  background: #ffffff !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 20px !important;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.25) !important;
+}
+
+.shift-edit-modal h3 {
+  margin: 0 0 12px;
+
+  color: #111827 !important;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.shift-edit-modal label {
+  display: block;
+  margin-top: 12px;
+
+  color: #111827 !important;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.shift-edit-modal input {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 6px;
+  padding: 8px 10px;
+
+  color: #111827 !important;
+  background: #ffffff !important;
+
+  border: 1px solid #d1d5db !important;
+  border-radius: 10px !important;
+
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.shift-edit-modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.shift-edit-modal-actions button {
+  flex: 1;
+  min-height: 44px;
+}
+
+.shift-edit-modal-actions button:last-child {
+  background: #6b7280 !important;
+  color: #ffffff !important;
+}
+
+@media screen and (max-width: 768px) {
+  .shift-section-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .shift-edit-mode-button {
+    width: 100%;
+  }
+}
+
+@media print {
+  .shift-edit-mode-button,
+  .shift-edit-modal-backdrop {
+    display: none !important;
+  }
+}

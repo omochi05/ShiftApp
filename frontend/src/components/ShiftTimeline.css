@@ -455,3 +455,63 @@
   text-overflow: ellipsis !important;
   transform: none !important;
 }
+
+/* =========================
+   編集モード：右クリック・長押しメニュー
+========================= */
+
+.shift-timeline-editable .shift-bar {
+  cursor: context-menu;
+}
+
+.shift-context-menu {
+  position: fixed;
+  z-index: 99999;
+
+  width: 170px;
+  padding: 8px;
+
+  background: #ffffff !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 14px !important;
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.24) !important;
+}
+
+.shift-context-menu button {
+  width: 100%;
+  min-height: 42px;
+
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-start;
+
+  padding: 10px 12px !important;
+
+  background: #ffffff !important;
+  color: #111827 !important;
+
+  border: none !important;
+  border-radius: 10px !important;
+
+  font-size: 15px;
+  font-weight: 900;
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.shift-context-menu button:hover {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+}
+
+.shift-context-menu button:last-child:hover {
+  background: #fef2f2 !important;
+  color: #dc2626 !important;
+}
+
+@media print {
+  .shift-context-menu {
+    display: none !important;
+  }
+}

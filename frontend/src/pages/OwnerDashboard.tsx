@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import ShiftTimeline from "../components/ShiftTimeline";
@@ -69,6 +70,13 @@ type ShiftCreate = {
   end_time: string;
   break_minutes: string;
   created_by: number;
+};
+
+type ShiftEditForm = {
+  work_date: string;
+  start_time: string;
+  end_time: string;
+  break_minutes: string;
 };
 
 type NewEmployee = {
@@ -167,8 +175,6 @@ function OwnerDashboard() {
   const navigate = useNavigate();
   const now = new Date();
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [week, setWeek] = useState(23);
@@ -230,6 +236,18 @@ function OwnerDashboard() {
     employee_number: "",
     name: "",
     hourly_wage: "",
+  });
+
+  const [isShiftEditMode, setIsShiftEditMode] = useState(false);
+  const [editingShift, setEditingShift] = useState<ShiftForTimeline | null>(
+    null
+  );
+
+  const [editShiftForm, setEditShiftForm] = useState<ShiftEditForm>({
+    work_date: "",
+    start_time: "",
+    end_time: "",
+    break_minutes: "",
   });
 
   const employeeUsers = users.filter((user) => user.role === "employee");
@@ -380,19 +398,7 @@ function OwnerDashboard() {
     setWeekStartDate((prev) => addDays(prev, 7));
   };
 
-  const handleGoHome = () => {
-      setIsMenuOpen(false);
-      navigate("/owner");
-  };
-
-  const handleOpenPrintPage = () => {
-    setIsMenuOpen(false);
-    navigate(`/owner/print/shifts?weekStartDate=${weekStartDate}`);
-  };
-
   const handleLogout = () => {
-    setIsMenuOpen(false);
-
     localStorage.removeItem("ownerLogin");
     localStorage.removeItem("ownerId");
     localStorage.removeItem("ownerName");
@@ -401,7 +407,11 @@ function OwnerDashboard() {
     navigate("/");
   };
 
-  const handleCreateSale = async (e: React.FormEvent) => {
+  const handleOpenPrintPage = () => {
+    navigate(`/owner/print/shifts?weekStartDate=${weekStartDate}`);
+  };
+
+  const handleCreateSale = async (e: FormEvent) => {
     e.preventDefault();
 
     try {
@@ -437,7 +447,7 @@ function OwnerDashboard() {
     }
   };
 
-  const handleCreateShift = async (e: React.FormEvent) => {
+  const handleCreateShift = async (e: FormEvent) => {
     e.preventDefault();
 
     if (Number(shiftForm.user_id) === 0) {
@@ -495,6 +505,64 @@ function OwnerDashboard() {
     } catch (error) {
       console.error("シフト作成失敗:", error);
       setShiftMessage("シフト作成に失敗しました");
+    }
+  };
+
+  const handleStartEditShift = (shift: ShiftForTimeline) => {
+    if (shift.id < 0) {
+      return;
+    }
+
+    setEditingShift(shift);
+    setShiftMessage("");
+
+    setEditShiftForm({
+      work_date: shift.work_date,
+      start_time: shift.start_time.slice(0, 5),
+      end_time: shift.end_time.slice(0, 5),
+      break_minutes: String(shift.break_minutes ?? 0),
+    });
+  };
+
+  const handleCancelEditShift = () => {
+    setEditingShift(null);
+
+    setEditShiftForm({
+      work_date: "",
+      start_time: "",
+      end_time: "",
+      break_minutes: "",
+    });
+  };
+
+  const handleUpdateShift = async () => {
+    if (!editingShift) {
+      return;
+    }
+
+    try {
+      setShiftMessage("");
+
+      await api.put(`/shifts/${editingShift.id}`, {
+        user_id: editingShift.user_id,
+        work_date: editShiftForm.work_date,
+        start_time: editShiftForm.start_time,
+        end_time: editShiftForm.end_time,
+        break_minutes: Number(editShiftForm.break_minutes || 0),
+        created_by: Number(ownerId),
+      });
+
+      setShiftMessage("シフトを更新しました");
+      handleCancelEditShift();
+
+      await fetchShifts();
+      await fetchDashboard();
+      await fetchWeeklyDashboard();
+      await fetchWeekdayDashboard();
+    } catch (error: any) {
+      console.error("シフト更新失敗:", error);
+      console.error("レスポンス:", error.response?.data);
+      setShiftMessage(formatApiError(error, "シフト更新に失敗しました"));
     }
   };
 
@@ -611,7 +679,7 @@ function OwnerDashboard() {
     }
   };
 
-  const handleCreateEmployee = async (e: React.FormEvent) => {
+  const handleCreateEmployee = async (e: FormEvent) => {
     e.preventDefault();
 
     try {
@@ -771,35 +839,9 @@ function OwnerDashboard() {
           <p>売上・人件費・従業員・シフトを管理できます</p>
         </div>
 
-        <div className="owner-menu-wrap">
-          <button
-            type="button"
-            className="owner-menu-button"
-            onClick={() => setIsMenuOpen((prev) => !prev)}
-            aria-label="メニューを開く"
-            aria-expanded={isMenuOpen}
-          >
-            <span />
-            <span />
-            <span />
-          </button>
-
-          {isMenuOpen && (
-          <div className="owner-menu-panel">
-            <button type="button" onClick={handleGoHome}>
-              ホーム
-            </button>
-
-              <button type="button" onClick={handleOpenPrintPage}>
-                シフト表印刷
-              </button>
-
-              <button type="button" onClick={handleLogout}>
-                ログアウト
-              </button>
-          </div>
-        )}
-        </div>
+        <button type="button" className="owner-logout-button" onClick={handleLogout}>
+          ログアウト
+        </button>
       </header>
 
       <section className="summary-grid">
@@ -873,9 +915,7 @@ function OwnerDashboard() {
             }`}
           >
             <p>売上：{weeklyDashboard.total_sales.toLocaleString()}円</p>
-            <p>
-              人件費：{weeklyDashboard.total_labor_cost.toLocaleString()}円
-            </p>
+            <p>人件費：{weeklyDashboard.total_labor_cost.toLocaleString()}円</p>
 
             {typeof weeklyDashboard.profit === "number" && (
               <p>利益：{weeklyDashboard.profit.toLocaleString()}円</p>
@@ -1313,19 +1353,37 @@ function OwnerDashboard() {
       </section>
 
       <section className="owner-section shift-print-area">
-        <h2>シフト表</h2>
+        <div className="shift-section-header">
+          <div>
+            <h2>シフト表</h2>
 
-        <p className="form-message">
-          表示期間：{weekStartDate} 〜 {weekEndDate}
-        </p>
+            <p className="form-message">
+              表示期間：{weekStartDate} 〜 {weekEndDate}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className={`shift-edit-mode-button ${
+              isShiftEditMode ? "shift-edit-mode-button-on" : ""
+            }`}
+            onClick={() => setIsShiftEditMode((prev) => !prev)}
+          >
+            {isShiftEditMode ? "編集モード ON" : "編集モード OFF"}
+          </button>
+        </div>
 
         <p className="form-message print-hide">
-          印刷やPDF保存は、右上のメニューから行えます。
+          {isShiftEditMode
+            ? "編集モード中です。PCは右クリック、スマホは長押しで編集・削除できます。"
+            : "編集する場合は右上の編集モードをONにしてください。"}
         </p>
 
         <div className="timeline-wrap">
           <ShiftTimeline
             shifts={weeklyTimelineShifts}
+            editable={isShiftEditMode}
+            onEditShift={handleStartEditShift}
             onDeleteShift={handleDeleteShift}
           />
         </div>
@@ -1337,6 +1395,10 @@ function OwnerDashboard() {
 
           <button type="button" onClick={handleNextWeek}>
             次の週
+          </button>
+
+          <button type="button" onClick={handleOpenPrintPage}>
+            シフト表印刷
           </button>
 
           <button type="button" onClick={handleCreateTemplateFromWeek}>
@@ -1352,6 +1414,85 @@ function OwnerDashboard() {
           <p className="form-message print-hide">{templateMessage}</p>
         )}
       </section>
+
+      {editingShift && (
+        <div className="shift-edit-modal-backdrop">
+          <div className="shift-edit-modal">
+            <h3>シフト編集</h3>
+
+            <p className="form-message">
+              {editingShift.user_name} のシフトを編集します
+            </p>
+
+            <label>
+              日付
+              <input
+                type="date"
+                value={editShiftForm.work_date}
+                onChange={(e) =>
+                  setEditShiftForm({
+                    ...editShiftForm,
+                    work_date: e.target.value,
+                  })
+                }
+              />
+            </label>
+
+            <label>
+              開始
+              <input
+                type="time"
+                value={editShiftForm.start_time}
+                onChange={(e) =>
+                  setEditShiftForm({
+                    ...editShiftForm,
+                    start_time: e.target.value,
+                  })
+                }
+              />
+            </label>
+
+            <label>
+              終了
+              <input
+                type="time"
+                value={editShiftForm.end_time}
+                onChange={(e) =>
+                  setEditShiftForm({
+                    ...editShiftForm,
+                    end_time: e.target.value,
+                  })
+                }
+              />
+            </label>
+
+            <label>
+              休憩時間（分）
+              <input
+                type="number"
+                min="0"
+                value={editShiftForm.break_minutes}
+                onChange={(e) =>
+                  setEditShiftForm({
+                    ...editShiftForm,
+                    break_minutes: e.target.value,
+                  })
+                }
+              />
+            </label>
+
+            <div className="shift-edit-modal-actions">
+              <button type="button" onClick={handleUpdateShift}>
+                保存
+              </button>
+
+              <button type="button" onClick={handleCancelEditShift}>
+                キャンセル
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
