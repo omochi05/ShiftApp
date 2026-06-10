@@ -248,6 +248,22 @@ export default function ShiftTimeline({
                 minHeight: `${bodyHeight}px`,
               }}
             >
+              {/* 
+                PDFでも縦線が消えないように、
+                背景グラデーションではなく実体のあるdivとして縦線を描画する。
+              */}
+              {Array.from({ length: TOTAL_HOURS + 1 }, (_, index) => (
+                <div
+                  key={`${date}-grid-${index}`}
+                  className={`shift-grid-line ${
+                    index % 3 === 0 ? "shift-grid-line-major" : ""
+                  }`}
+                  style={{
+                    left: `${(index / TOTAL_HOURS) * 100}%`,
+                  }}
+                />
+              ))}
+
               {positioned.map((shift) => {
                 const startTime = formatDisplayTime(shift.start_time);
                 const endTime = formatDisplayTime(shift.end_time);

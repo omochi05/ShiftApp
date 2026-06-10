@@ -1,6 +1,6 @@
 /* =========================
    ShiftTimeline.css
-   通常表示 + A3印刷
+   通常表示 + A3印刷 + PDF出力対応
 ========================= */
 
 .shift-timeline {
@@ -93,22 +93,11 @@
 
   position: relative;
 
-  background:
-    repeating-linear-gradient(
-      to right,
-      #ffffff 0,
-      #ffffff calc(100% / 24 - 1px),
-      #d1d5db calc(100% / 24 - 1px),
-      #d1d5db calc(100% / 24)
-    ),
-    repeating-linear-gradient(
-      to right,
-      transparent 0,
-      transparent calc((100% / 24) * 3 - 2px),
-      #777777 calc((100% / 24) * 3 - 2px),
-      #777777 calc((100% / 24) * 3)
-    ),
-    #ffffff !important;
+  /*
+    縦線は background ではなく .shift-grid-line で描画する。
+    PDF化しても消えにくくするため。
+  */
+  background: #ffffff !important;
 
   overflow: hidden;
 }
@@ -125,6 +114,7 @@
   color: #000000 !important;
 
   overflow: hidden;
+  z-index: 2;
 }
 
 .shift-timeline-normal .shift-bar {
@@ -195,6 +185,30 @@
   line-height: 1;
   white-space: nowrap;
   text-align: center;
+}
+
+/* =========================
+   実線の縦グリッド
+   PDFでも消えないように背景ではなくdivで描画
+========================= */
+
+.shift-grid-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+
+  width: 1.5px;
+  transform: translateX(-50%);
+
+  background: #9ca3af !important;
+  z-index: 1;
+
+  pointer-events: none;
+}
+
+.shift-grid-line-major {
+  width: 2.4px;
+  background: #374151 !important;
 }
 
 @media screen and (max-width: 768px) {
@@ -294,23 +308,17 @@
 
   .shift-timeline-body {
     overflow: hidden !important;
+    background: #ffffff !important;
+  }
 
-    background:
-      repeating-linear-gradient(
-        to right,
-        #ffffff 0,
-        #ffffff calc(100% / 24 - 1px),
-        #c9cdd3 calc(100% / 24 - 1px),
-        #c9cdd3 calc(100% / 24)
-      ),
-      repeating-linear-gradient(
-        to right,
-        transparent 0,
-        transparent calc((100% / 24) * 3 - 1.5px),
-        #777777 calc((100% / 24) * 3 - 1.5px),
-        #777777 calc((100% / 24) * 3)
-      ),
-      #ffffff !important;
+  .shift-grid-line {
+    width: 1.5px !important;
+    background: #9ca3af !important;
+  }
+
+  .shift-grid-line-major {
+    width: 2.4px !important;
+    background: #374151 !important;
   }
 
   .shift-bar {
@@ -327,6 +335,8 @@
 
     background: #ffffff !important;
     color: #000000 !important;
+
+    z-index: 2 !important;
   }
 
   .shift-bar-print-name,
@@ -345,4 +355,65 @@
   .print-hide {
     display: none !important;
   }
+}
+
+/* =========================
+   PDF出力専用
+   html2canvasで縦線が消えないように濃く・太くする
+========================= */
+
+.pdf-capture-mode .shift-timeline {
+  border: 2px solid #000000 !important;
+  background: #ffffff !important;
+}
+
+.pdf-capture-mode .shift-timeline-day {
+  border: 2px solid #000000 !important;
+  background: #ffffff !important;
+}
+
+.pdf-capture-mode .shift-timeline-day + .shift-timeline-day {
+  margin-top: -2px !important;
+}
+
+.pdf-capture-mode .shift-timeline-date {
+  border-right: 2px solid #000000 !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+.pdf-capture-mode .shift-timeline-hours {
+  border-bottom: 2px solid #000000 !important;
+  background: #111111 !important;
+  color: #ffffff !important;
+}
+
+.pdf-capture-mode .shift-timeline-body {
+  background: #ffffff !important;
+}
+
+.pdf-capture-mode .shift-grid-line {
+  width: 2.2px !important;
+  background: #4b5563 !important;
+  z-index: 1 !important;
+}
+
+.pdf-capture-mode .shift-grid-line-major {
+  width: 3.4px !important;
+  background: #000000 !important;
+  z-index: 1 !important;
+}
+
+.pdf-capture-mode .shift-bar {
+  border: 2px solid #000000 !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+  z-index: 3 !important;
+}
+
+.pdf-capture-mode .shift-bar-print-name,
+.pdf-capture-mode .shift-bar-normal-content,
+.pdf-capture-mode .shift-bar-name {
+  color: #000000 !important;
+  font-weight: 900 !important;
 }
