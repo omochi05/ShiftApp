@@ -1,7 +1,7 @@
 /* =========================
    ShiftTimeline.css
    通常表示 + A3印刷 + PDF出力対応
-   名前を横に広げつつ、切れにくくする版
+   A3に合わせて枠と文字を自動調整
 ========================= */
 
 .shift-timeline {
@@ -100,7 +100,7 @@
 
 .shift-bar {
   position: absolute;
-  height: 26px;
+  height: var(--shift-bar-height, 24px);
   box-sizing: border-box;
 
   border: 2.5px solid #000000;
@@ -117,54 +117,39 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 7px;
+  padding: 0 var(--shift-bar-padding-x, 6px);
 }
 
-/* 通常画面の名前 */
 .shift-bar-normal-content {
   display: flex;
   align-items: center;
   justify-content: center;
 
-  width: 82%;
-  max-width: 82%;
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
 
   color: #000000 !important;
-  font-size: 15px;
+  font-size: var(--shift-name-font-size, 14px);
   font-weight: 900;
   line-height: 1;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   white-space: nowrap;
   text-align: center;
 
-  overflow: visible;
-  text-overflow: clip;
-
-  /*
-    文字を横に広げる。
-    1.25だと切れやすかったので1.18に調整。
-  */
-  transform: scaleX(1.18);
-  transform-origin: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* 実際の名前テキスト */
 .shift-bar-name {
   display: inline-block;
   min-width: 0;
 
-  overflow: visible;
-  text-overflow: clip;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   font-weight: 900;
-  letter-spacing: 0.04em;
-
-  /*
-    二重に横伸ばしすると切れるので、
-    中の名前自体にはtransformをかけない。
-  */
-  transform: none;
+  letter-spacing: 0.03em;
 }
 
 .shift-bar-delete,
@@ -180,38 +165,34 @@
 }
 
 .shift-timeline-print .shift-bar {
-  height: 26px;
+  height: var(--shift-bar-height, 26px);
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  padding: 0 7px;
+  padding: 0 var(--shift-bar-padding-x, 8px);
 
   border: 1.8px solid #000000;
   border-radius: 5px;
 }
 
-/* 印刷・PDFで表示される名前 */
 .shift-bar-print-name {
   display: block;
 
-  width: 82%;
-  max-width: 82%;
+  width: 100%;
+  max-width: 100%;
 
-  overflow: visible;
-  text-overflow: clip;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   color: #000000 !important;
-  font-size: 15px;
+  font-size: var(--shift-name-font-size, 15px);
   font-weight: 900;
   line-height: 1;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   white-space: nowrap;
   text-align: center;
-
-  transform: scaleX(1.18);
-  transform-origin: center;
 }
 
 /* =========================
@@ -349,13 +330,13 @@
   }
 
   .shift-bar {
-    height: 26px !important;
+    height: var(--shift-bar-height, 26px) !important;
 
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
 
-    padding: 0 7px !important;
+    padding: 0 var(--shift-bar-padding-x, 8px) !important;
 
     border: 1.8px solid #000000 !important;
     border-radius: 5px !important;
@@ -367,32 +348,17 @@
   }
 
   .shift-bar-print-name,
-  .shift-bar-normal-content {
-    width: 82% !important;
-    max-width: 82% !important;
+  .shift-bar-normal-content,
+  .shift-bar-name {
+    max-width: 100% !important;
 
-    overflow: visible !important;
-    text-overflow: clip !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
 
-    font-size: 15px !important;
+    font-size: var(--shift-name-font-size, 15px) !important;
     font-weight: 900 !important;
     line-height: 1 !important;
-    letter-spacing: 0.04em !important;
-    color: #000000 !important;
-
-    transform: scaleX(1.18) !important;
-    transform-origin: center !important;
-  }
-
-  .shift-bar-name {
-    max-width: none !important;
-
-    overflow: visible !important;
-    text-overflow: clip !important;
-
-    font-size: 15px !important;
-    font-weight: 900 !important;
-    letter-spacing: 0.04em !important;
+    letter-spacing: 0.03em !important;
     color: #000000 !important;
 
     transform: none !important;
@@ -408,7 +374,6 @@
 
 /* =========================
    PDF出力専用
-   html2canvasで縦線が消えないように濃く・太くする
 ========================= */
 
 .pdf-capture-mode .shift-timeline {
@@ -454,7 +419,9 @@
 }
 
 .pdf-capture-mode .shift-bar {
-  height: 26px !important;
+  height: var(--shift-bar-height, 26px) !important;
+  padding: 0 var(--shift-bar-padding-x, 8px) !important;
+
   border: 2px solid #000000 !important;
   background: #ffffff !important;
   color: #000000 !important;
@@ -462,27 +429,14 @@
 }
 
 .pdf-capture-mode .shift-bar-print-name,
-.pdf-capture-mode .shift-bar-normal-content {
-  width: 82% !important;
-  max-width: 82% !important;
-
-  overflow: visible !important;
-  text-overflow: clip !important;
-
-  color: #000000 !important;
-  font-size: 15px !important;
-  font-weight: 900 !important;
-  letter-spacing: 0.04em !important;
-
-  transform: scaleX(1.18) !important;
-  transform-origin: center !important;
-}
-
+.pdf-capture-mode .shift-bar-normal-content,
 .pdf-capture-mode .shift-bar-name {
   color: #000000 !important;
-  font-size: 15px !important;
+  font-size: var(--shift-name-font-size, 15px) !important;
   font-weight: 900 !important;
-  letter-spacing: 0.04em !important;
+  letter-spacing: 0.03em !important;
 
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
   transform: none !important;
 }

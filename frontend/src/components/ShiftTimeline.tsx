@@ -25,18 +25,22 @@ type PositionedShift = ShiftForTimeline & {
   endValue: number;
 };
 
+type AutoPrintSize = {
+  laneHeight: number;
+  barHeight: number;
+  barTopOffset: number;
+  nameFontSize: number;
+  barPaddingX: number;
+};
+
 const START_HOUR = 6;
 const TOTAL_HOURS = 24;
 
 const NORMAL_LANE_HEIGHT = 30;
+const NORMAL_BAR_HEIGHT = 24;
 const NORMAL_BAR_TOP_OFFSET = 8;
-
-/*
-  印刷用は大きく見せたいが、
-  行を大きくしすぎるとA3 1枚に収まらないため控えめ。
-*/
-const PRINT_LANE_HEIGHT = 30;
-const PRINT_BAR_TOP_OFFSET = 6;
+const NORMAL_NAME_FONT_SIZE = 14;
+const NORMAL_BAR_PADDING_X = 6;
 
 const hourLabels = [
   "6",
@@ -196,26 +200,125 @@ function positionShifts(shifts: ShiftForTimeline[]) {
   };
 }
 
+/*
+  A3に収まるように印刷サイズを自動調整する。
+  最大レーン数が少ない週は枠を大きく、
+  多い週は自動で少し小さくする。
+*/
+function getAutoPrintSize(maxLaneCount: number): AutoPrintSize {
+  if (maxLaneCount <= 1) {
+    return {
+      laneHeight: 42,
+      barHeight: 34,
+      barTopOffset: 5,
+      nameFontSize: 18,
+      barPaddingX: 12,
+    };
+  }
+
+  if (maxLaneCount === 2) {
+    return {
+      laneHeight: 37,
+      barHeight: 30,
+      barTopOffset: 5,
+      nameFontSize: 17,
+      barPaddingX: 11,
+    };
+  }
+
+  if (maxLaneCount === 3) {
+    return {
+      laneHeight: 32,
+      barHeight: 26,
+      barTopOffset: 5,
+      nameFontSize: 15,
+      barPaddingX: 9,
+    };
+  }
+
+  if (maxLaneCount === 4) {
+    return {
+      laneHeight: 28,
+      barHeight: 23,
+      barTopOffset: 4,
+      nameFontSize: 13.5,
+      barPaddingX: 7,
+    };
+  }
+
+  return {
+    laneHeight: 24,
+    barHeight: 20,
+    barTopOffset: 3,
+    nameFontSize: 12,
+    barPaddingX: 6,
+  };
+}
+
 export default function ShiftTimeline({
   shifts,
   printMode = false,
 }: ShiftTimelineProps) {
   const groupedShifts = groupShiftsByDate(shifts);
 
-  const laneHeight = printMode ? PRINT_LANE_HEIGHT : NORMAL_LANE_HEIGHT;
-  const barTopOffset = printMode ? PRINT_BAR_TOP_OFFSET : NORMAL_BAR_TOP_OFFSET;
+  const groupedWithPositions = groupedShifts.map(([date, dayShifts]) => {
+    const { positioned, laneCount } = positionShifts(dayShifts);
+
+    return {
+      date,
+      positioned,
+      laneCount,
+    };
+  });
+
+  const maxLaneCount = Math.max(
+    ...groupedWithPositions.map((group) => group.laneCount),
+    1
+  );
+
+  const autoPrintSize = getAutoPrintSize(maxLaneCount);
+
+  const laneHeight = printMode
+    ? autoPrintSize.laneHeight
+    : NORMAL_LANE_HEIGHT;
+
+  const barHeight = printMode
+    ? autoPrintSize.barHeight
+    : NORMAL_BAR_HEIGHT;
+
+  const barTopOffset = printMode
+    ? autoPrintSize.barTopOffset
+    : NORMAL_BAR_TOP_OFFSET;
+
+  const nameFontSize = printMode
+    ? autoPrintSize.nameFontSize
+    : NORMAL_NAME_FONT_SIZE;
+
+  const barPaddingX = printMode
+    ? autoPrintSize.barPaddingX
+    : NORMAL_BAR_PADDING_X;
 
   return (
     <div
       className={`shift-timeline ${
         printMode ? "shift-timeline-print" : "shift-timeline-normal"
       }`}
+      style={
+        {
+          "--shift-lane-height": `${laneHeight}px`,
+          "--shift-bar-height": `${barHeight}px`,
+          "--shift-bar-top-offset": `${barTopOffset}px`,
+          "--shift-name-font-size": `${nameFontSize}px`,
+          "--shift-bar-padding-x": `${barPaddingX}px`,
+        } as React.CSSProperties
+      }
     >
-      {groupedShifts.map(([date, dayShifts]) => {
-        const { positioned, laneCount } = positionShifts(dayShifts);
-
+      {groupedWithPositions.map(({ date, positioned, laneCount }) => {
         const bodyHeight = printMode
-          ? Math.max(66, laneCount * laneHeight + 10)
+          ? Math.max(
+              laneCount * laneHeight + barTopOffset + 6,
+              barHeight + barTopOffset + 8
+            )
           : Math.max(66, laneCount * laneHeight + 16);
 
         return (
@@ -248,10 +351,6 @@ export default function ShiftTimeline({
                 minHeight: `${bodyHeight}px`,
               }}
             >
-              {/* 
-                PDFでも縦線が消えないように、
-                背景グラデーションではなく実体のあるdivとして縦線を描画する。
-              */}
               {Array.from({ length: TOTAL_HOURS + 1 }, (_, index) => (
                 <div
                   key={`${date}-grid-${index}`}
