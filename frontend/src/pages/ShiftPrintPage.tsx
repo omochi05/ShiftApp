@@ -89,14 +89,10 @@ function getWeekStartDateFromUrl() {
   return getMondayOfCurrentWeek();
 }
 
-/*
-  画像保存用。
-  PNGではなくJPEGにして容量を軽くする。
-*/
 function canvasToBlob(
   canvas: HTMLCanvasElement,
   type = "image/jpeg",
-  quality = 0.85
+  quality = 0.68
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
@@ -111,6 +107,36 @@ function canvasToBlob(
       quality
     );
   });
+}
+
+function resizeCanvas(sourceCanvas: HTMLCanvasElement, maxWidth: number) {
+  if (sourceCanvas.width <= maxWidth) {
+    return sourceCanvas;
+  }
+
+  const ratio = maxWidth / sourceCanvas.width;
+  const newWidth = maxWidth;
+  const newHeight = Math.round(sourceCanvas.height * ratio);
+
+  const resizedCanvas = document.createElement("canvas");
+  resizedCanvas.width = newWidth;
+  resizedCanvas.height = newHeight;
+
+  const ctx = resizedCanvas.getContext("2d");
+
+  if (!ctx) {
+    return sourceCanvas;
+  }
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, newWidth, newHeight);
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+
+  ctx.drawImage(sourceCanvas, 0, 0, newWidth, newHeight);
+
+  return resizedCanvas;
 }
 
 function downloadBlob(blob: Blob, filename: string) {
@@ -251,10 +277,6 @@ export default function ShiftPrintPage() {
 
     const target = sheetRef.current;
 
-    /*
-      PDF/画像作成中だけ専用クラスを付ける。
-      ShiftTimeline.css の .pdf-capture-mode が効く。
-    */
     target.classList.add("pdf-capture-mode");
 
     await new Promise((resolve) => setTimeout(resolve, 150));
@@ -262,10 +284,10 @@ export default function ShiftPrintPage() {
     try {
       const canvas = await html2canvas(target, {
         /*
-          3だと10MBを超えやすい。
-          2なら文字が読めて、容量もかなり軽くなる。
+          ファイル容量を抑えるため scale は 1.4。
+          画質が荒い場合は 1.6 に上げてもOK。
         */
-        scale: 2,
+        scale: 1.4,
         backgroundColor: "#ffffff",
         useCORS: true,
         logging: false,
@@ -273,7 +295,11 @@ export default function ShiftPrintPage() {
         windowHeight: target.scrollHeight,
       });
 
-      return canvas;
+      /*
+        PDF/画像の容量を抑えるため最大横幅を制限。
+        画質を上げたい場合は 2000、さらに軽くしたい場合は 1600。
+      */
+      return resizeCanvas(canvas, 1800);
     } finally {
       target.classList.remove("pdf-capture-mode");
     }
@@ -287,9 +313,9 @@ export default function ShiftPrintPage() {
 
       /*
         PNGではなくJPEGでPDFに貼り付ける。
-        0.82くらいが軽さと読みやすさのバランスがいい。
+        0.62は軽さ重視。画質を上げたい場合は0.72。
       */
-      const imgData = canvas.toDataURL("image/jpeg", 0.82);
+      const imgData = canvas.toDataURL("image/jpeg", 0.62);
 
       const pdf = new jsPDF({
         orientation: "landscape",
@@ -301,16 +327,26 @@ export default function ShiftPrintPage() {
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
 
+      /*
+        印刷時に上下左右が少し見切れないよう、
+        PDF内に安全余白を作る。
+      */
+      const marginX = 5;
+      const marginY = 8;
+
+      const printableWidth = pageWidth - marginX * 2;
+      const printableHeight = pageHeight - marginY * 2;
+
       const ratio = Math.min(
-        pageWidth / canvas.width,
-        pageHeight / canvas.height
+        printableWidth / canvas.width,
+        printableHeight / canvas.height
       );
 
       const imageWidth = canvas.width * ratio;
       const imageHeight = canvas.height * ratio;
 
       const x = (pageWidth - imageWidth) / 2;
-      const y = 0;
+      const y = (pageHeight - imageHeight) / 2;
 
       pdf.addImage(
         imgData,
@@ -345,11 +381,7 @@ export default function ShiftPrintPage() {
 
       const canvas = await createShiftCanvas();
 
-      /*
-        画像保存もJPEGにする。
-        PNGよりかなり軽くなる。
-      */
-      const imageBlob = await canvasToBlob(canvas, "image/jpeg", 0.85);
+      const imageBlob = await canvasToBlob(canvas, "image/jpeg", 0.68);
       const fileName = `shift-${weekStartDate}-${weekEndDate}.jpg`;
 
       const file = new File([imageBlob], fileName, {
