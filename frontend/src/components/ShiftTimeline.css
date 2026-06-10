@@ -1,6 +1,7 @@
 /* =========================
    ShiftTimeline.css
    通常表示 + A3印刷 + PDF出力対応
+   名前を枠いっぱいに大きく表示
 ========================= */
 
 .shift-timeline {
@@ -104,7 +105,7 @@
 
 .shift-bar {
   position: absolute;
-  height: 24px;
+  height: 26px;
   box-sizing: border-box;
 
   border: 2.5px solid #000000;
@@ -121,7 +122,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 6px;
+  padding: 0 7px;
 }
 
 .shift-bar-normal-content {
@@ -133,9 +134,10 @@
   min-width: 0;
 
   color: #000000 !important;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 900;
   line-height: 1;
+  letter-spacing: 0.08em;
   white-space: nowrap;
   text-align: center;
 }
@@ -145,6 +147,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 900;
+  letter-spacing: 0.08em;
 }
 
 .shift-bar-delete,
@@ -160,13 +163,13 @@
 }
 
 .shift-timeline-print .shift-bar {
-  height: 24px;
+  height: 26px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  padding: 0 6px;
+  padding: 0 7px;
 
   border: 1.8px solid #000000;
   border-radius: 5px;
@@ -180,9 +183,10 @@
   text-overflow: ellipsis;
 
   color: #000000 !important;
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 900;
   line-height: 1;
+  letter-spacing: 0.08em;
   white-space: nowrap;
   text-align: center;
 }
@@ -322,13 +326,13 @@
   }
 
   .shift-bar {
-    height: 24px !important;
+    height: 26px !important;
 
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
 
-    padding: 0 6px !important;
+    padding: 0 7px !important;
 
     border: 1.8px solid #000000 !important;
     border-radius: 5px !important;
@@ -343,9 +347,10 @@
   .shift-bar-normal-content,
   .shift-bar-name {
     max-width: 100% !important;
-    font-size: 13.5px !important;
+    font-size: 15px !important;
     font-weight: 900 !important;
     line-height: 1 !important;
+    letter-spacing: 0.08em !important;
     color: #000000 !important;
   }
 
@@ -405,6 +410,7 @@
 }
 
 .pdf-capture-mode .shift-bar {
+  height: 26px !important;
   border: 2px solid #000000 !important;
   background: #ffffff !important;
   color: #000000 !important;
@@ -415,5 +421,7 @@
 .pdf-capture-mode .shift-bar-normal-content,
 .pdf-capture-mode .shift-bar-name {
   color: #000000 !important;
+  font-size: 15px !important;
   font-weight: 900 !important;
+  letter-spacing: 0.08em !important;
 }
