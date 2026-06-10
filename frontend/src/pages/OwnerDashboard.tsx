@@ -380,6 +380,11 @@ function OwnerDashboard() {
     setWeekStartDate((prev) => addDays(prev, 7));
   };
 
+  const handleGoHome = () => {
+      setIsMenuOpen(false);
+      navigate("/owner");
+  };
+
   const handleOpenPrintPage = () => {
     setIsMenuOpen(false);
     navigate(`/owner/print/shifts?weekStartDate=${weekStartDate}`);
@@ -780,7 +785,11 @@ function OwnerDashboard() {
           </button>
 
           {isMenuOpen && (
-            <div className="owner-menu-panel">
+          <div className="owner-menu-panel">
+            <button type="button" onClick={handleGoHome}>
+              ホーム
+            </button>
+
               <button type="button" onClick={handleOpenPrintPage}>
                 シフト表印刷
               </button>
@@ -788,8 +797,8 @@ function OwnerDashboard() {
               <button type="button" onClick={handleLogout}>
                 ログアウト
               </button>
-            </div>
-          )}
+          </div>
+        )}
         </div>
       </header>
 
