@@ -782,3 +782,33 @@ tr:hover td {
     width: 200px;
   }
 }
+
+/* =========================
+   上部ナビ右側を非表示
+   ハンバーガーメニューだけ残す
+========================= */
+
+.app-nav-right,
+.app-nav-actions,
+.nav-actions,
+.header-actions,
+.top-nav-actions,
+.navbar-actions,
+.global-nav-actions,
+.layout-header-actions {
+  display: none !important;
+}
+
+/* 上部ナビはタイトルだけ残す */
+.app-nav,
+.top-nav,
+.navbar,
+.global-nav,
+.layout-header {
+  justify-content: flex-start !important;
+}
+
+/* OwnerDashboard内のハンバーガーは表示する */
+.owner-menu-wrap {
+  display: block !important;
+}
