@@ -577,3 +577,27 @@
     display: none !important;
   }
 }
+
+/* =========================
+   編集メニュー：編集/削除の色を統一
+========================= */
+
+.shift-context-menu button,
+.shift-context-menu button:focus,
+.shift-context-menu button:active {
+  background: #ffffff !important;
+  color: #111827 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* 編集ボタンも削除ボタンと同じ赤系にする */
+.shift-context-menu button:first-child:hover,
+.shift-context-menu button:first-child:focus,
+.shift-context-menu button:first-child:active,
+.shift-context-menu button:last-child:hover,
+.shift-context-menu button:last-child:focus,
+.shift-context-menu button:last-child:active {
+  background: #fef2f2 !important;
+  color: #dc2626 !important;
+}
