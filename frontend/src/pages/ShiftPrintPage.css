@@ -1,7 +1,7 @@
 /* =========================
    ShiftPrintPage.css
    A3横印刷ページ
-   PC印刷 + スマホ表示ズレ修正版
+   PC印刷 + スマホ表示ズレ修正 + スマホ印刷1ページ対応
 ========================= */
 
 .shift-print-page,
@@ -99,7 +99,7 @@
 
 /* =========================
    スマホ表示
-   印刷画面のズレ防止
+   画面上でのズレ防止
 ========================= */
 
 @media screen and (max-width: 768px) {
@@ -179,7 +179,7 @@
     z-index: 1;
 
     /*
-      スマホでは中央寄せしない。
+      スマホ表示では中央寄せしない。
       左端から横スクロールで見るようにしてズレを防ぐ。
     */
     width: 1400px;
@@ -211,8 +211,8 @@
 }
 
 /* =========================
-   印刷設定
-   PC / スマホ共通で印刷時はこちらが効く
+   PC印刷設定
+   PCは今の正常なサイズを維持
 ========================= */
 
 @media print {
@@ -273,9 +273,8 @@
     color: #000000 !important;
 
     /*
-      PCの印刷サイズ感を維持。
-      2ページに行くなら 1.08
-      まだ小さいなら 1.16
+      PC印刷用。
+      PCでは今の正常なサイズ感を維持する。
     */
     zoom: 1.12;
   }
@@ -294,5 +293,87 @@
     line-height: 1 !important;
     color: #000000 !important;
     text-align: center !important;
+  }
+}
+
+/* =========================
+   スマホ印刷専用
+   PCの印刷サイズは維持しつつ、
+   スマホ印刷だけ日曜日が2ページ目に落ちないように縮小
+========================= */
+
+@media print and (max-width: 768px) {
+  @page {
+    size: A3 landscape;
+    margin: 1mm;
+  }
+
+  html,
+  body {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+
+    overflow: visible !important;
+
+    background: #ffffff !important;
+    color: #000000 !important;
+
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .shift-print-page {
+    width: 100% !important;
+    max-width: none !important;
+
+    min-height: auto !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    overflow: visible !important;
+
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .shift-print-sheet {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    transform: none !important;
+    transform-origin: top left !important;
+
+    background: #ffffff !important;
+    color: #000000 !important;
+
+    /*
+      スマホ印刷専用。
+      日曜日が2ページ目に行くのを防ぐ。
+      まだ2ページになる → 0.82
+      小さすぎる → 0.90
+    */
+    zoom: 0.86 !important;
+  }
+
+  .shift-print-sheet h1 {
+    font-size: 20px !important;
+    margin: 0 0 1px !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    color: #000000 !important;
+  }
+
+  .shift-print-period {
+    font-size: 11px !important;
+    margin: 0 0 1px !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    color: #000000 !important;
   }
 }
