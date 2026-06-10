@@ -676,3 +676,109 @@ tr:hover td {
     background: #ffffff !important;
   }
 }
+
+/* =========================
+   Owner ハンバーガーメニュー
+========================= */
+
+.owner-menu-wrap {
+  position: relative;
+  margin-left: auto;
+}
+
+.owner-menu-button {
+  width: 52px;
+  height: 52px;
+  min-height: 52px;
+
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  padding: 0 !important;
+
+  background: #111827 !important;
+  color: #ffffff !important;
+
+  border: 1px solid #475569 !important;
+  border-radius: 14px !important;
+
+  cursor: pointer;
+}
+
+.owner-menu-button span {
+  display: block;
+  width: 24px;
+  height: 3px;
+
+  background: #ffffff;
+  border-radius: 999px;
+}
+
+.owner-menu-panel {
+  position: absolute;
+  top: 62px;
+  right: 0;
+  z-index: 1000;
+
+  width: 220px;
+
+  padding: 10px;
+
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 16px;
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.18);
+}
+
+.owner-menu-panel button {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  margin: 0;
+  padding: 14px 16px !important;
+
+  background: #ffffff !important;
+  color: #111827 !important;
+
+  border-radius: 12px !important;
+
+  font-size: 15px;
+  font-weight: 900;
+  text-align: left;
+}
+
+.owner-menu-panel button:hover {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+}
+
+/* 古い右上メニューが残っていたら非表示 */
+.owner-header-actions {
+  display: none !important;
+}
+
+@media screen and (max-width: 768px) {
+  .owner-header {
+    flex-direction: row !important;
+    align-items: center !important;
+  }
+
+  .owner-header h1 {
+    font-size: 22px !important;
+  }
+
+  .owner-header p {
+    display: none;
+  }
+
+  .owner-menu-panel {
+    right: 0;
+    width: 200px;
+  }
+}

@@ -167,6 +167,8 @@ function OwnerDashboard() {
   const navigate = useNavigate();
   const now = new Date();
 
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [week, setWeek] = useState(23);
@@ -232,10 +234,6 @@ function OwnerDashboard() {
 
   const employeeUsers = users.filter((user) => user.role === "employee");
 
-  /*
-    シフト表表示用データを作成する。
-    user_id から user_name を付ける。
-  */
   const timelineShiftsBeforeDedup: ShiftForTimeline[] = shifts.map((shift) => {
     const user = users.find((u) => u.id === shift.user_id);
 
@@ -245,15 +243,6 @@ function OwnerDashboard() {
     };
   });
 
-  /*
-    同じ日付 + 同じ名前のシフトが複数ある場合は1件にまとめる。
-    同じ名前の従業員が別IDで重複登録されていても、
-    シフト表では重複表示しない。
-
-    残すルール:
-    1. 勤務時間が長い方を残す
-    2. 勤務時間が同じなら id が新しい方を残す
-  */
   const timelineShifts: ShiftForTimeline[] = Array.from(
     timelineShiftsBeforeDedup
       .reduce((map, shift) => {
@@ -392,7 +381,19 @@ function OwnerDashboard() {
   };
 
   const handleOpenPrintPage = () => {
+    setIsMenuOpen(false);
     navigate(`/owner/print/shifts?weekStartDate=${weekStartDate}`);
+  };
+
+  const handleLogout = () => {
+    setIsMenuOpen(false);
+
+    localStorage.removeItem("ownerLogin");
+    localStorage.removeItem("ownerId");
+    localStorage.removeItem("ownerName");
+    localStorage.removeItem("ownerNumber");
+
+    navigate("/");
   };
 
   const handleCreateSale = async (e: React.FormEvent) => {
@@ -763,6 +764,32 @@ function OwnerDashboard() {
         <div>
           <h1>ShiftApp / オーナー</h1>
           <p>売上・人件費・従業員・シフトを管理できます</p>
+        </div>
+
+        <div className="owner-menu-wrap">
+          <button
+            type="button"
+            className="owner-menu-button"
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            aria-label="メニューを開く"
+            aria-expanded={isMenuOpen}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+
+          {isMenuOpen && (
+            <div className="owner-menu-panel">
+              <button type="button" onClick={handleOpenPrintPage}>
+                シフト表印刷
+              </button>
+
+              <button type="button" onClick={handleLogout}>
+                ログアウト
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -1284,7 +1311,7 @@ function OwnerDashboard() {
         </p>
 
         <p className="form-message print-hide">
-          印刷やPDF保存は、下の「シフト表印刷」から行えます。
+          印刷やPDF保存は、右上のメニューから行えます。
         </p>
 
         <div className="timeline-wrap">
@@ -1301,10 +1328,6 @@ function OwnerDashboard() {
 
           <button type="button" onClick={handleNextWeek}>
             次の週
-          </button>
-
-          <button type="button" onClick={handleOpenPrintPage}>
-            シフト表印刷
           </button>
 
           <button type="button" onClick={handleCreateTemplateFromWeek}>
