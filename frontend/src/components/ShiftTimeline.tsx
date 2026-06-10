@@ -1,4 +1,5 @@
-import type { CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { CSSProperties, MouseEvent, TouchEvent } from "react";
 import {
   getJapaneseHolidayName,
   isSundayOrJapaneseHoliday,
@@ -18,6 +19,8 @@ type ShiftForTimeline = {
 
 type ShiftTimelineProps = {
   shifts: ShiftForTimeline[];
+  editable?: boolean;
+  onEditShift?: (shift: ShiftForTimeline) => void;
   onDeleteShift?: (shiftId: number) => void;
   printMode?: boolean;
 };
@@ -38,8 +41,15 @@ type AutoPrintSize = {
   barPaddingX: number;
 };
 
+type ShiftContextMenu = {
+  x: number;
+  y: number;
+  shift: ShiftForTimeline;
+};
+
 const START_HOUR = 6;
 const TOTAL_HOURS = 24;
+const LONG_PRESS_MS = 550;
 
 const NORMAL_LANE_HEIGHT = 30;
 const NORMAL_BAR_HEIGHT = 24;
@@ -255,10 +265,30 @@ function getAutoPrintSize(maxLaneCount: number): AutoPrintSize {
   };
 }
 
+function getSafeMenuPosition(x: number, y: number) {
+  const menuWidth = 170;
+  const menuHeight = 104;
+  const padding = 12;
+
+  const safeX = Math.min(x, window.innerWidth - menuWidth - padding);
+  const safeY = Math.min(y, window.innerHeight - menuHeight - padding);
+
+  return {
+    x: Math.max(padding, safeX),
+    y: Math.max(padding, safeY),
+  };
+}
+
 export default function ShiftTimeline({
   shifts,
+  editable = false,
+  onEditShift,
+  onDeleteShift,
   printMode = false,
 }: ShiftTimelineProps) {
+  const [contextMenu, setContextMenu] = useState<ShiftContextMenu | null>(null);
+  const longPressTimerRef = useRef<number | null>(null);
+
   const groupedShifts = groupShiftsByDate(shifts);
 
   const groupedWithPositions = groupedShifts.map(([date, dayShifts]) => {
@@ -296,11 +326,128 @@ export default function ShiftTimeline({
     ? autoPrintSize.barPaddingX
     : NORMAL_BAR_PADDING_X;
 
+  const closeMenu = () => {
+    setContextMenu(null);
+  };
+
+  const clearLongPressTimer = () => {
+    if (longPressTimerRef.current) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  const openMenu = (x: number, y: number, shift: ShiftForTimeline) => {
+    if (!editable || printMode || shift.id < 0) {
+      return;
+    }
+
+    const safePosition = getSafeMenuPosition(x, y);
+
+    setContextMenu({
+      x: safePosition.x,
+      y: safePosition.y,
+      shift,
+    });
+  };
+
+  const handleClickShift = (
+    event: MouseEvent<HTMLDivElement>,
+    shift: ShiftForTimeline
+  ) => {
+    if (!editable || printMode || shift.id < 0) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    openMenu(event.clientX, event.clientY, shift);
+  };
+
+  const handleContextMenu = (
+    event: MouseEvent<HTMLDivElement>,
+    shift: ShiftForTimeline
+  ) => {
+    if (!editable || printMode || shift.id < 0) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    openMenu(event.clientX, event.clientY, shift);
+  };
+
+  const handleTouchStart = (
+    event: TouchEvent<HTMLDivElement>,
+    shift: ShiftForTimeline
+  ) => {
+    if (!editable || printMode || shift.id < 0) {
+      return;
+    }
+
+    clearLongPressTimer();
+
+    const touch = event.touches[0];
+
+    longPressTimerRef.current = window.setTimeout(() => {
+      openMenu(touch.clientX, touch.clientY, shift);
+    }, LONG_PRESS_MS);
+  };
+
+  const handleTouchEnd = () => {
+    clearLongPressTimer();
+  };
+
+  const handleTouchMove = () => {
+    clearLongPressTimer();
+  };
+
+  const handleEditFromMenu = () => {
+    if (!contextMenu) {
+      return;
+    }
+
+    onEditShift?.(contextMenu.shift);
+    closeMenu();
+  };
+
+  const handleDeleteFromMenu = () => {
+    if (!contextMenu) {
+      return;
+    }
+
+    onDeleteShift?.(contextMenu.shift.id);
+    closeMenu();
+  };
+
+  useEffect(() => {
+    const handleClick = () => closeMenu();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeMenu();
+      }
+    };
+
+    window.addEventListener("click", handleClick);
+    window.addEventListener("scroll", handleClick, true);
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("click", handleClick);
+      window.removeEventListener("scroll", handleClick, true);
+      window.removeEventListener("keydown", handleKeyDown);
+      clearLongPressTimer();
+    };
+  }, []);
+
   return (
     <div
       className={`shift-timeline ${
         printMode ? "shift-timeline-print" : "shift-timeline-normal"
-      }`}
+      } ${editable ? "shift-timeline-editable" : ""}`}
       style={
         {
           "--shift-lane-height": `${laneHeight}px`,
@@ -382,6 +529,12 @@ export default function ShiftTimeline({
                       top: `${barTopOffset + shift.lane * laneHeight}px`,
                     }}
                     title={`${shift.user_name} ${startTime}〜${endTime}`}
+                    onClick={(event) => handleClickShift(event, shift)}
+                    onContextMenu={(event) => handleContextMenu(event, shift)}
+                    onTouchStart={(event) => handleTouchStart(event, shift)}
+                    onTouchEnd={handleTouchEnd}
+                    onTouchCancel={handleTouchEnd}
+                    onTouchMove={handleTouchMove}
                   >
                     <span
                       className={
@@ -399,6 +552,25 @@ export default function ShiftTimeline({
           </div>
         );
       })}
+
+      {contextMenu && (
+        <div
+          className="shift-context-menu"
+          style={{
+            left: contextMenu.x,
+            top: contextMenu.y,
+          }}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <button type="button" onClick={handleEditFromMenu}>
+            編集
+          </button>
+
+          <button type="button" onClick={handleDeleteFromMenu}>
+            削除
+          </button>
+        </div>
+      )}
     </div>
   );
 }
