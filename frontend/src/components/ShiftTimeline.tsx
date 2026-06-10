@@ -32,8 +32,8 @@ const NORMAL_LANE_HEIGHT = 30;
 const NORMAL_BAR_TOP_OFFSET = 8;
 
 /*
-  印刷用は「大きく見せたい」けど、
-  行を大きくしすぎるとA3 1枚に収まらないので少し控えめ。
+  印刷用は大きく見せたいが、
+  行を大きくしすぎるとA3 1枚に収まらないため控えめ。
 */
 const PRINT_LANE_HEIGHT = 30;
 const PRINT_BAR_TOP_OFFSET = 6;
@@ -143,6 +143,7 @@ function groupShiftsByDate(shifts: ShiftForTimeline[]) {
     if (!map.has(shift.work_date)) {
       map.set(shift.work_date, []);
     }
+
     map.get(shift.work_date)?.push(shift);
   });
 
@@ -167,6 +168,7 @@ function positionShifts(shifts: ShiftForTimeline[]) {
       if (a.startValue !== b.startValue) {
         return a.startValue - b.startValue;
       }
+
       return a.endValue - b.endValue;
     });
 

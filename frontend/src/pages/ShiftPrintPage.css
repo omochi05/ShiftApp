@@ -1,7 +1,13 @@
 /* =========================
    ShiftPrintPage.css
    A3横印刷ページ
+   PC印刷 + スマホ表示ズレ修正版
 ========================= */
+
+.shift-print-page,
+.shift-print-sheet {
+  box-sizing: border-box;
+}
 
 .shift-print-page {
   min-height: 100vh;
@@ -9,6 +15,7 @@
   background: #ffffff !important;
   color: #000000 !important;
   overflow-x: auto;
+  overflow-y: auto;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -16,11 +23,13 @@
 .shift-print-actions {
   position: relative;
   z-index: 99999;
+
   display: flex;
   justify-content: center;
   gap: 12px;
   margin-bottom: 10px;
   flex-wrap: wrap;
+
   background: #ffffff !important;
   pointer-events: auto !important;
 }
@@ -29,14 +38,18 @@
 .print-main-button {
   position: relative;
   z-index: 100000;
+
   padding: 12px 24px;
   border: none;
   border-radius: 10px;
+
   background: #2563eb;
   color: #ffffff;
+
   font-size: 18px;
   font-weight: 900;
   cursor: pointer;
+
   pointer-events: auto !important;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -49,14 +62,14 @@
   font-weight: 900;
 }
 
-/* 印刷シート */
+/* =========================
+   PC表示
+========================= */
+
 .shift-print-sheet {
   position: relative;
   z-index: 1;
 
-  /*
-    画面上でも小さすぎないようにかなり広めに表示
-  */
   width: min(96vw, 1600px);
   max-width: none;
   margin: 0 auto;
@@ -84,13 +97,37 @@
   color: #000000 !important;
 }
 
-/* スマホ */
+/* =========================
+   スマホ表示
+   印刷画面のズレ防止
+========================= */
+
 @media screen and (max-width: 768px) {
+  html,
+  body {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background: #ffffff !important;
+  }
+
   .shift-print-page {
+    width: 100vw;
+    max-width: 100vw;
+
+    min-height: 100vh;
+
     padding: 8px;
     padding-top: 88px;
+
     overflow-x: auto;
+    overflow-y: auto;
+
     background: #ffffff !important;
+    color: #000000 !important;
+
+    -webkit-overflow-scrolling: touch;
   }
 
   .shift-print-actions {
@@ -120,13 +157,17 @@
   .print-main-button {
     position: relative;
     z-index: 100000;
+
     padding: 12px 16px;
     font-size: 16px;
     font-weight: 900;
+
     border: none;
     border-radius: 10px;
+
     background: #2563eb;
     color: #ffffff;
+
     cursor: pointer;
     pointer-events: auto !important;
     touch-action: manipulation;
@@ -134,25 +175,46 @@
   }
 
   .shift-print-sheet {
+    position: relative;
+    z-index: 1;
+
+    /*
+      スマホでは中央寄せしない。
+      左端から横スクロールで見るようにしてズレを防ぐ。
+    */
     width: 1400px;
+    min-width: 1400px;
     max-width: none;
+
     margin: 0;
     padding: 0;
+
+    transform: none !important;
+    zoom: 1 !important;
+    transform-origin: top left !important;
+
     background: #ffffff !important;
+    color: #000000 !important;
   }
 
   .shift-print-sheet h1 {
     font-size: 24px;
     margin: 0 0 2px;
+    text-align: center;
   }
 
   .shift-print-period {
     font-size: 14px;
     margin: 0 0 4px;
+    text-align: center;
   }
 }
 
-/* 印刷設定 */
+/* =========================
+   印刷設定
+   PC / スマホ共通で印刷時はこちらが効く
+========================= */
+
 @media print {
   @page {
     size: A3 landscape;
@@ -164,8 +226,12 @@
     width: 100%;
     margin: 0 !important;
     padding: 0 !important;
+
+    overflow: visible !important;
+
     background: #ffffff !important;
     color: #000000 !important;
+
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -173,9 +239,13 @@
   .shift-print-page {
     min-height: auto !important;
     width: 100% !important;
+    max-width: none !important;
+
     padding: 0 !important;
     margin: 0 !important;
+
     overflow: visible !important;
+
     background: #ffffff !important;
     color: #000000 !important;
   }
@@ -190,19 +260,24 @@
 
   .shift-print-sheet {
     width: 100% !important;
+    min-width: 0 !important;
     max-width: none !important;
+
     margin: 0 !important;
     padding: 0 !important;
+
+    transform: none !important;
+    transform-origin: top left !important;
+
     background: #ffffff !important;
     color: #000000 !important;
 
     /*
-      ここが今回のメイン調整。
-      前より大きく見せるために拡大。
-      もし2ページに行くなら 1.08 に下げる。
+      PCの印刷サイズ感を維持。
+      2ページに行くなら 1.08
+      まだ小さいなら 1.16
     */
     zoom: 1.12;
-    transform-origin: top center;
   }
 
   .shift-print-sheet h1 {
@@ -210,6 +285,7 @@
     margin: 0 0 1px !important;
     line-height: 1 !important;
     color: #000000 !important;
+    text-align: center !important;
   }
 
   .shift-print-period {
@@ -217,5 +293,6 @@
     margin: 0 0 2px !important;
     line-height: 1 !important;
     color: #000000 !important;
+    text-align: center !important;
   }
 }
