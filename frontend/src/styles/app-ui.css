@@ -1,0 +1,563 @@
+/* =========================
+   app-ui.css
+   ShiftApp 共通UI改善
+========================= */
+
+:root {
+  --app-bg: #f4f7fb;
+  --app-card: #ffffff;
+  --app-card-soft: #f8fafc;
+
+  --app-text: #111827;
+  --app-muted: #6b7280;
+  --app-border: #d1d5db;
+
+  --app-primary: #2563eb;
+  --app-primary-dark: #1d4ed8;
+
+  --app-success: #16a34a;
+  --app-warning: #f59e0b;
+  --app-danger: #dc2626;
+
+  --app-radius: 16px;
+  --app-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--app-bg);
+  color: var(--app-text);
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+/* =========================
+   全体レイアウト
+========================= */
+
+.app-page,
+.owner-dashboard,
+.manager-dashboard,
+.employee-dashboard {
+  width: 100%;
+  min-height: 100vh;
+  padding: 24px;
+  background: var(--app-bg);
+  color: var(--app-text);
+}
+
+.app-container,
+.owner-container,
+.dashboard-container {
+  width: min(100%, 1480px);
+  margin: 0 auto;
+}
+
+/* =========================
+   ヘッダー
+========================= */
+
+.app-header,
+.owner-header,
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  margin-bottom: 20px;
+  padding: 20px 24px;
+
+  background: linear-gradient(135deg, #ffffff, #eef4ff);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  box-shadow: var(--app-shadow);
+}
+
+.app-header h1,
+.owner-header h1,
+.dashboard-header h1 {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.app-header p,
+.owner-header p,
+.dashboard-header p {
+  margin: 4px 0 0;
+  color: var(--app-muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* =========================
+   カード
+========================= */
+
+.app-card,
+.dashboard-card,
+.owner-card,
+.summary-card,
+.section-card,
+.shift-card,
+.form-card {
+  background: var(--app-card);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  box-shadow: var(--app-shadow);
+}
+
+.app-card,
+.dashboard-card,
+.owner-card,
+.summary-card,
+.section-card,
+.shift-card,
+.form-card {
+  padding: 18px;
+}
+
+.app-card h2,
+.dashboard-card h2,
+.owner-card h2,
+.summary-card h2,
+.section-card h2,
+.shift-card h2,
+.form-card h2 {
+  margin: 0 0 14px;
+  color: var(--app-text);
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.app-card h3,
+.dashboard-card h3,
+.owner-card h3,
+.summary-card h3,
+.section-card h3,
+.shift-card h3,
+.form-card h3 {
+  margin: 0 0 12px;
+  color: var(--app-text);
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.app-grid,
+.dashboard-grid,
+.owner-grid,
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
+}
+
+.app-grid > *,
+.dashboard-grid > *,
+.owner-grid > *,
+.summary-grid > * {
+  min-width: 0;
+}
+
+/* =========================
+   ボタン
+========================= */
+
+button,
+.app-button,
+.primary-button,
+.secondary-button,
+.danger-button,
+.success-button {
+  border: none;
+  border-radius: 12px;
+  padding: 11px 16px;
+
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    opacity 0.12s ease,
+    background-color 0.12s ease;
+
+  touch-action: manipulation;
+}
+
+button:hover,
+.app-button:hover,
+.primary-button:hover,
+.secondary-button:hover,
+.danger-button:hover,
+.success-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+}
+
+button:active,
+.app-button:active,
+.primary-button:active,
+.secondary-button:active,
+.danger-button:active,
+.success-button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+button:disabled,
+.app-button:disabled,
+.primary-button:disabled,
+.secondary-button:disabled,
+.danger-button:disabled,
+.success-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.primary-button,
+.app-button-primary {
+  background: var(--app-primary);
+  color: #ffffff;
+}
+
+.secondary-button,
+.app-button-secondary {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.success-button,
+.app-button-success {
+  background: var(--app-success);
+  color: #ffffff;
+}
+
+.danger-button,
+.app-button-danger {
+  background: var(--app-danger);
+  color: #ffffff;
+}
+
+/* 既存のボタンにもある程度反映 */
+.owner-dashboard button,
+.manager-dashboard button,
+.employee-dashboard button {
+  background-color: var(--app-primary);
+  color: #ffffff;
+}
+
+.owner-dashboard button:hover,
+.manager-dashboard button:hover,
+.employee-dashboard button:hover {
+  background-color: var(--app-primary-dark);
+}
+
+/* =========================
+   入力欄
+========================= */
+
+input,
+select,
+textarea {
+  width: 100%;
+  min-height: 42px;
+
+  padding: 10px 12px;
+
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+
+  background: #ffffff;
+  color: var(--app-text);
+
+  font-size: 15px;
+  font-weight: 700;
+
+  outline: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--app-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--app-text);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.form-row,
+.input-row,
+.filter-row {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.form-row > *,
+.input-row > *,
+.filter-row > * {
+  min-width: 160px;
+  flex: 1;
+}
+
+/* =========================
+   テーブル
+========================= */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+}
+
+th,
+td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  vertical-align: middle;
+}
+
+th {
+  background: #f8fafc;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+td {
+  color: #111827;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+tr:hover td {
+  background: #f9fafb;
+}
+
+/* =========================
+   ステータス表示
+========================= */
+
+.status-badge,
+.role-badge,
+.confirm-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 28px;
+  padding: 6px 10px;
+
+  border-radius: 999px;
+  background: #e0edff;
+  color: #1d4ed8;
+
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.status-badge.success,
+.confirm-badge.confirmed {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-badge.warning {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.status-badge.danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* =========================
+   余白ユーティリティ
+========================= */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.muted {
+  color: var(--app-muted);
+}
+
+.text-strong {
+  font-weight: 900;
+}
+
+/* =========================
+   シフト周りの見た目補助
+========================= */
+
+.shift-section,
+.shift-template-section,
+.shift-list-section,
+.shift-summary-section {
+  margin-top: 16px;
+  padding: 18px;
+
+  background: #ffffff;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  box-shadow: var(--app-shadow);
+}
+
+.shift-template-actions,
+.shift-template-actions-bottom,
+.shift-actions,
+.owner-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+
+  margin: 14px 0;
+}
+
+.shift-template-actions-bottom {
+  justify-content: center;
+  padding: 12px;
+}
+
+/* =========================
+   スマホ対応
+========================= */
+
+@media screen and (max-width: 768px) {
+  .app-page,
+  .owner-dashboard,
+  .manager-dashboard,
+  .employee-dashboard {
+    padding: 12px;
+  }
+
+  .app-header,
+  .owner-header,
+  .dashboard-header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .app-header h1,
+  .owner-header h1,
+  .dashboard-header h1 {
+    font-size: 22px;
+  }
+
+  .app-grid,
+  .dashboard-grid,
+  .owner-grid,
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row,
+  .input-row,
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-row > *,
+  .input-row > *,
+  .filter-row > * {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .shift-template-actions,
+  .shift-template-actions-bottom,
+  .shift-actions,
+  .owner-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .shift-template-actions button,
+  .shift-template-actions-bottom button,
+  .shift-actions button,
+  .owner-actions button {
+    width: 100%;
+  }
+
+  table {
+    min-width: 720px;
+  }
+
+  .table-wrap,
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* =========================
+   印刷時はアプリUIを消す
+========================= */
+
+@media print {
+  .print-hide,
+  .app-header,
+  .owner-header,
+  .dashboard-header,
+  .shift-template-actions,
+  .shift-template-actions-bottom,
+  .shift-actions,
+  .owner-actions {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+  }
+}
