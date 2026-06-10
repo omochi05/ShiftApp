@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import "./ShiftTimeline.css";
 
 type ShiftForTimeline = {
@@ -200,58 +201,53 @@ function positionShifts(shifts: ShiftForTimeline[]) {
   };
 }
 
-/*
-  A3に収まるように印刷サイズを自動調整する。
-  最大レーン数が少ない週は枠を大きく、
-  多い週は自動で少し小さくする。
-*/
 function getAutoPrintSize(maxLaneCount: number): AutoPrintSize {
   if (maxLaneCount <= 1) {
     return {
-      laneHeight: 42,
-      barHeight: 34,
+      laneHeight: 44,
+      barHeight: 36,
       barTopOffset: 5,
-      nameFontSize: 18,
+      nameFontSize: 19,
       barPaddingX: 12,
     };
   }
 
   if (maxLaneCount === 2) {
     return {
-      laneHeight: 37,
-      barHeight: 30,
+      laneHeight: 39,
+      barHeight: 32,
       barTopOffset: 5,
-      nameFontSize: 17,
+      nameFontSize: 18,
       barPaddingX: 11,
     };
   }
 
   if (maxLaneCount === 3) {
     return {
-      laneHeight: 32,
-      barHeight: 26,
+      laneHeight: 34,
+      barHeight: 28,
       barTopOffset: 5,
-      nameFontSize: 15,
-      barPaddingX: 9,
+      nameFontSize: 16,
+      barPaddingX: 10,
     };
   }
 
   if (maxLaneCount === 4) {
     return {
-      laneHeight: 28,
-      barHeight: 23,
+      laneHeight: 31,
+      barHeight: 25,
       barTopOffset: 4,
-      nameFontSize: 13.5,
-      barPaddingX: 7,
+      nameFontSize: 15,
+      barPaddingX: 8,
     };
   }
 
   return {
-    laneHeight: 24,
-    barHeight: 20,
+    laneHeight: 27,
+    barHeight: 22,
     barTopOffset: 3,
-    nameFontSize: 12,
-    barPaddingX: 6,
+    nameFontSize: 13.5,
+    barPaddingX: 7,
   };
 }
 
@@ -282,9 +278,7 @@ export default function ShiftTimeline({
     ? autoPrintSize.laneHeight
     : NORMAL_LANE_HEIGHT;
 
-  const barHeight = printMode
-    ? autoPrintSize.barHeight
-    : NORMAL_BAR_HEIGHT;
+  const barHeight = printMode ? autoPrintSize.barHeight : NORMAL_BAR_HEIGHT;
 
   const barTopOffset = printMode
     ? autoPrintSize.barTopOffset
@@ -310,7 +304,7 @@ export default function ShiftTimeline({
           "--shift-bar-top-offset": `${barTopOffset}px`,
           "--shift-name-font-size": `${nameFontSize}px`,
           "--shift-bar-padding-x": `${barPaddingX}px`,
-        } as React.CSSProperties
+        } as CSSProperties
       }
     >
       {groupedWithPositions.map(({ date, positioned, laneCount }) => {

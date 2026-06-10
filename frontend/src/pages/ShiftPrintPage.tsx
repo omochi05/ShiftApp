@@ -283,10 +283,6 @@ export default function ShiftPrintPage() {
 
     try {
       const canvas = await html2canvas(target, {
-        /*
-          ファイル容量を抑えるため scale は 1.4。
-          画質が荒い場合は 1.6 に上げてもOK。
-        */
         scale: 1.4,
         backgroundColor: "#ffffff",
         useCORS: true,
@@ -295,10 +291,6 @@ export default function ShiftPrintPage() {
         windowHeight: target.scrollHeight,
       });
 
-      /*
-        PDF/画像の容量を抑えるため最大横幅を制限。
-        画質を上げたい場合は 2000、さらに軽くしたい場合は 1600。
-      */
       return resizeCanvas(canvas, 1800);
     } finally {
       target.classList.remove("pdf-capture-mode");
@@ -310,11 +302,6 @@ export default function ShiftPrintPage() {
       setFileLoading(true);
 
       const canvas = await createShiftCanvas();
-
-      /*
-        PNGではなくJPEGでPDFに貼り付ける。
-        0.62は軽さ重視。画質を上げたい場合は0.72。
-      */
       const imgData = canvas.toDataURL("image/jpeg", 0.62);
 
       const pdf = new jsPDF({
@@ -328,11 +315,11 @@ export default function ShiftPrintPage() {
       const pageHeight = pdf.internal.pageSize.getHeight();
 
       /*
-        印刷時に上下左右が少し見切れないよう、
-        PDF内に安全余白を作る。
+        上下が見切れないように余白を強めに設定。
+        まだ切れる場合は marginY を 20〜22 に上げる。
       */
-      const marginX = 5;
-      const marginY = 8;
+      const marginX = 10;
+      const marginY = 16;
 
       const printableWidth = pageWidth - marginX * 2;
       const printableHeight = pageHeight - marginY * 2;
