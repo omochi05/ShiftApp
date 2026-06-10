@@ -89,15 +89,27 @@ function getWeekStartDateFromUrl() {
   return getMondayOfCurrentWeek();
 }
 
-function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+/*
+  画像保存用。
+  PNGではなくJPEGにして容量を軽くする。
+*/
+function canvasToBlob(
+  canvas: HTMLCanvasElement,
+  type = "image/jpeg",
+  quality = 0.85
+): Promise<Blob> {
   return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) {
-        resolve(blob);
-      } else {
-        reject(new Error("画像データの作成に失敗しました"));
-      }
-    }, "image/png");
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error("画像データの作成に失敗しました"));
+        }
+      },
+      type,
+      quality
+    );
   });
 }
 
@@ -241,7 +253,7 @@ export default function ShiftPrintPage() {
 
     /*
       PDF/画像作成中だけ専用クラスを付ける。
-      ShiftTimeline.css 側の .pdf-capture-mode が効く。
+      ShiftTimeline.css の .pdf-capture-mode が効く。
     */
     target.classList.add("pdf-capture-mode");
 
@@ -249,7 +261,11 @@ export default function ShiftPrintPage() {
 
     try {
       const canvas = await html2canvas(target, {
-        scale: 3,
+        /*
+          3だと10MBを超えやすい。
+          2なら文字が読めて、容量もかなり軽くなる。
+        */
+        scale: 2,
         backgroundColor: "#ffffff",
         useCORS: true,
         logging: false,
@@ -268,12 +284,18 @@ export default function ShiftPrintPage() {
       setFileLoading(true);
 
       const canvas = await createShiftCanvas();
-      const imgData = canvas.toDataURL("image/png");
+
+      /*
+        PNGではなくJPEGでPDFに貼り付ける。
+        0.82くらいが軽さと読みやすさのバランスがいい。
+      */
+      const imgData = canvas.toDataURL("image/jpeg", 0.82);
 
       const pdf = new jsPDF({
         orientation: "landscape",
         unit: "mm",
         format: "a3",
+        compress: true,
       });
 
       const pageWidth = pdf.internal.pageSize.getWidth();
@@ -290,7 +312,16 @@ export default function ShiftPrintPage() {
       const x = (pageWidth - imageWidth) / 2;
       const y = 0;
 
-      pdf.addImage(imgData, "PNG", x, y, imageWidth, imageHeight);
+      pdf.addImage(
+        imgData,
+        "JPEG",
+        x,
+        y,
+        imageWidth,
+        imageHeight,
+        undefined,
+        "FAST"
+      );
 
       const pdfBlob = pdf.output("blob");
       const fileName = `shift-${weekStartDate}-${weekEndDate}.pdf`;
@@ -313,11 +344,16 @@ export default function ShiftPrintPage() {
       setFileLoading(true);
 
       const canvas = await createShiftCanvas();
-      const imageBlob = await canvasToBlob(canvas);
-      const fileName = `shift-${weekStartDate}-${weekEndDate}.png`;
+
+      /*
+        画像保存もJPEGにする。
+        PNGよりかなり軽くなる。
+      */
+      const imageBlob = await canvasToBlob(canvas, "image/jpeg", 0.85);
+      const fileName = `shift-${weekStartDate}-${weekEndDate}.jpg`;
 
       const file = new File([imageBlob], fileName, {
-        type: "image/png",
+        type: "image/jpeg",
       });
 
       await shareOrDownloadFile(file, imageBlob);
