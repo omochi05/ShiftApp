@@ -65,10 +65,6 @@ function AppContent() {
           <strong className="app-nav-title">
             ShiftApp {ownerName ? ` / ${ownerName}` : ""}
           </strong>
-
-          <Link to="/owner" className="app-nav-link">
-            オーナー
-          </Link>
         </nav>
       )}
 
