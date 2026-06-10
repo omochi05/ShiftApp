@@ -1,0 +1,153 @@
+/* =========================
+   LaborCostSummary.css
+   週ごとの人件費表示
+========================= */
+
+.labor-cost-section {
+  margin-bottom: 18px;
+  padding: 18px;
+
+  background: #ffffff !important;
+  border: 1px solid #d1d5db;
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.labor-cost-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  margin-bottom: 14px;
+}
+
+.labor-cost-header h2 {
+  margin: 0 0 6px;
+
+  color: #111827 !important;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.labor-cost-header p {
+  margin: 0;
+
+  color: #6b7280 !important;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.labor-cost-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+
+  margin-bottom: 16px;
+}
+
+.labor-cost-card {
+  padding: 16px;
+
+  background: #f9fafb !important;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+}
+
+.labor-cost-card.main {
+  background: #111827 !important;
+  color: #ffffff !important;
+}
+
+.labor-cost-card span {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #6b7280 !important;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.labor-cost-card.main span {
+  color: #d1d5db !important;
+}
+
+.labor-cost-card strong {
+  display: block;
+
+  color: #111827 !important;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.labor-cost-card.main strong {
+  color: #ffffff !important;
+  font-size: 28px;
+}
+
+.labor-cost-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.labor-cost-table {
+  width: 100%;
+  min-width: 760px;
+
+  border-collapse: collapse;
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+
+.labor-cost-table th,
+.labor-cost-table td {
+  padding: 12px 10px;
+
+  border: 1px solid #d1d5db;
+
+  color: #111827 !important;
+  font-size: 14px;
+  font-weight: 800;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.labor-cost-table th {
+  background: #f3f4f6 !important;
+  font-weight: 900;
+}
+
+.labor-cost-table td:last-child {
+  font-weight: 900;
+}
+
+@media screen and (max-width: 900px) {
+  .labor-cost-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 520px) {
+  .labor-cost-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .labor-cost-section {
+    padding: 14px;
+  }
+
+  .labor-cost-card strong {
+    font-size: 22px;
+  }
+
+  .labor-cost-card.main strong {
+    font-size: 26px;
+  }
+}
+
+@media print {
+  .labor-cost-section {
+    display: none !important;
+  }
+}
