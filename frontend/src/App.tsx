@@ -69,21 +69,6 @@ function AppContent() {
           <Link to="/owner" className="app-nav-link">
             オーナー
           </Link>
-
-          <Link
-            to={`/print/shifts?weekStartDate=${printWeekStartDate}`}
-            className="app-nav-link"
-          >
-            シフト表印刷
-          </Link>
-
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="app-nav-logout"
-          >
-            ログアウト
-          </button>
         </nav>
       )}
 
