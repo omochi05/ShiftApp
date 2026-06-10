@@ -812,3 +812,78 @@ tr:hover td {
 .owner-menu-wrap {
   display: block !important;
 }
+
+/* =========================
+   テーブル表示修正
+   曜日別・従業員一覧を隠さず見やすくする
+========================= */
+
+.weekday-table-wrap,
+.table-wrap,
+.table-container {
+  background: #ffffff !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 16px !important;
+  overflow-x: auto;
+}
+
+.weekday-table,
+.weekday-table thead,
+.weekday-table tbody,
+.weekday-table tr,
+.weekday-table th,
+.weekday-table td,
+table,
+thead,
+tbody,
+tr,
+th,
+td {
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+
+.weekday-table th,
+table th {
+  background: #f8fafc !important;
+  color: #111827 !important;
+  font-weight: 900 !important;
+}
+
+.weekday-table td,
+table td {
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-weight: 800 !important;
+}
+
+.weekday-table tr:hover td,
+table tr:hover td {
+  background: #eff6ff !important;
+  color: #111827 !important;
+}
+
+/* 編集・削除ボタンは見えるように残す */
+.table-action-buttons {
+  display: flex !important;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.table-edit-button,
+.table-save-button {
+  background: #2563eb !important;
+  color: #ffffff !important;
+}
+
+.table-delete-button {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border: 1px solid #ef4444 !important;
+}
+
+.table-cancel-button {
+  background: #6b7280 !important;
+  color: #ffffff !important;
+}
