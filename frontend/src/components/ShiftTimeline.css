@@ -47,6 +47,11 @@
   line-height: 1.2;
 }
 
+.shift-timeline-date-red,
+.shift-timeline-date-red span {
+  color: #dc2626 !important;
+}
+
 .shift-timeline-hours {
   grid-column: 2;
   grid-row: 1;
@@ -278,6 +283,13 @@
     line-height: 1.05 !important;
   }
 
+  .shift-timeline-date-red,
+  .shift-timeline-date-red span {
+    color: #dc2626 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
   .shift-timeline-hours {
     min-height: 18px !important;
 
@@ -392,6 +404,11 @@
   border-right: 2px solid #000000 !important;
   background: #ffffff !important;
   color: #000000 !important;
+}
+
+.pdf-capture-mode .shift-timeline-date-red,
+.pdf-capture-mode .shift-timeline-date-red span {
+  color: #dc2626 !important;
 }
 
 .pdf-capture-mode .shift-timeline-hours {

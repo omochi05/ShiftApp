@@ -1,4 +1,8 @@
 import type { CSSProperties } from "react";
+import {
+  getJapaneseHolidayName,
+  isSundayOrJapaneseHoliday,
+} from "../utils/japaneseHolidays";
 import "./ShiftTimeline.css";
 
 type ShiftForTimeline = {
@@ -315,9 +319,16 @@ export default function ShiftTimeline({
             )
           : Math.max(66, laneCount * laneHeight + 16);
 
+        const holidayName = getJapaneseHolidayName(date);
+
         return (
           <div key={date} className="shift-timeline-day">
-            <div className="shift-timeline-date">
+            <div
+              className={`shift-timeline-date ${
+                isSundayOrJapaneseHoliday(date) ? "shift-timeline-date-red" : ""
+              }`}
+              title={holidayName}
+            >
               {formatDate(date)
                 .split("\n")
                 .map((line) => (
