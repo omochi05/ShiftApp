@@ -395,15 +395,6 @@ function OwnerDashboard() {
     navigate(`/owner/print/shifts?weekStartDate=${weekStartDate}`);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("ownerLogin");
-    localStorage.removeItem("ownerId");
-    localStorage.removeItem("ownerName");
-    localStorage.removeItem("ownerNumber");
-
-    navigate("/");
-  };
-
   const handleCreateSale = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -769,7 +760,10 @@ function OwnerDashboard() {
   return (
     <div className="owner-page">
       <header className="owner-header">
-        <h1>ShiftApp / オーナー</h1>
+        <div>
+          <h1>ShiftApp / オーナー</h1>
+          <p>売上・人件費・従業員・シフトを管理できます</p>
+        </div>
       </header>
 
       <section className="summary-grid">
@@ -1290,7 +1284,7 @@ function OwnerDashboard() {
         </p>
 
         <p className="form-message print-hide">
-          PC・スマホどちらも上部の「シフト表印刷」ボタンから印刷専用ページで印刷できます。
+          印刷やPDF保存は、下の「シフト表印刷」から行えます。
         </p>
 
         <div className="timeline-wrap">
@@ -1307,6 +1301,10 @@ function OwnerDashboard() {
 
           <button type="button" onClick={handleNextWeek}>
             次の週
+          </button>
+
+          <button type="button" onClick={handleOpenPrintPage}>
+            シフト表印刷
           </button>
 
           <button type="button" onClick={handleCreateTemplateFromWeek}>
