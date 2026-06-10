@@ -205,10 +205,19 @@ export default function ShiftPrintPage() {
 
       const target = sheetRef.current;
 
+      /*
+        PDF作成中だけ専用クラスを付ける。
+        html2canvasで細い縦線が消えないようにする。
+      */
+      target.classList.add("pdf-capture-mode");
+
+      await new Promise((resolve) => setTimeout(resolve, 120));
+
       const canvas = await html2canvas(target, {
-        scale: 2,
+        scale: 3,
         backgroundColor: "#ffffff",
         useCORS: true,
+        logging: false,
         windowWidth: target.scrollWidth,
         windowHeight: target.scrollHeight,
       });
@@ -236,12 +245,12 @@ export default function ShiftPrintPage() {
       const y = 0;
 
       pdf.addImage(imgData, "PNG", x, y, imageWidth, imageHeight);
-
       pdf.save(`shift-${weekStartDate}-${weekEndDate}.pdf`);
     } catch (error) {
       console.error("PDF作成失敗:", error);
       alert("PDFの作成に失敗しました。もう一度試してください。");
     } finally {
+      sheetRef.current?.classList.remove("pdf-capture-mode");
       setPdfLoading(false);
     }
   };
