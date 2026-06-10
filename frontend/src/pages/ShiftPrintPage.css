@@ -1,121 +1,173 @@
 /* =========================
    ShiftPrintPage.css
-   A3横印刷ページ
-   PDF保存 / 画像保存 / スマホ対応
+   A3横 印刷用シフト表
 ========================= */
-
-.shift-print-page,
-.shift-print-sheet {
-  box-sizing: border-box;
-}
 
 .shift-print-page {
   min-height: 100vh;
-  padding: 10px;
-  background: #ffffff !important;
+  padding: 24px;
+  background: #f3f4f6 !important;
   color: #000000 !important;
-  overflow-x: auto;
-  overflow-y: auto;
-  -webkit-text-size-adjust: 100%;
 }
 
-/* ボタン */
 .shift-print-actions {
-  position: relative;
-  z-index: 99999;
-
   display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 10px;
   flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
 
-  background: #ffffff !important;
-  pointer-events: auto !important;
+  margin-bottom: 18px;
+  padding: 14px;
+
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
 }
 
-.shift-print-actions button,
-.print-main-button,
-.pdf-main-button,
-.image-main-button {
-  position: relative;
-  z-index: 100000;
+.shift-print-actions button {
+  min-height: 44px;
+  padding: 0 16px;
 
-  padding: 12px 24px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
 
+  background: #374151;
   color: #ffffff;
 
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 900;
-  cursor: pointer;
 
-  pointer-events: auto !important;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
 }
 
-.print-main-button {
-  background: #2563eb !important;
+.shift-print-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .pdf-main-button {
-  background: #111827 !important;
+  background: #dc2626 !important;
 }
 
 .image-main-button {
-  background: #16a34a !important;
+  background: #2563eb !important;
 }
 
-.shift-print-actions button:disabled,
-.print-main-button:disabled,
-.pdf-main-button:disabled,
-.image-main-button:disabled {
-  opacity: 0.6;
-  cursor: wait;
+.print-main-button {
+  background: #111827 !important;
+}
+
+.shift-print-week-selector {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-right: auto;
+}
+
+.shift-print-week-selector label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  color: #111827;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.shift-print-week-selector input {
+  min-height: 44px;
+  padding: 8px 12px;
+
+  background: #ffffff;
+  color: #111827;
+
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.shift-print-week-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.shift-print-week-buttons button {
+  background: #111827 !important;
+}
+
+.shift-print-sheet {
+  width: 100%;
+  max-width: 1600px;
+
+  margin: 0 auto;
+  padding: 18px;
+
+  background: #ffffff !important;
+  color: #000000 !important;
+
+  border: 3px solid #000000;
+  box-sizing: border-box;
+}
+
+.shift-print-sheet h1 {
+  margin: 0 0 4px;
+
+  color: #000000 !important;
+  font-size: 30px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.shift-print-period {
+  margin: 0 0 12px;
+
+  color: #000000 !important;
+  font-size: 18px;
+  font-weight: 900;
+  text-align: center;
 }
 
 .shift-print-message,
 .shift-print-error {
-  text-align: center;
-  font-size: 22px;
+  padding: 20px;
+
+  background: #ffffff;
+  color: #111827;
+
+  border: 1px solid #d1d5db;
+  border-radius: 16px;
+
+  font-size: 18px;
   font-weight: 900;
 }
 
-/* =========================
-   PC表示
-========================= */
+.shift-print-error {
+  color: #dc2626;
+}
 
-.shift-print-sheet {
-  position: relative;
-  z-index: 1;
-
-  width: min(96vw, 1600px);
-  max-width: none;
-  margin: 0 auto;
-  padding: 0;
-
+/* PDF保存時は少しだけ余白を整える */
+.pdf-capture-mode {
   background: #ffffff !important;
   color: #000000 !important;
 }
 
-.shift-print-sheet h1 {
-  margin: 0 0 2px;
-  text-align: center;
-  font-size: 26px;
-  font-weight: 900;
-  line-height: 1.1;
-  color: #000000 !important;
+.pdf-capture-mode.shift-print-sheet {
+  max-width: 1600px;
+  padding: 14px;
+  border: 3px solid #000000;
 }
 
-.shift-print-period {
-  margin: 0 0 4px;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 900;
-  line-height: 1.1;
-  color: #000000 !important;
+.pdf-capture-mode h1 {
+  font-size: 28px;
+}
+
+.pdf-capture-mode .shift-print-period {
+  font-size: 17px;
 }
 
 /* =========================
@@ -123,213 +175,62 @@
 ========================= */
 
 @media screen and (max-width: 768px) {
-  html,
-  body {
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-    background: #ffffff !important;
-  }
-
   .shift-print-page {
-    width: 100vw;
-    max-width: 100vw;
-
-    min-height: 100vh;
-
-    padding: 8px;
-    padding-top: 96px;
-
-    overflow-x: auto;
-    overflow-y: auto;
-
-    background: #ffffff !important;
-    color: #000000 !important;
-
-    -webkit-overflow-scrolling: touch;
+    padding: 12px;
   }
 
   .shift-print-actions {
-    position: fixed;
-    top: 8px;
-    left: 8px;
-    right: 8px;
-    z-index: 99999;
-
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 8px;
-
-    margin: 0;
-    padding: 8px;
-
-    background: #ffffff !important;
-    border: 2px solid #000000;
-    border-radius: 12px;
-
-    box-sizing: border-box;
-    pointer-events: auto !important;
-
-    overflow-x: auto;
-    white-space: nowrap;
+    align-items: stretch;
+    flex-direction: column;
   }
 
-  .shift-print-actions button,
-  .print-main-button,
-  .pdf-main-button,
-  .image-main-button {
-    position: relative;
-    z-index: 100000;
+  .shift-print-actions button {
+    width: 100%;
+  }
 
-    flex: 0 0 auto;
+  .shift-print-week-selector {
+    width: 100%;
+    margin-right: 0;
+  }
 
-    padding: 11px 14px;
-    font-size: 15px;
-    font-weight: 900;
+  .shift-print-week-selector label {
+    width: 100%;
+  }
 
-    border: none;
-    border-radius: 10px;
+  .shift-print-week-selector input {
+    width: 100%;
+  }
 
-    color: #ffffff;
+  .shift-print-week-buttons {
+    width: 100%;
+  }
 
-    cursor: pointer;
-    pointer-events: auto !important;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
+  .shift-print-week-buttons button {
+    flex: 1;
   }
 
   .shift-print-sheet {
-    position: relative;
-    z-index: 1;
-
-    width: 1400px;
-    min-width: 1400px;
-    max-width: none;
-
-    margin: 0;
-    padding: 0;
-
-    transform: none !important;
-    zoom: 1 !important;
-    transform-origin: top left !important;
-
-    background: #ffffff !important;
-    color: #000000 !important;
-  }
-
-  .shift-print-sheet h1 {
-    font-size: 24px;
-    margin: 0 0 2px;
-    text-align: center;
-  }
-
-  .shift-print-period {
-    font-size: 14px;
-    margin: 0 0 4px;
-    text-align: center;
+    overflow-x: auto;
   }
 }
 
 /* =========================
-   PC印刷設定
+   印刷用 A3横
 ========================= */
+
+@page {
+  size: A3 landscape;
+  margin: 6mm;
+}
 
 @media print {
-  @page {
-    size: A3 landscape;
-    margin: 0mm;
-  }
-
   html,
   body {
-    width: 100%;
-    margin: 0 !important;
-    padding: 0 !important;
-
-    overflow: visible !important;
-
-    background: #ffffff !important;
-    color: #000000 !important;
-
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  .shift-print-page {
-    min-height: auto !important;
-    width: 100% !important;
-    max-width: none !important;
-
-    padding: 0 !important;
-    margin: 0 !important;
-
-    overflow: visible !important;
-
-    background: #ffffff !important;
-    color: #000000 !important;
-  }
-
-  .shift-print-actions,
-  .app-nav,
-  .owner-header,
-  nav,
-  header {
-    display: none !important;
-  }
-
-  .shift-print-sheet {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
+    width: 420mm;
+    height: 297mm;
 
     margin: 0 !important;
     padding: 0 !important;
-
-    transform: none !important;
-    transform-origin: top left !important;
-
-    background: #ffffff !important;
-    color: #000000 !important;
-
-    zoom: 1.12;
-  }
-
-  .shift-print-sheet h1 {
-    font-size: 22px !important;
-    margin: 0 0 1px !important;
-    line-height: 1 !important;
-    color: #000000 !important;
-    text-align: center !important;
-  }
-
-  .shift-print-period {
-    font-size: 12px !important;
-    margin: 0 0 1px !important;
-    line-height: 1 !important;
-    color: #000000 !important;
-    text-align: center !important;
-  }
-}
-
-/* =========================
-   スマホ印刷専用
-========================= */
-
-@media print and (max-width: 768px) {
-  @page {
-    size: A3 landscape;
-    margin: 0mm;
-  }
-
-  html,
-  body {
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-
-    overflow: visible !important;
 
     background: #ffffff !important;
     color: #000000 !important;
@@ -339,50 +240,46 @@
   }
 
   .shift-print-page {
-    width: 100% !important;
-    max-width: none !important;
+    width: 420mm;
+    min-height: 297mm;
 
-    min-height: auto !important;
-
-    margin: 0 !important;
     padding: 0 !important;
 
-    overflow: visible !important;
-
     background: #ffffff !important;
-    color: #000000 !important;
+  }
+
+  .shift-print-actions {
+    display: none !important;
   }
 
   .shift-print-sheet {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
+    width: 100%;
+    max-width: none;
 
-    margin: 0 !important;
-    padding: 0 !important;
+    margin: 0 auto !important;
+    padding: 4mm !important;
 
-    transform: none !important;
-    transform-origin: top left !important;
+    border: 2px solid #000000 !important;
 
     background: #ffffff !important;
     color: #000000 !important;
 
-    zoom: 1.05 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   .shift-print-sheet h1 {
-    font-size: 21px !important;
-    margin: 0 !important;
-    line-height: 1 !important;
-    text-align: center !important;
-    color: #000000 !important;
+    margin-bottom: 1mm !important;
+
+    font-size: 17pt !important;
+    line-height: 1.05 !important;
   }
 
   .shift-print-period {
-    font-size: 11.5px !important;
-    margin: 0 !important;
-    line-height: 1 !important;
-    text-align: center !important;
-    color: #000000 !important;
+    margin-bottom: 3mm !important;
+
+    font-size: 10pt !important;
+    line-height: 1.05 !important;
   }
 }

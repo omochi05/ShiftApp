@@ -175,13 +175,18 @@ async function shareOrDownloadFile(file: File, fallbackBlob: Blob) {
 export default function ShiftPrintPage() {
   const sheetRef = useRef<HTMLElement | null>(null);
 
+  const initialWeekStartDate = useMemo(() => getWeekStartDateFromUrl(), []);
+
+  const [selectedWeekStartDate, setSelectedWeekStartDate] =
+    useState(initialWeekStartDate);
+
   const [users, setUsers] = useState<User[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(true);
   const [fileLoading, setFileLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const weekStartDate = useMemo(() => getWeekStartDateFromUrl(), []);
+  const weekStartDate = selectedWeekStartDate;
   const weekEndDate = addDays(weekStartDate, 6);
 
   const weekDates = useMemo(
@@ -212,6 +217,27 @@ export default function ShiftPrintPage() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("weekStartDate", selectedWeekStartDate);
+
+    const newUrl = `${window.location.pathname}?${params.toString()}${window.location.hash}`;
+
+    window.history.replaceState(null, "", newUrl);
+  }, [selectedWeekStartDate]);
+
+  const handlePrevWeek = () => {
+    setSelectedWeekStartDate((prev) => addDays(prev, -7));
+  };
+
+  const handleNextWeek = () => {
+    setSelectedWeekStartDate((prev) => addDays(prev, 7));
+  };
+
+  const handleThisWeek = () => {
+    setSelectedWeekStartDate(getMondayOfCurrentWeek());
+  };
 
   const timelineShiftsBeforeDedup: ShiftForTimeline[] = shifts.map((shift) => {
     const user = users.find((u) => u.id === shift.user_id);
@@ -421,6 +447,35 @@ export default function ShiftPrintPage() {
   return (
     <div className="shift-print-page">
       <div className="shift-print-actions">
+        <div className="shift-print-week-selector">
+          <label>
+            印刷する週
+            <input
+              type="date"
+              value={selectedWeekStartDate}
+              onChange={(e) => setSelectedWeekStartDate(e.target.value)}
+            />
+          </label>
+
+          <div className="shift-print-week-buttons">
+            <button type="button" onClick={handlePrevWeek} disabled={fileLoading}>
+              前の週
+            </button>
+
+            <button
+              type="button"
+              onClick={handleThisWeek}
+              disabled={fileLoading}
+            >
+              今週
+            </button>
+
+            <button type="button" onClick={handleNextWeek} disabled={fileLoading}>
+              次の週
+            </button>
+          </div>
+        </div>
+
         <button
           type="button"
           className="pdf-main-button"
