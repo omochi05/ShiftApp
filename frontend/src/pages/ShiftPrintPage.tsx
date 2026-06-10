@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 import ShiftTimeline from "../components/ShiftTimeline";
 import { api } from "../api/client";
 import "./ShiftPrintPage.css";
@@ -88,9 +90,12 @@ function getWeekStartDateFromUrl() {
 }
 
 export default function ShiftPrintPage() {
+  const sheetRef = useRef<HTMLElement | null>(null);
+
   const [users, setUsers] = useState<User[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const weekStartDate = useMemo(() => getWeekStartDateFromUrl(), []);
@@ -190,6 +195,57 @@ export default function ShiftPrintPage() {
     window.history.back();
   };
 
+  const handleDownloadPdf = async () => {
+    if (!sheetRef.current) {
+      return;
+    }
+
+    try {
+      setPdfLoading(true);
+
+      const target = sheetRef.current;
+
+      const canvas = await html2canvas(target, {
+        scale: 2,
+        backgroundColor: "#ffffff",
+        useCORS: true,
+        windowWidth: target.scrollWidth,
+        windowHeight: target.scrollHeight,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a3",
+      });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      const ratio = Math.min(
+        pageWidth / canvas.width,
+        pageHeight / canvas.height
+      );
+
+      const imageWidth = canvas.width * ratio;
+      const imageHeight = canvas.height * ratio;
+
+      const x = (pageWidth - imageWidth) / 2;
+      const y = 0;
+
+      pdf.addImage(imgData, "PNG", x, y, imageWidth, imageHeight);
+
+      pdf.save(`shift-${weekStartDate}-${weekEndDate}.pdf`);
+    } catch (error) {
+      console.error("PDF作成失敗:", error);
+      alert("PDFの作成に失敗しました。もう一度試してください。");
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="shift-print-page">
@@ -219,6 +275,15 @@ export default function ShiftPrintPage() {
   return (
     <div className="shift-print-page">
       <div className="shift-print-actions">
+        <button
+          type="button"
+          className="pdf-main-button"
+          onClick={handleDownloadPdf}
+          disabled={pdfLoading}
+        >
+          {pdfLoading ? "PDF作成中..." : "PDFを作成"}
+        </button>
+
         <button type="button" className="print-main-button" onClick={handlePrint}>
           このシフト表を印刷
         </button>
@@ -228,7 +293,7 @@ export default function ShiftPrintPage() {
         </button>
       </div>
 
-      <main className="shift-print-sheet">
+      <main ref={sheetRef} className="shift-print-sheet">
         <h1>週間シフト表</h1>
 
         <p className="shift-print-period">

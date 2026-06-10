@@ -373,3 +373,12 @@
     color: #000000 !important;
   }
 }
+.pdf-main-button {
+  background: #111827 !important;
+  color: #ffffff !important;
+}
+
+.pdf-main-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
