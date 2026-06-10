@@ -237,7 +237,7 @@ function getAutoPrintSize(maxLaneCount: number): AutoPrintSize {
       laneHeight: 31,
       barHeight: 25,
       barTopOffset: 4,
-      nameFontSize: 15,
+      nameFontSize: 16,
       barPaddingX: 8,
     };
   }
@@ -246,7 +246,7 @@ function getAutoPrintSize(maxLaneCount: number): AutoPrintSize {
     laneHeight: 27,
     barHeight: 22,
     barTopOffset: 3,
-    nameFontSize: 13.5,
+    nameFontSize: 14.5,
     barPaddingX: 7,
   };
 }

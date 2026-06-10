@@ -315,11 +315,11 @@ export default function ShiftPrintPage() {
       const pageHeight = pdf.internal.pageSize.getHeight();
 
       /*
-        上下が見切れないように余白を強めに設定。
-        まだ切れる場合は marginY を 20〜22 に上げる。
+        前のサイズ感に近く戻す。
+        ただし上下が少し見切れないように、最低限の安全余白だけ入れる。
       */
-      const marginX = 10;
-      const marginY = 16;
+      const marginX = 4;
+      const marginY = 5;
 
       const printableWidth = pageWidth - marginX * 2;
       const printableHeight = pageHeight - marginY * 2;
