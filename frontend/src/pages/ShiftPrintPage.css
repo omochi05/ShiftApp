@@ -1,7 +1,7 @@
 /* =========================
    ShiftPrintPage.css
    A3横印刷ページ
-   PC印刷 + スマホ表示ズレ修正 + スマホ印刷サイズ調整
+   PDF保存 / 画像保存 / スマホ対応
 ========================= */
 
 .shift-print-page,
@@ -35,7 +35,9 @@
 }
 
 .shift-print-actions button,
-.print-main-button {
+.print-main-button,
+.pdf-main-button,
+.image-main-button {
   position: relative;
   z-index: 100000;
 
@@ -43,7 +45,6 @@
   border: none;
   border-radius: 10px;
 
-  background: #2563eb;
   color: #ffffff;
 
   font-size: 18px;
@@ -53,6 +54,26 @@
   pointer-events: auto !important;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+}
+
+.print-main-button {
+  background: #2563eb !important;
+}
+
+.pdf-main-button {
+  background: #111827 !important;
+}
+
+.image-main-button {
+  background: #16a34a !important;
+}
+
+.shift-print-actions button:disabled,
+.print-main-button:disabled,
+.pdf-main-button:disabled,
+.image-main-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .shift-print-message,
@@ -99,7 +120,6 @@
 
 /* =========================
    スマホ表示
-   画面上でのズレ防止
 ========================= */
 
 @media screen and (max-width: 768px) {
@@ -119,7 +139,7 @@
     min-height: 100vh;
 
     padding: 8px;
-    padding-top: 88px;
+    padding-top: 96px;
 
     overflow-x: auto;
     overflow-y: auto;
@@ -140,7 +160,7 @@
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 
     margin: 0;
     padding: 8px;
@@ -151,21 +171,27 @@
 
     box-sizing: border-box;
     pointer-events: auto !important;
+
+    overflow-x: auto;
+    white-space: nowrap;
   }
 
   .shift-print-actions button,
-  .print-main-button {
+  .print-main-button,
+  .pdf-main-button,
+  .image-main-button {
     position: relative;
     z-index: 100000;
 
-    padding: 12px 16px;
-    font-size: 16px;
+    flex: 0 0 auto;
+
+    padding: 11px 14px;
+    font-size: 15px;
     font-weight: 900;
 
     border: none;
     border-radius: 10px;
 
-    background: #2563eb;
     color: #ffffff;
 
     cursor: pointer;
@@ -208,13 +234,12 @@
 
 /* =========================
    PC印刷設定
-   PCは今の正常なサイズを維持
 ========================= */
 
 @media print {
   @page {
     size: A3 landscape;
-    margin: 1mm;
+    margin: 0mm;
   }
 
   html,
@@ -268,10 +293,6 @@
     background: #ffffff !important;
     color: #000000 !important;
 
-    /*
-      PC印刷用。
-      PCでは今の正常なサイズ感を維持する。
-    */
     zoom: 1.12;
   }
 
@@ -285,7 +306,7 @@
 
   .shift-print-period {
     font-size: 12px !important;
-    margin: 0 0 2px !important;
+    margin: 0 0 1px !important;
     line-height: 1 !important;
     color: #000000 !important;
     text-align: center !important;
@@ -294,14 +315,12 @@
 
 /* =========================
    スマホ印刷専用
-   PCの印刷サイズは維持しつつ、
-   スマホ印刷だけ大きめに調整
 ========================= */
 
 @media print and (max-width: 768px) {
   @page {
     size: A3 landscape;
-    margin: 1mm;
+    margin: 0mm;
   }
 
   html,
@@ -348,18 +367,12 @@
     background: #ffffff !important;
     color: #000000 !important;
 
-    /*
-      スマホ印刷専用。
-      0.86は小さすぎたので大きくする。
-      日曜が2ページ目に行く → 0.94
-      まだ小さい → 1.02
-    */
-    zoom: 0.98 !important;
+    zoom: 1.05 !important;
   }
 
   .shift-print-sheet h1 {
     font-size: 21px !important;
-    margin: 0 0 1px !important;
+    margin: 0 !important;
     line-height: 1 !important;
     text-align: center !important;
     color: #000000 !important;
@@ -367,18 +380,9 @@
 
   .shift-print-period {
     font-size: 11.5px !important;
-    margin: 0 0 1px !important;
+    margin: 0 !important;
     line-height: 1 !important;
     text-align: center !important;
     color: #000000 !important;
   }
-}
-.pdf-main-button {
-  background: #111827 !important;
-  color: #ffffff !important;
-}
-
-.pdf-main-button:disabled {
-  opacity: 0.6;
-  cursor: wait;
 }

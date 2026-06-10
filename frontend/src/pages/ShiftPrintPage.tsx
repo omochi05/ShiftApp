@@ -89,13 +89,58 @@ function getWeekStartDateFromUrl() {
   return getMondayOfCurrentWeek();
 }
 
+function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error("画像データの作成に失敗しました"));
+      }
+    }, "image/png");
+  });
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  URL.revokeObjectURL(url);
+}
+
+async function shareOrDownloadFile(file: File, fallbackBlob: Blob) {
+  const canShareFiles =
+    typeof navigator !== "undefined" &&
+    "canShare" in navigator &&
+    typeof navigator.canShare === "function" &&
+    navigator.canShare({ files: [file] });
+
+  if (canShareFiles && typeof navigator.share === "function") {
+    await navigator.share({
+      title: "シフト表",
+      text: "シフト表を保存してください",
+      files: [file],
+    });
+    return;
+  }
+
+  downloadBlob(fallbackBlob, file.name);
+}
+
 export default function ShiftPrintPage() {
   const sheetRef = useRef<HTMLElement | null>(null);
 
   const [users, setUsers] = useState<User[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(true);
-  const [pdfLoading, setPdfLoading] = useState(false);
+  const [fileLoading, setFileLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const weekStartDate = useMemo(() => getWeekStartDateFromUrl(), []);
@@ -187,32 +232,22 @@ export default function ShiftPrintPage() {
     ...realWeeklyTimelineShifts,
   ];
 
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const handleBack = () => {
-    window.history.back();
-  };
-
-  const handleDownloadPdf = async () => {
+  const createShiftCanvas = async () => {
     if (!sheetRef.current) {
-      return;
+      throw new Error("シフト表が見つかりません");
     }
 
+    const target = sheetRef.current;
+
+    /*
+      PDF/画像作成中だけ専用クラスを付ける。
+      ShiftTimeline.css 側の .pdf-capture-mode が効く。
+    */
+    target.classList.add("pdf-capture-mode");
+
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
     try {
-      setPdfLoading(true);
-
-      const target = sheetRef.current;
-
-      /*
-        PDF作成中だけ専用クラスを付ける。
-        html2canvasで細い縦線が消えないようにする。
-      */
-      target.classList.add("pdf-capture-mode");
-
-      await new Promise((resolve) => setTimeout(resolve, 120));
-
       const canvas = await html2canvas(target, {
         scale: 3,
         backgroundColor: "#ffffff",
@@ -222,6 +257,17 @@ export default function ShiftPrintPage() {
         windowHeight: target.scrollHeight,
       });
 
+      return canvas;
+    } finally {
+      target.classList.remove("pdf-capture-mode");
+    }
+  };
+
+  const handleSavePdf = async () => {
+    try {
+      setFileLoading(true);
+
+      const canvas = await createShiftCanvas();
       const imgData = canvas.toDataURL("image/png");
 
       const pdf = new jsPDF({
@@ -245,14 +291,50 @@ export default function ShiftPrintPage() {
       const y = 0;
 
       pdf.addImage(imgData, "PNG", x, y, imageWidth, imageHeight);
-      pdf.save(`shift-${weekStartDate}-${weekEndDate}.pdf`);
+
+      const pdfBlob = pdf.output("blob");
+      const fileName = `shift-${weekStartDate}-${weekEndDate}.pdf`;
+
+      const file = new File([pdfBlob], fileName, {
+        type: "application/pdf",
+      });
+
+      await shareOrDownloadFile(file, pdfBlob);
     } catch (error) {
-      console.error("PDF作成失敗:", error);
-      alert("PDFの作成に失敗しました。もう一度試してください。");
+      console.error("PDF保存失敗:", error);
+      alert("PDFの保存に失敗しました。もう一度試してください。");
     } finally {
-      sheetRef.current?.classList.remove("pdf-capture-mode");
-      setPdfLoading(false);
+      setFileLoading(false);
     }
+  };
+
+  const handleSaveImage = async () => {
+    try {
+      setFileLoading(true);
+
+      const canvas = await createShiftCanvas();
+      const imageBlob = await canvasToBlob(canvas);
+      const fileName = `shift-${weekStartDate}-${weekEndDate}.png`;
+
+      const file = new File([imageBlob], fileName, {
+        type: "image/png",
+      });
+
+      await shareOrDownloadFile(file, imageBlob);
+    } catch (error) {
+      console.error("画像保存失敗:", error);
+      alert("画像の保存に失敗しました。もう一度試してください。");
+    } finally {
+      setFileLoading(false);
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleBack = () => {
+    window.history.back();
   };
 
   if (loading) {
@@ -287,17 +369,31 @@ export default function ShiftPrintPage() {
         <button
           type="button"
           className="pdf-main-button"
-          onClick={handleDownloadPdf}
-          disabled={pdfLoading}
+          onClick={handleSavePdf}
+          disabled={fileLoading}
         >
-          {pdfLoading ? "PDF作成中..." : "PDFを作成"}
+          {fileLoading ? "作成中..." : "PDFを保存"}
         </button>
 
-        <button type="button" className="print-main-button" onClick={handlePrint}>
+        <button
+          type="button"
+          className="image-main-button"
+          onClick={handleSaveImage}
+          disabled={fileLoading}
+        >
+          {fileLoading ? "作成中..." : "画像を保存"}
+        </button>
+
+        <button
+          type="button"
+          className="print-main-button"
+          onClick={handlePrint}
+          disabled={fileLoading}
+        >
           このシフト表を印刷
         </button>
 
-        <button type="button" onClick={handleBack}>
+        <button type="button" onClick={handleBack} disabled={fileLoading}>
           戻る
         </button>
       </div>
