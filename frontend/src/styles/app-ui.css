@@ -1,6 +1,7 @@
 /* =========================
    app-ui.css
    ShiftApp 共通UI改善
+   明るいUI + 見やすい文字 + 右上メニュー非表示
 ========================= */
 
 :root {
@@ -9,7 +10,7 @@
   --app-card-soft: #f8fafc;
 
   --app-text: #111827;
-  --app-muted: #6b7280;
+  --app-muted: #64748b;
   --app-border: #d1d5db;
 
   --app-primary: #2563eb;
@@ -34,9 +35,9 @@ body,
 }
 
 body {
-  margin: 0;
-  background: var(--app-bg);
-  color: var(--app-text);
+  margin: 0 !important;
+  background: var(--app-bg) !important;
+  color: var(--app-text) !important;
   font-family:
     system-ui,
     -apple-system,
@@ -46,33 +47,46 @@ body {
 }
 
 /* =========================
-   全体レイアウト
+   右上メニュー非表示
+   「オーナー」「シフト表印刷」「ログアウト」を消す
 ========================= */
 
-.app-page,
-.owner-dashboard,
-.manager-dashboard,
-.employee-dashboard {
-  width: 100%;
-  min-height: 100vh;
-  padding: 24px;
-  background: var(--app-bg);
-  color: var(--app-text);
+.owner-header-actions,
+.app-header-actions,
+.nav-actions,
+.header-actions,
+.top-nav-actions,
+.navbar-actions,
+.app-nav-actions,
+.global-nav-actions,
+.layout-header-actions {
+  display: none !important;
 }
 
-.app-container,
-.owner-container,
-.dashboard-container {
-  width: min(100%, 1480px);
-  margin: 0 auto;
+/* =========================
+   全体背景
+========================= */
+
+.owner-page,
+.owner-dashboard,
+.manager-dashboard,
+.employee-dashboard,
+.app-page {
+  width: 100%;
+  min-height: 100vh;
+
+  padding: 24px;
+
+  background: var(--app-bg) !important;
+  color: var(--app-text) !important;
 }
 
 /* =========================
    ヘッダー
 ========================= */
 
-.app-header,
 .owner-header,
+.app-header,
 .dashboard-header {
   display: flex;
   align-items: center;
@@ -80,37 +94,60 @@ body {
   gap: 16px;
 
   margin-bottom: 20px;
-  padding: 20px 24px;
+  padding: 22px 26px;
 
-  background: linear-gradient(135deg, #ffffff, #eef4ff);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
-  box-shadow: var(--app-shadow);
+  background: linear-gradient(135deg, #ffffff, #eef4ff) !important;
+  color: var(--app-text) !important;
+
+  border: 1px solid var(--app-border) !important;
+  border-radius: 20px !important;
+  box-shadow: var(--app-shadow) !important;
 }
 
-.app-header h1,
 .owner-header h1,
+.app-header h1,
 .dashboard-header h1 {
   margin: 0;
-  color: var(--app-text);
-  font-size: 28px;
+  color: var(--app-text) !important;
+  font-size: 32px;
   font-weight: 900;
   letter-spacing: 0.02em;
 }
 
-.app-header p,
 .owner-header p,
+.app-header p,
 .dashboard-header p {
-  margin: 4px 0 0;
-  color: var(--app-muted);
-  font-size: 14px;
+  margin: 6px 0 0;
+  color: var(--app-muted) !important;
+  font-size: 15px;
   font-weight: 700;
 }
 
 /* =========================
-   カード
+   セクション / カード
 ========================= */
 
+.owner-section,
+.app-card,
+.dashboard-card,
+.owner-card,
+.summary-card,
+.section-card,
+.shift-card,
+.form-card,
+.shift-section,
+.shift-template-section,
+.shift-list-section,
+.shift-summary-section {
+  background: #ffffff !important;
+  color: var(--app-text) !important;
+
+  border: 1px solid var(--app-border) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--app-shadow) !important;
+}
+
+.owner-section,
 .app-card,
 .dashboard-card,
 .owner-card,
@@ -118,22 +155,14 @@ body {
 .section-card,
 .shift-card,
 .form-card {
-  background: var(--app-card);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
-  box-shadow: var(--app-shadow);
+  padding: 20px;
 }
 
-.app-card,
-.dashboard-card,
-.owner-card,
-.summary-card,
-.section-card,
-.shift-card,
-.form-card {
-  padding: 18px;
+.owner-section {
+  margin-bottom: 20px;
 }
 
+.owner-section h2,
 .app-card h2,
 .dashboard-card h2,
 .owner-card h2,
@@ -141,39 +170,113 @@ body {
 .section-card h2,
 .shift-card h2,
 .form-card h2 {
-  margin: 0 0 14px;
-  color: var(--app-text);
-  font-size: 20px;
+  margin: 0 0 16px;
+  color: var(--app-text) !important;
+  font-size: 22px;
   font-weight: 900;
 }
 
-.app-card h3,
-.dashboard-card h3,
-.owner-card h3,
-.summary-card h3,
-.section-card h3,
-.shift-card h3,
-.form-card h3 {
-  margin: 0 0 12px;
+/* 中の文字を濃くする */
+.owner-section *,
+.summary-card *,
+.profit-card *,
+.form-message {
   color: var(--app-text);
-  font-size: 17px;
-  font-weight: 900;
 }
 
-.app-grid,
-.dashboard-grid,
-.owner-grid,
+/* =========================
+   集計カード
+========================= */
+
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
   gap: 16px;
+
+  margin-bottom: 20px;
 }
 
-.app-grid > *,
-.dashboard-grid > *,
-.owner-grid > *,
-.summary-grid > * {
-  min-width: 0;
+.summary-card {
+  min-height: 120px;
+  padding: 20px !important;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+
+  background: #ffffff !important;
+}
+
+.summary-card span {
+  color: #64748b !important;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.summary-card strong {
+  color: #111827 !important;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+/* =========================
+   フォーム
+========================= */
+
+.owner-form,
+.form-row,
+.input-row,
+.filter-row {
+  display: flex;
+  gap: 14px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.owner-form label,
+.form-row label,
+.input-row label,
+.filter-row label {
+  flex: 1;
+  min-width: 180px;
+
+  color: var(--app-text) !important;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  min-height: 44px;
+
+  margin-top: 6px;
+  padding: 10px 12px;
+
+  background: #ffffff !important;
+  color: #111827 !important;
+
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 12px !important;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  outline: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--app-primary) !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af !important;
 }
 
 /* =========================
@@ -186,15 +289,19 @@ button,
 .secondary-button,
 .danger-button,
 .success-button {
+  min-height: 44px;
+
   border: none;
   border-radius: 12px;
-  padding: 11px 16px;
+
+  padding: 11px 18px;
 
   font-size: 15px;
   font-weight: 900;
   line-height: 1;
 
   cursor: pointer;
+
   transition:
     transform 0.12s ease,
     box-shadow 0.12s ease,
@@ -224,121 +331,129 @@ button:active,
   box-shadow: none;
 }
 
-button:disabled,
-.app-button:disabled,
-.primary-button:disabled,
-.secondary-button:disabled,
-.danger-button:disabled,
-.success-button:disabled {
+button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
 
+.owner-page button,
+.owner-dashboard button,
+.manager-dashboard button,
+.employee-dashboard button,
 .primary-button,
 .app-button-primary {
-  background: var(--app-primary);
-  color: #ffffff;
+  background: var(--app-primary) !important;
+  color: #ffffff !important;
+}
+
+.owner-page button:hover,
+.owner-dashboard button:hover,
+.manager-dashboard button:hover,
+.employee-dashboard button:hover {
+  background: var(--app-primary-dark) !important;
 }
 
 .secondary-button,
 .app-button-secondary {
-  background: #e5e7eb;
-  color: #111827;
+  background: #e5e7eb !important;
+  color: #111827 !important;
 }
 
 .success-button,
-.app-button-success {
-  background: var(--app-success);
-  color: #ffffff;
+.app-button-success,
+.table-save-button {
+  background: var(--app-success) !important;
+  color: #ffffff !important;
 }
 
 .danger-button,
-.app-button-danger {
-  background: var(--app-danger);
-  color: #ffffff;
+.app-button-danger,
+.table-delete-button {
+  background: var(--app-danger) !important;
+  color: #ffffff !important;
 }
 
-/* 既存のボタンにもある程度反映 */
-.owner-dashboard button,
-.manager-dashboard button,
-.employee-dashboard button {
-  background-color: var(--app-primary);
-  color: #ffffff;
+.table-cancel-button {
+  background: #6b7280 !important;
+  color: #ffffff !important;
 }
 
-.owner-dashboard button:hover,
-.manager-dashboard button:hover,
-.employee-dashboard button:hover {
-  background-color: var(--app-primary-dark);
+.table-edit-button {
+  background: #2563eb !important;
+  color: #ffffff !important;
 }
 
 /* =========================
-   入力欄
+   メッセージ
 ========================= */
 
-input,
-select,
-textarea {
-  width: 100%;
-  min-height: 42px;
-
-  padding: 10px 12px;
-
-  border: 1px solid var(--app-border);
-  border-radius: 12px;
-
-  background: #ffffff;
-  color: var(--app-text);
-
+.form-message {
+  margin: 12px 0;
+  color: #334155 !important;
   font-size: 15px;
-  font-weight: 700;
-
-  outline: none;
+  font-weight: 800;
 }
 
-input:focus,
-select:focus,
-textarea:focus {
-  border-color: var(--app-primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+/* =========================
+   週間黒字・赤字
+========================= */
+
+.profit-card {
+  padding: 18px;
+
+  background: #f8fafc !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 16px !important;
 }
 
-label {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--app-text);
-  font-size: 13px;
+.profit-card.black {
+  border-left: 8px solid #16a34a !important;
+}
+
+.profit-card.red {
+  border-left: 8px solid #dc2626 !important;
+}
+
+.profit-card p {
+  margin: 6px 0;
+  color: #111827 !important;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.profit-card h3 {
+  margin: 12px 0 0;
+  color: #111827 !important;
+  font-size: 24px;
   font-weight: 900;
-}
-
-.form-row,
-.input-row,
-.filter-row {
-  display: flex;
-  gap: 12px;
-  align-items: end;
-  flex-wrap: wrap;
-}
-
-.form-row > *,
-.input-row > *,
-.filter-row > * {
-  min-width: 160px;
-  flex: 1;
 }
 
 /* =========================
    テーブル
 ========================= */
 
+.weekday-table-wrap,
+.table-wrap,
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  background: #ffffff !important;
+  border-radius: 14px;
+}
+
+.weekday-table,
 table {
   width: 100%;
   border-collapse: collapse;
-  background: #ffffff;
+  background: #ffffff !important;
 }
 
+.weekday-table th,
+.weekday-table td,
 th,
 td {
   padding: 12px;
@@ -347,108 +462,46 @@ td {
   vertical-align: middle;
 }
 
+.weekday-table th,
 th {
-  background: #f8fafc;
-  color: #374151;
+  background: #f8fafc !important;
+  color: #334155 !important;
   font-size: 13px;
   font-weight: 900;
 }
 
+.weekday-table td,
 td {
-  color: #111827;
+  color: #111827 !important;
   font-size: 14px;
   font-weight: 700;
 }
 
+.weekday-table tr:hover td,
 tr:hover td {
-  background: #f9fafb;
+  background: #f9fafb !important;
 }
 
-/* =========================
-   ステータス表示
-========================= */
-
-.status-badge,
-.role-badge,
-.confirm-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  min-height: 28px;
-  padding: 6px 10px;
-
-  border-radius: 999px;
-  background: #e0edff;
-  color: #1d4ed8;
-
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.status-badge.success,
-.confirm-badge.confirmed {
-  background: #dcfce7;
-  color: #15803d;
-}
-
-.status-badge.warning {
-  background: #fef3c7;
-  color: #b45309;
-}
-
-.status-badge.danger {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
-/* =========================
-   余白ユーティリティ
-========================= */
-
-.stack {
+.table-action-buttons {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.row {
-  display: flex;
-  gap: 12px;
-  align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-.between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.muted {
-  color: var(--app-muted);
-}
-
-.text-strong {
-  font-weight: 900;
-}
-
 /* =========================
-   シフト周りの見た目補助
+   シフト表周り
 ========================= */
 
-.shift-section,
-.shift-template-section,
-.shift-list-section,
-.shift-summary-section {
-  margin-top: 16px;
-  padding: 18px;
+.shift-print-area {
+  overflow: hidden;
+}
 
-  background: #ffffff;
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
-  box-shadow: var(--app-shadow);
+.timeline-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  padding-bottom: 8px;
 }
 
 .shift-template-actions,
@@ -469,38 +522,98 @@ tr:hover td {
 }
 
 /* =========================
+   読み込み / エラー
+========================= */
+
+.owner-loading,
+.owner-error {
+  width: min(100%, 720px);
+  margin: 80px auto;
+  padding: 28px;
+
+  background: #ffffff !important;
+  color: #111827 !important;
+
+  border: 1px solid var(--app-border);
+  border-radius: 20px;
+  box-shadow: var(--app-shadow);
+
+  text-align: center;
+}
+
+.owner-loading h1,
+.owner-error h1 {
+  margin: 0 0 12px;
+  color: #111827 !important;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.owner-loading p,
+.owner-error p {
+  color: #64748b !important;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* =========================
    スマホ対応
 ========================= */
 
 @media screen and (max-width: 768px) {
-  .app-page,
+  .owner-page,
   .owner-dashboard,
   .manager-dashboard,
-  .employee-dashboard {
+  .employee-dashboard,
+  .app-page {
     padding: 12px;
   }
 
-  .app-header,
   .owner-header,
+  .app-header,
   .dashboard-header {
     align-items: flex-start;
     flex-direction: column;
+
+    padding: 18px;
+    border-radius: 18px !important;
+  }
+
+  .owner-header h1,
+  .app-header h1,
+  .dashboard-header h1 {
+    font-size: 24px;
+  }
+
+  .owner-header p,
+  .app-header p,
+  .dashboard-header p {
+    font-size: 13px;
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .summary-card {
+    min-height: 100px;
+    padding: 16px !important;
+  }
+
+  .summary-card span {
+    font-size: 13px;
+  }
+
+  .summary-card strong {
+    font-size: 18px;
+  }
+
+  .owner-section {
     padding: 16px;
   }
 
-  .app-header h1,
-  .owner-header h1,
-  .dashboard-header h1 {
-    font-size: 22px;
-  }
-
-  .app-grid,
-  .dashboard-grid,
-  .owner-grid,
-  .summary-grid {
-    grid-template-columns: 1fr;
-  }
-
+  .owner-form,
   .form-row,
   .input-row,
   .filter-row {
@@ -508,9 +621,10 @@ tr:hover td {
     align-items: stretch;
   }
 
-  .form-row > *,
-  .input-row > *,
-  .filter-row > * {
+  .owner-form label,
+  .form-row label,
+  .input-row label,
+  .filter-row label {
     width: 100%;
     min-width: 0;
   }
@@ -530,26 +644,27 @@ tr:hover td {
     width: 100%;
   }
 
+  .weekday-table,
   table {
     min-width: 720px;
-  }
-
-  .table-wrap,
-  .table-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
   }
 }
 
 /* =========================
-   印刷時はアプリUIを消す
+   印刷時
 ========================= */
 
 @media print {
   .print-hide,
-  .app-header,
-  .owner-header,
-  .dashboard-header,
+  .owner-header-actions,
+  .app-header-actions,
+  .nav-actions,
+  .header-actions,
+  .top-nav-actions,
+  .navbar-actions,
+  .app-nav-actions,
+  .global-nav-actions,
+  .layout-header-actions,
   .shift-template-actions,
   .shift-template-actions-bottom,
   .shift-actions,
