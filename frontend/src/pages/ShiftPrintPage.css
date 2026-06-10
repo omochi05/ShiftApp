@@ -1,29 +1,26 @@
 /* =========================
    ShiftPrintPage.css
    A3横印刷ページ
-   1ページ寄せ + 名前少し大きめ版
 ========================= */
 
 .shift-print-page {
   min-height: 100vh;
-  padding: 20px;
+  padding: 10px;
   background: #ffffff !important;
   color: #000000 !important;
   overflow-x: auto;
   -webkit-text-size-adjust: 100%;
 }
 
-/* ボタンエリア */
+/* ボタン */
 .shift-print-actions {
   position: relative;
   z-index: 99999;
-
   display: flex;
   justify-content: center;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   flex-wrap: wrap;
-
   background: #ffffff !important;
   pointer-events: auto !important;
 }
@@ -32,18 +29,14 @@
 .print-main-button {
   position: relative;
   z-index: 100000;
-
   padding: 12px 24px;
   border: none;
   border-radius: 10px;
-
   background: #2563eb;
   color: #ffffff;
-
   font-size: 18px;
   font-weight: 900;
   cursor: pointer;
-
   pointer-events: auto !important;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -61,7 +54,10 @@
   position: relative;
   z-index: 1;
 
-  width: 1400px;
+  /*
+    画面上でも小さすぎないようにかなり広めに表示
+  */
+  width: min(96vw, 1600px);
   max-width: none;
   margin: 0 auto;
   padding: 0;
@@ -88,7 +84,7 @@
   color: #000000 !important;
 }
 
-/* スマホ表示 */
+/* スマホ */
 @media screen and (max-width: 768px) {
   .shift-print-page {
     padding: 8px;
@@ -124,17 +120,13 @@
   .print-main-button {
     position: relative;
     z-index: 100000;
-
     padding: 12px 16px;
     font-size: 16px;
     font-weight: 900;
-
     border: none;
     border-radius: 10px;
-
     background: #2563eb;
     color: #ffffff;
-
     cursor: pointer;
     pointer-events: auto !important;
     touch-action: manipulation;
@@ -142,14 +134,10 @@
   }
 
   .shift-print-sheet {
-    position: relative;
-    z-index: 1;
-
     width: 1400px;
     max-width: none;
     margin: 0;
     padding: 0;
-
     background: #ffffff !important;
   }
 
@@ -176,10 +164,8 @@
     width: 100%;
     margin: 0 !important;
     padding: 0 !important;
-
     background: #ffffff !important;
     color: #000000 !important;
-
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -187,12 +173,9 @@
   .shift-print-page {
     min-height: auto !important;
     width: 100% !important;
-
     padding: 0 !important;
     margin: 0 !important;
-
     overflow: visible !important;
-
     background: #ffffff !important;
     color: #000000 !important;
   }
@@ -208,19 +191,18 @@
   .shift-print-sheet {
     width: 100% !important;
     max-width: none !important;
-
     margin: 0 !important;
     padding: 0 !important;
-
     background: #ffffff !important;
     color: #000000 !important;
 
     /*
-      3ページ化を防ぐために倍率を下げる。
-      まだ2ページ以上になる → 0.85
-      余白が多すぎる → 0.93
+      ここが今回のメイン調整。
+      前より大きく見せるために拡大。
+      もし2ページに行くなら 1.08 に下げる。
     */
-    zoom: 0.90;
+    zoom: 1.12;
+    transform-origin: top center;
   }
 
   .shift-print-sheet h1 {
@@ -232,7 +214,7 @@
 
   .shift-print-period {
     font-size: 12px !important;
-    margin: 0 0 1px !important;
+    margin: 0 0 2px !important;
     line-height: 1 !important;
     color: #000000 !important;
   }

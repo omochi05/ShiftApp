@@ -16,10 +16,8 @@
   display: grid;
   grid-template-columns: 96px 1fr;
   grid-template-rows: 36px auto;
-
   border: 3px solid #000000;
   border-bottom: none;
-
   background: #ffffff !important;
   color: #000000 !important;
 }
@@ -31,16 +29,13 @@
 .shift-timeline-date {
   grid-column: 1;
   grid-row: 1 / 3;
-
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
   border-right: 3px solid #000000;
   background: #ffffff !important;
   color: #000000 !important;
-
   text-align: center;
   font-size: 23px;
   font-weight: 900;
@@ -50,10 +45,8 @@
 .shift-timeline-hours {
   grid-column: 2;
   grid-row: 1;
-
   position: relative;
   min-height: 36px;
-
   background: #111111 !important;
   color: #ffffff !important;
   overflow: visible;
@@ -63,14 +56,11 @@
   position: absolute;
   top: 0;
   transform: translateX(-50%);
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   width: 24px;
   min-height: 36px;
-
   color: #ffffff !important;
   font-size: 14px;
   font-weight: 900;
@@ -90,9 +80,7 @@
 .shift-timeline-body {
   grid-column: 2;
   grid-row: 2;
-
   position: relative;
-
   background:
     repeating-linear-gradient(
       to right,
@@ -109,7 +97,6 @@
       #777777 calc((100% / 24) * 3)
     ),
     #ffffff !important;
-
   overflow: hidden;
 }
 
@@ -117,13 +104,10 @@
   position: absolute;
   height: 24px;
   box-sizing: border-box;
-
   border: 2.5px solid #000000;
   border-radius: 7px;
-
   background: #ffffff !important;
   color: #000000 !important;
-
   overflow: hidden;
 }
 
@@ -138,10 +122,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-
   width: 100%;
   min-width: 0;
-
   color: #000000 !important;
   font-size: 14px;
   font-weight: 900;
@@ -157,7 +139,6 @@
   font-weight: 900;
 }
 
-/* 通常画面では .print-hide を消さない */
 .shift-bar-delete,
 .shift-bar button,
 .shift-bar-time {
@@ -171,25 +152,22 @@
 }
 
 .shift-timeline-print .shift-bar {
-  height: 28px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 8px;
-
-  border: 2.2px solid #000000;
-  border-radius: 7px;
+  padding: 0 6px;
+  border: 1.8px solid #000000;
+  border-radius: 5px;
 }
 
 .shift-bar-print-name {
   display: block;
-
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-
   color: #000000 !important;
-  font-size: 16px;
+  font-size: 13.5px;
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
@@ -208,23 +186,17 @@
 
 /* =========================
    A3横 印刷用
-   1ページに収める + 名前は少し大きめ
 ========================= */
-
 @media print {
   .shift-timeline {
     width: 100% !important;
     min-width: 0 !important;
-
-    border: 1.8px solid #000000 !important;
-    border-bottom: 1.8px solid #000000 !important;
-
+    border: 1.6px solid #000000 !important;
+    border-bottom: 1.6px solid #000000 !important;
     page-break-inside: avoid;
     break-inside: avoid;
-
     background: #ffffff !important;
     color: #000000 !important;
-
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -232,57 +204,43 @@
   .shift-timeline-day {
     grid-template-columns: 62px 1fr !important;
     grid-template-rows: 18px auto !important;
-
-    border-left: 1.8px solid #000000 !important;
-    border-right: 1.8px solid #000000 !important;
-    border-top: 1.8px solid #000000 !important;
-    border-bottom: 1.8px solid #000000 !important;
-
-    box-shadow: inset 0 0 0 0.7px #000000 !important;
-
+    border-left: 1.6px solid #000000 !important;
+    border-right: 1.6px solid #000000 !important;
+    border-top: 1.6px solid #000000 !important;
+    border-bottom: 1.6px solid #000000 !important;
     page-break-inside: avoid;
     break-inside: avoid;
-
     background: #ffffff !important;
   }
 
   .shift-timeline-day + .shift-timeline-day {
-    margin-top: -1.8px !important;
+    margin-top: -1.6px !important;
   }
 
   .shift-timeline-date {
-    border-right: 1.8px solid #000000 !important;
-
+    border-right: 1.6px solid #000000 !important;
     background: #ffffff !important;
     color: #000000 !important;
-
-    font-size: 13.5px !important;
+    font-size: 13px !important;
     line-height: 1.05 !important;
-
-    box-shadow: inset -0.7px 0 0 #000000 !important;
   }
 
   .shift-timeline-hours {
     min-height: 18px !important;
-
     background: #111111 !important;
     color: #ffffff !important;
     overflow: visible !important;
-
-    border-bottom: 1.8px solid #000000 !important;
-    box-shadow: inset 0 -0.7px 0 #000000 !important;
+    border-bottom: 1.6px solid #000000 !important;
   }
 
   .shift-timeline-hour {
     position: absolute !important;
     top: 0 !important;
     transform: translateX(-50%) !important;
-
     width: 18px !important;
     min-height: 18px !important;
-
     color: #ffffff !important;
-    font-size: 8px !important;
+    font-size: 7.5px !important;
     font-weight: 900 !important;
     border-right: none !important;
   }
@@ -299,51 +257,41 @@
 
   .shift-timeline-body {
     overflow: hidden !important;
-    border-top: none !important;
-
     background:
       repeating-linear-gradient(
         to right,
         #ffffff 0,
         #ffffff calc(100% / 24 - 1px),
-        #bfc5cc calc(100% / 24 - 1px),
-        #bfc5cc calc(100% / 24)
+        #c9cdd3 calc(100% / 24 - 1px),
+        #c9cdd3 calc(100% / 24)
       ),
       repeating-linear-gradient(
         to right,
         transparent 0,
         transparent calc((100% / 24) * 3 - 1.5px),
-        #737373 calc((100% / 24) * 3 - 1.5px),
-        #737373 calc((100% / 24) * 3)
+        #777777 calc((100% / 24) * 3 - 1.5px),
+        #777777 calc((100% / 24) * 3)
       ),
       #ffffff !important;
-
-    box-shadow: inset 0 0 0 0.7px #000000 !important;
   }
 
   .shift-bar {
-    height: 28px !important;
-
+    height: 24px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-
-    padding: 0 8px !important;
-
-    border: 2.2px solid #000000 !important;
-    border-radius: 7px !important;
-
+    padding: 0 6px !important;
+    border: 1.8px solid #000000 !important;
+    border-radius: 5px !important;
     background: #ffffff !important;
     color: #000000 !important;
-
-    box-shadow: none !important;
   }
 
   .shift-bar-print-name,
   .shift-bar-normal-content,
   .shift-bar-name {
     max-width: 100% !important;
-    font-size: 16px !important;
+    font-size: 13.5px !important;
     font-weight: 900 !important;
     line-height: 1 !important;
     color: #000000 !important;

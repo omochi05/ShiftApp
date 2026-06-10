@@ -32,12 +32,11 @@ const NORMAL_LANE_HEIGHT = 30;
 const NORMAL_BAR_TOP_OFFSET = 8;
 
 /*
-  A3横印刷用。
-  3ページにならないように少し抑えつつ、
-  名前の枠と文字は見やすいサイズにする。
+  印刷用は「大きく見せたい」けど、
+  行を大きくしすぎるとA3 1枚に収まらないので少し控えめ。
 */
-const PRINT_LANE_HEIGHT = 34;
-const PRINT_BAR_TOP_OFFSET = 7;
+const PRINT_LANE_HEIGHT = 30;
+const PRINT_BAR_TOP_OFFSET = 6;
 
 const hourLabels = [
   "6",
@@ -144,7 +143,6 @@ function groupShiftsByDate(shifts: ShiftForTimeline[]) {
     if (!map.has(shift.work_date)) {
       map.set(shift.work_date, []);
     }
-
     map.get(shift.work_date)?.push(shift);
   });
 
@@ -169,7 +167,6 @@ function positionShifts(shifts: ShiftForTimeline[]) {
       if (a.startValue !== b.startValue) {
         return a.startValue - b.startValue;
       }
-
       return a.endValue - b.endValue;
     });
 
@@ -216,7 +213,7 @@ export default function ShiftTimeline({
         const { positioned, laneCount } = positionShifts(dayShifts);
 
         const bodyHeight = printMode
-          ? Math.max(74, laneCount * laneHeight + 14)
+          ? Math.max(66, laneCount * laneHeight + 10)
           : Math.max(66, laneCount * laneHeight + 16);
 
         return (
