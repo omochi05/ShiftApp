@@ -769,20 +769,7 @@ function OwnerDashboard() {
   return (
     <div className="owner-page">
       <header className="owner-header">
-        <div>
-          <h1>オーナーダッシュボード</h1>
-          <p>売上・人件費・シフトを管理できます</p>
-        </div>
-
-        <div className="owner-header-actions">
-          <button type="button" onClick={handleOpenPrintPage}>
-            シフト表印刷
-          </button>
-
-          <button type="button" onClick={handleLogout}>
-            ログアウト
-          </button>
-        </div>
+        <h1>ShiftApp / オーナー</h1>
       </header>
 
       <section className="summary-grid">
