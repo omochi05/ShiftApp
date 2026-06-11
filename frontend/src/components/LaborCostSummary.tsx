@@ -1,3 +1,4 @@
+import { useState } from "react";
 import "./LaborCostSummary.css";
 
 type User = {
@@ -28,6 +29,7 @@ type EmployeeLaborSummary = {
   userId: number;
   name: string;
   hourlyWage: number;
+  earlyMinutes: number;
   normalMinutes: number;
   nightMinutes: number;
   totalMinutes: number;
@@ -74,64 +76,68 @@ function getOverlapMinutes(
 }
 
 /*
-  深夜時間：22:00〜翌5:00
+  早朝：6:00〜9:00
+  通常：9:00〜22:00
+  深夜：22:00〜翌6:00
+
   例：
-  22:00〜06:00 → 深夜7時間
-  23:00〜02:00 → 深夜3時間
-  04:00〜08:00 → 深夜1時間
+  22:00〜06:00 → 深夜8時間
+  00:00〜06:00 → 深夜6時間
+  06:00〜09:00 → 早朝3時間
+  09:00〜22:00 → 通常13時間
 */
-function getNightMinutes(start: number, end: number) {
-  const nightRanges = [
-    {
-      start: 0,
-      end: 5 * 60,
-    },
-    {
-      start: 22 * 60,
-      end: 29 * 60,
-    },
-  ];
-
-  return nightRanges.reduce((total, range) => {
-    return total + getOverlapMinutes(start, end, range.start, range.end);
-  }, 0);
-}
-
-function formatHours(minutes: number) {
-  return `${(minutes / 60).toFixed(1)}時間`;
-}
-
-function calculateShiftCost(shift: ShiftForTimeline, hourlyWage: number) {
+function calculateShiftMinutes(shift: ShiftForTimeline) {
   const { start, end, total } = getShiftRawMinutes(
     shift.start_time,
     shift.end_time
   );
 
+  const rawNightMinutes =
+    getOverlapMinutes(start, end, 0, 6 * 60) +
+    getOverlapMinutes(start, end, 22 * 60, 30 * 60);
+
+  const rawEarlyMinutes = getOverlapMinutes(start, end, 6 * 60, 9 * 60);
+  const rawNormalMinutes = getOverlapMinutes(start, end, 9 * 60, 22 * 60);
+
   const breakMinutes = Math.min(Math.max(shift.break_minutes ?? 0, 0), total);
 
-  const rawNightMinutes = Math.min(getNightMinutes(start, end), total);
-  const rawNormalMinutes = Math.max(total - rawNightMinutes, 0);
-
   /*
-    休憩時間はまず通常時間から引く。
-    通常時間を超えた分だけ深夜時間から引く。
+    休憩は通常時間 → 早朝時間 → 深夜時間の順で引く。
+    夜勤のみの場合は深夜時間から引かれる。
   */
   let remainingBreak = breakMinutes;
 
   const paidNormalMinutes = Math.max(rawNormalMinutes - remainingBreak, 0);
   remainingBreak = Math.max(remainingBreak - rawNormalMinutes, 0);
 
+  const paidEarlyMinutes = Math.max(rawEarlyMinutes - remainingBreak, 0);
+  remainingBreak = Math.max(remainingBreak - rawEarlyMinutes, 0);
+
   const paidNightMinutes = Math.max(rawNightMinutes - remainingBreak, 0);
 
-  const normalCost = (paidNormalMinutes / 60) * hourlyWage;
-  const nightCost = (paidNightMinutes / 60) * hourlyWage * 1.25;
-
   return {
+    earlyMinutes: paidEarlyMinutes,
     normalMinutes: paidNormalMinutes,
     nightMinutes: paidNightMinutes,
-    totalMinutes: paidNormalMinutes + paidNightMinutes,
-    totalCost: Math.round(normalCost + nightCost),
+    totalMinutes: paidEarlyMinutes + paidNormalMinutes + paidNightMinutes,
   };
+}
+
+function calculateShiftCost(shift: ShiftForTimeline, hourlyWage: number) {
+  const minutes = calculateShiftMinutes(shift);
+
+  const earlyCost = (minutes.earlyMinutes / 60) * hourlyWage;
+  const normalCost = (minutes.normalMinutes / 60) * hourlyWage;
+  const nightCost = (minutes.nightMinutes / 60) * hourlyWage * 1.25;
+
+  return {
+    ...minutes,
+    totalCost: Math.round(earlyCost + normalCost + nightCost),
+  };
+}
+
+function formatHours(minutes: number) {
+  return `${(minutes / 60).toFixed(1)}時間`;
 }
 
 function calculateLaborSummary(shifts: ShiftForTimeline[], users: User[]) {
@@ -152,12 +158,14 @@ function calculateLaborSummary(shifts: ShiftForTimeline[], users: User[]) {
           userId: shift.user_id,
           name,
           hourlyWage,
+          earlyMinutes: 0,
           normalMinutes: 0,
           nightMinutes: 0,
           totalMinutes: 0,
           totalCost: 0,
         } satisfies EmployeeLaborSummary);
 
+      current.earlyMinutes += shiftCost.earlyMinutes;
       current.normalMinutes += shiftCost.normalMinutes;
       current.nightMinutes += shiftCost.nightMinutes;
       current.totalMinutes += shiftCost.totalMinutes;
@@ -168,6 +176,11 @@ function calculateLaborSummary(shifts: ShiftForTimeline[], users: User[]) {
 
   const employees = Array.from(employeeMap.values()).sort(
     (a, b) => b.totalCost - a.totalCost
+  );
+
+  const totalEarlyMinutes = employees.reduce(
+    (total, employee) => total + employee.earlyMinutes,
+    0
   );
 
   const totalNormalMinutes = employees.reduce(
@@ -192,6 +205,7 @@ function calculateLaborSummary(shifts: ShiftForTimeline[], users: User[]) {
 
   return {
     employees,
+    totalEarlyMinutes,
     totalNormalMinutes,
     totalNightMinutes,
     totalMinutes,
@@ -203,14 +217,22 @@ export default function LaborCostSummary({
   shifts,
   users,
 }: LaborCostSummaryProps) {
+  const [openedEmployeeId, setOpenedEmployeeId] = useState<number | null>(null);
+
   const summary = calculateLaborSummary(shifts, users);
+
+  const toggleEmployee = (userId: number) => {
+    setOpenedEmployeeId((current) => (current === userId ? null : userId));
+  };
 
   return (
     <section className="labor-cost-section">
       <div className="labor-cost-header">
         <div>
           <h2>この週の人件費</h2>
-          <p>深夜時間は 22:00〜5:00 を 1.25倍で計算しています</p>
+          <p>
+            早朝は6:00〜9:00、通常は9:00〜22:00、深夜は22:00〜6:00として計算します。
+          </p>
         </div>
       </div>
 
@@ -226,8 +248,8 @@ export default function LaborCostSummary({
         </div>
 
         <div className="labor-cost-card">
-          <span>通常時間</span>
-          <strong>{formatHours(summary.totalNormalMinutes)}</strong>
+          <span>早朝時間</span>
+          <strong>{formatHours(summary.totalEarlyMinutes)}</strong>
         </div>
 
         <div className="labor-cost-card">
@@ -237,13 +259,10 @@ export default function LaborCostSummary({
       </div>
 
       <div className="labor-cost-table-wrap">
-        <table className="labor-cost-table">
+        <table className="labor-cost-table labor-cost-compact-table">
           <thead>
             <tr>
               <th>従業員</th>
-              <th>時給</th>
-              <th>通常時間</th>
-              <th>深夜時間</th>
               <th>合計時間</th>
               <th>人件費</th>
             </tr>
@@ -252,19 +271,82 @@ export default function LaborCostSummary({
           <tbody>
             {summary.employees.length === 0 ? (
               <tr>
-                <td colSpan={6}>この週のシフトはまだありません</td>
+                <td colSpan={3}>この週のシフトはまだありません</td>
               </tr>
             ) : (
-              summary.employees.map((employee) => (
-                <tr key={employee.userId}>
-                  <td>{employee.name}</td>
-                  <td>{employee.hourlyWage.toLocaleString()}円</td>
-                  <td>{formatHours(employee.normalMinutes)}</td>
-                  <td>{formatHours(employee.nightMinutes)}</td>
-                  <td>{formatHours(employee.totalMinutes)}</td>
-                  <td>{employee.totalCost.toLocaleString()}円</td>
-                </tr>
-              ))
+              summary.employees.map((employee) => {
+                const isOpened = openedEmployeeId === employee.userId;
+
+                return (
+                  <>
+                    <tr key={employee.userId}>
+                      <td>
+                        <button
+                          type="button"
+                          className="labor-employee-toggle"
+                          onClick={() => toggleEmployee(employee.userId)}
+                        >
+                          <span>{employee.name}</span>
+                          <small>{isOpened ? "閉じる" : "詳細"}</small>
+                        </button>
+                      </td>
+
+                      <td>{formatHours(employee.totalMinutes)}</td>
+                      <td>{employee.totalCost.toLocaleString()}円</td>
+                    </tr>
+
+                    {isOpened && (
+                      <tr key={`${employee.userId}-detail`}>
+                        <td colSpan={3} className="labor-detail-cell">
+                          <div className="labor-detail-grid">
+                            <div>
+                              <span>時給</span>
+                              <strong>
+                                {employee.hourlyWage.toLocaleString()}円
+                              </strong>
+                            </div>
+
+                            <div>
+                              <span>早朝時間</span>
+                              <strong>
+                                {formatHours(employee.earlyMinutes)}
+                              </strong>
+                            </div>
+
+                            <div>
+                              <span>通常時間</span>
+                              <strong>
+                                {formatHours(employee.normalMinutes)}
+                              </strong>
+                            </div>
+
+                            <div>
+                              <span>深夜時間</span>
+                              <strong>
+                                {formatHours(employee.nightMinutes)}
+                              </strong>
+                            </div>
+
+                            <div>
+                              <span>合計時間</span>
+                              <strong>
+                                {formatHours(employee.totalMinutes)}
+                              </strong>
+                            </div>
+
+                            <div>
+                              <span>人件費</span>
+                              <strong>
+                                {employee.totalCost.toLocaleString()}円
+                              </strong>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                );
+              })
             )}
           </tbody>
         </table>
