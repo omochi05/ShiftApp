@@ -29,6 +29,13 @@ type ShiftForm = {
   break_minutes: string;
 };
 
+type EmployeeMonthlySummary = {
+  user: User;
+  shifts: Shift[];
+  totalMinutes: number;
+  estimatedSalary: number;
+};
+
 const initialShiftForm: ShiftForm = {
   user_id: "",
   work_date: "",
@@ -45,9 +52,28 @@ function getTodayDate() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function getCurrentMonth() {
+  return getTodayDate().slice(0, 7);
+}
+
+function formatCurrency(value: number) {
+  return `${Math.round(value).toLocaleString()}円`;
+}
+
 function timeToMinutes(time: string) {
   const [hour, minute] = time.split(":").map(Number);
   return hour * 60 + minute;
+}
+
+function getOverlapMinutes(
+  start: number,
+  end: number,
+  rangeStart: number,
+  rangeEnd: number
+) {
+  const overlapStart = Math.max(start, rangeStart);
+  const overlapEnd = Math.min(end, rangeEnd);
+  return Math.max(0, overlapEnd - overlapStart);
 }
 
 function getShiftDurationMinutes(shift: Shift) {
@@ -59,6 +85,43 @@ function getShiftDurationMinutes(shift: Shift) {
   }
 
   return Math.max(0, end - start - (shift.break_minutes || 0));
+}
+
+function calculateShiftSalary(shift: Shift, hourlyWage: number) {
+  let start = timeToMinutes(shift.start_time);
+  let end = timeToMinutes(shift.end_time);
+
+  if (end <= start) {
+    end += 24 * 60;
+  }
+
+  const breakMinutes = shift.break_minutes || 0;
+
+  const rawNightMinutes =
+    getOverlapMinutes(start, end, 0, 6 * 60) +
+    getOverlapMinutes(start, end, 22 * 60, 30 * 60);
+
+  const rawEarlyMinutes = getOverlapMinutes(start, end, 6 * 60, 9 * 60);
+  const rawNormalMinutes = getOverlapMinutes(start, end, 9 * 60, 22 * 60);
+
+  let remainingBreak = breakMinutes;
+
+  const normalBreak = Math.min(rawNormalMinutes, remainingBreak);
+  const normalMinutes = Math.max(0, rawNormalMinutes - normalBreak);
+  remainingBreak -= normalBreak;
+
+  const earlyBreak = Math.min(rawEarlyMinutes, remainingBreak);
+  const earlyMinutes = Math.max(0, rawEarlyMinutes - earlyBreak);
+  remainingBreak -= earlyBreak;
+
+  const nightBreak = Math.min(rawNightMinutes, remainingBreak);
+  const nightMinutes = Math.max(0, rawNightMinutes - nightBreak);
+
+  const normalSalary = (normalMinutes / 60) * hourlyWage;
+  const earlySalary = (earlyMinutes / 60) * hourlyWage;
+  const nightSalary = (nightMinutes / 60) * hourlyWage * 1.25;
+
+  return normalSalary + earlySalary + nightSalary;
 }
 
 function formatDuration(minutes: number) {
@@ -101,6 +164,9 @@ export default function OwnerShiftsPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
+  const [targetMonth, setTargetMonth] = useState(getCurrentMonth());
+  const [openedEmployeeIds, setOpenedEmployeeIds] = useState<number[]>([]);
+
   const [shiftForm, setShiftForm] = useState<ShiftForm>({
     ...initialShiftForm,
     work_date: getTodayDate(),
@@ -116,30 +182,56 @@ export default function OwnerShiftsPage() {
     return users.filter((user) => user.role === "employee");
   }, [users]);
 
-  const sortedShifts = useMemo(() => {
-    return [...shifts].sort((a, b) => {
-      if (a.work_date < b.work_date) return 1;
-      if (a.work_date > b.work_date) return -1;
+  const monthlyShifts = useMemo(() => {
+    return shifts.filter((shift) => shift.work_date.startsWith(targetMonth));
+  }, [shifts, targetMonth]);
+
+  const sortedMonthlyShifts = useMemo(() => {
+    return [...monthlyShifts].sort((a, b) => {
+      if (a.work_date < b.work_date) return -1;
+      if (a.work_date > b.work_date) return 1;
 
       if (a.start_time < b.start_time) return -1;
       if (a.start_time > b.start_time) return 1;
 
-      return b.id - a.id;
+      return a.id - b.id;
     });
-  }, [shifts]);
+  }, [monthlyShifts]);
 
-  const todayShiftCount = useMemo(() => {
-    const today = getTodayDate();
-    return shifts.filter((shift) => shift.work_date === today).length;
-  }, [shifts]);
+  const employeeMonthlySummaries = useMemo<EmployeeMonthlySummary[]>(() => {
+    return employeeUsers.map((user) => {
+      const userShifts = sortedMonthlyShifts.filter(
+        (shift) => shift.user_id === user.id
+      );
 
-  const totalShiftHours = useMemo(() => {
-    const totalMinutes = shifts.reduce((sum, shift) => {
-      return sum + getShiftDurationMinutes(shift);
+      const totalMinutes = userShifts.reduce((sum, shift) => {
+        return sum + getShiftDurationMinutes(shift);
+      }, 0);
+
+      const estimatedSalary = userShifts.reduce((sum, shift) => {
+        return sum + calculateShiftSalary(shift, user.hourly_wage || 0);
+      }, 0);
+
+      return {
+        user,
+        shifts: userShifts,
+        totalMinutes,
+        estimatedSalary,
+      };
+    });
+  }, [employeeUsers, sortedMonthlyShifts]);
+
+  const totalMonthlyMinutes = useMemo(() => {
+    return employeeMonthlySummaries.reduce((sum, item) => {
+      return sum + item.totalMinutes;
     }, 0);
+  }, [employeeMonthlySummaries]);
 
-    return formatDuration(totalMinutes);
-  }, [shifts]);
+  const totalMonthlySalary = useMemo(() => {
+    return employeeMonthlySummaries.reduce((sum, item) => {
+      return sum + item.estimatedSalary;
+    }, 0);
+  }, [employeeMonthlySummaries]);
 
   const fetchData = async () => {
     try {
@@ -164,6 +256,24 @@ export default function OwnerShiftsPage() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const toggleEmployeeLog = (userId: number) => {
+    setOpenedEmployeeIds((prev) => {
+      if (prev.includes(userId)) {
+        return prev.filter((id) => id !== userId);
+      }
+
+      return [...prev, userId];
+    });
+  };
+
+  const openAllLogs = () => {
+    setOpenedEmployeeIds(employeeUsers.map((user) => user.id));
+  };
+
+  const closeAllLogs = () => {
+    setOpenedEmployeeIds([]);
+  };
 
   const validateShiftForm = (form: ShiftForm) => {
     if (!form.user_id) {
@@ -215,6 +325,11 @@ export default function OwnerShiftsPage() {
         ...initialShiftForm,
         work_date: shiftForm.work_date,
       });
+
+      const createdUserId = Number(shiftForm.user_id);
+      setOpenedEmployeeIds((prev) =>
+        prev.includes(createdUserId) ? prev : [...prev, createdUserId]
+      );
 
       await fetchData();
     } catch (error: any) {
@@ -322,26 +437,47 @@ export default function OwnerShiftsPage() {
           <p className="owner-shifts-label">Shift Management</p>
           <h2>シフト管理</h2>
           <p>
-            従業員ごとのシフトを作成・編集・削除できます。
-            登録したシフトはシフト表、売上分析、人件費計算に反映されます。
+            従業員ごとの月間労働時間・概算給料・シフト登録ログを確認できます。
+            登録したシフトは売上分析や人件費計算にも反映されます。
           </p>
+        </div>
+      </section>
+
+      <section className="owner-shifts-month-filter">
+        <label>
+          対象月
+          <input
+            type="month"
+            value={targetMonth}
+            onChange={(e) => setTargetMonth(e.target.value)}
+          />
+        </label>
+
+        <div>
+          <button type="button" onClick={openAllLogs}>
+            全員のログを開く
+          </button>
+
+          <button type="button" onClick={closeAllLogs}>
+            全員のログを閉じる
+          </button>
         </div>
       </section>
 
       <section className="owner-shifts-summary-grid">
         <div className="owner-shifts-summary-card">
-          <span>登録シフト数</span>
-          <strong>{shifts.length}件</strong>
+          <span>対象月のシフト数</span>
+          <strong>{monthlyShifts.length}件</strong>
         </div>
 
         <div className="owner-shifts-summary-card">
-          <span>本日のシフト</span>
-          <strong>{todayShiftCount}件</strong>
+          <span>対象月の総勤務時間</span>
+          <strong>{formatDuration(totalMonthlyMinutes)}</strong>
         </div>
 
         <div className="owner-shifts-summary-card">
-          <span>総勤務時間</span>
-          <strong>{totalShiftHours}</strong>
+          <span>対象月の概算人件費</span>
+          <strong>{formatCurrency(totalMonthlySalary)}</strong>
         </div>
       </section>
 
@@ -448,10 +584,12 @@ export default function OwnerShiftsPage() {
       </section>
 
       <section className="owner-shifts-section">
-        <div className="owner-shifts-section-title">
+        <div className="owner-shifts-section-title owner-shifts-log-title">
           <div>
-            <h3>シフト一覧</h3>
-            <p>登録済みのシフトを確認・編集できます。</p>
+            <h3>従業員別シフト一覧</h3>
+            <p>
+              従業員を全員表示し、対象月の労働時間・概算給料・登録ログを確認できます。
+            </p>
           </div>
 
           <button
@@ -465,222 +603,242 @@ export default function OwnerShiftsPage() {
 
         {loading ? (
           <div className="owner-shifts-loading">読み込み中...</div>
-        ) : sortedShifts.length === 0 ? (
+        ) : employeeMonthlySummaries.length === 0 ? (
           <div className="owner-shifts-empty">
-            まだシフトが登録されていません。
+            従業員がまだ登録されていません。
           </div>
         ) : (
-          <>
-            <div className="owner-shifts-card-list">
-              {sortedShifts.map((shift) => {
-                const isEditing = editingShiftId === shift.id;
+          <div className="owner-employee-shift-list">
+            {employeeMonthlySummaries.map((summary) => {
+              const isOpen = openedEmployeeIds.includes(summary.user.id);
 
-                return (
-                  <article key={shift.id} className="owner-shift-card">
-                    {isEditing ? (
-                      <>
-                        <div className="owner-shift-card-edit-grid">
-                          <label>
-                            従業員
-                            <select
-                              value={editShiftForm.user_id}
-                              onChange={(e) =>
-                                setEditShiftForm({
-                                  ...editShiftForm,
-                                  user_id: e.target.value,
-                                })
-                              }
-                            >
-                              <option value="">選択してください</option>
-                              {employeeUsers.map((user) => (
-                                <option key={user.id} value={user.id}>
-                                  {user.name}（{user.email}）
-                                </option>
-                              ))}
-                            </select>
-                          </label>
+              return (
+                <article
+                  key={summary.user.id}
+                  className={`owner-employee-shift-card ${
+                    isOpen ? "open" : ""
+                  }`}
+                >
+                  <div className="owner-employee-shift-header">
+                    <div>
+                      <span>{summary.user.email}</span>
+                      <h4>{summary.user.name}</h4>
+                    </div>
 
-                          <label>
-                            勤務日
-                            <input
-                              type="date"
-                              value={editShiftForm.work_date}
-                              onChange={(e) =>
-                                setEditShiftForm({
-                                  ...editShiftForm,
-                                  work_date: e.target.value,
-                                })
-                              }
-                            />
-                          </label>
+                    <button
+                      type="button"
+                      onClick={() => toggleEmployeeLog(summary.user.id)}
+                    >
+                      {isOpen ? "ログを閉じる" : "ログを見る"}
+                    </button>
+                  </div>
 
-                          <label>
-                            開始
-                            <input
-                              type="time"
-                              value={editShiftForm.start_time}
-                              onChange={(e) =>
-                                setEditShiftForm({
-                                  ...editShiftForm,
-                                  start_time: e.target.value,
-                                })
-                              }
-                            />
-                          </label>
+                  <div className="owner-employee-shift-summary">
+                    <div>
+                      <span>月間勤務時間</span>
+                      <strong>{formatDuration(summary.totalMinutes)}</strong>
+                    </div>
 
-                          <label>
-                            終了
-                            <input
-                              type="time"
-                              value={editShiftForm.end_time}
-                              onChange={(e) =>
-                                setEditShiftForm({
-                                  ...editShiftForm,
-                                  end_time: e.target.value,
-                                })
-                              }
-                            />
-                          </label>
+                    <div>
+                      <span>概算給料</span>
+                      <strong>{formatCurrency(summary.estimatedSalary)}</strong>
+                    </div>
 
-                          <label>
-                            休憩
-                            <select
-                              value={editShiftForm.break_minutes}
-                              onChange={(e) =>
-                                setEditShiftForm({
-                                  ...editShiftForm,
-                                  break_minutes: e.target.value,
-                                })
-                              }
-                            >
-                              <option value="0">0分</option>
-                              <option value="15">15分</option>
-                              <option value="30">30分</option>
-                              <option value="45">45分</option>
-                              <option value="60">60分</option>
-                              <option value="90">90分</option>
-                              <option value="120">120分</option>
-                            </select>
-                          </label>
+                    <div>
+                      <span>登録ログ</span>
+                      <strong>{summary.shifts.length}件</strong>
+                    </div>
+
+                    <div>
+                      <span>時給</span>
+                      <strong>{formatCurrency(summary.user.hourly_wage || 0)}</strong>
+                    </div>
+                  </div>
+
+                  {isOpen && (
+                    <div className="owner-employee-log-area">
+                      {summary.shifts.length === 0 ? (
+                        <p className="owner-employee-log-empty">
+                          対象月のシフト登録ログはありません。
+                        </p>
+                      ) : (
+                        <div className="owner-employee-log-list">
+                          {summary.shifts.map((shift) => {
+                            const isEditing = editingShiftId === shift.id;
+
+                            return (
+                              <article key={shift.id} className="owner-shift-log-card">
+                                {isEditing ? (
+                                  <>
+                                    <div className="owner-shift-card-edit-grid">
+                                      <label>
+                                        従業員
+                                        <select
+                                          value={editShiftForm.user_id}
+                                          onChange={(e) =>
+                                            setEditShiftForm({
+                                              ...editShiftForm,
+                                              user_id: e.target.value,
+                                            })
+                                          }
+                                        >
+                                          <option value="">選択してください</option>
+                                          {employeeUsers.map((user) => (
+                                            <option key={user.id} value={user.id}>
+                                              {user.name}（{user.email}）
+                                            </option>
+                                          ))}
+                                        </select>
+                                      </label>
+
+                                      <label>
+                                        勤務日
+                                        <input
+                                          type="date"
+                                          value={editShiftForm.work_date}
+                                          onChange={(e) =>
+                                            setEditShiftForm({
+                                              ...editShiftForm,
+                                              work_date: e.target.value,
+                                            })
+                                          }
+                                        />
+                                      </label>
+
+                                      <label>
+                                        開始
+                                        <input
+                                          type="time"
+                                          value={editShiftForm.start_time}
+                                          onChange={(e) =>
+                                            setEditShiftForm({
+                                              ...editShiftForm,
+                                              start_time: e.target.value,
+                                            })
+                                          }
+                                        />
+                                      </label>
+
+                                      <label>
+                                        終了
+                                        <input
+                                          type="time"
+                                          value={editShiftForm.end_time}
+                                          onChange={(e) =>
+                                            setEditShiftForm({
+                                              ...editShiftForm,
+                                              end_time: e.target.value,
+                                            })
+                                          }
+                                        />
+                                      </label>
+
+                                      <label>
+                                        休憩
+                                        <select
+                                          value={editShiftForm.break_minutes}
+                                          onChange={(e) =>
+                                            setEditShiftForm({
+                                              ...editShiftForm,
+                                              break_minutes: e.target.value,
+                                            })
+                                          }
+                                        >
+                                          <option value="0">0分</option>
+                                          <option value="15">15分</option>
+                                          <option value="30">30分</option>
+                                          <option value="45">45分</option>
+                                          <option value="60">60分</option>
+                                          <option value="90">90分</option>
+                                          <option value="120">120分</option>
+                                        </select>
+                                      </label>
+                                    </div>
+
+                                    <div className="owner-shift-card-actions">
+                                      <button
+                                        type="button"
+                                        className="owner-shift-save-button"
+                                        onClick={() => handleUpdateShift(shift.id)}
+                                      >
+                                        保存
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        className="owner-shift-cancel-button"
+                                        onClick={handleCancelEditShift}
+                                      >
+                                        キャンセル
+                                      </button>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <div className="owner-shift-log-header">
+                                      <div>
+                                        <span>{shift.work_date}</span>
+                                        <strong>
+                                          {shift.start_time} 〜 {shift.end_time}
+                                        </strong>
+                                      </div>
+
+                                      <em>
+                                        {formatDuration(
+                                          getShiftDurationMinutes(shift)
+                                        )}
+                                      </em>
+                                    </div>
+
+                                    <dl className="owner-shift-log-detail">
+                                      <div>
+                                        <dt>休憩</dt>
+                                        <dd>{shift.break_minutes || 0}分</dd>
+                                      </div>
+
+                                      <div>
+                                        <dt>概算給料</dt>
+                                        <dd>
+                                          {formatCurrency(
+                                            calculateShiftSalary(
+                                              shift,
+                                              summary.user.hourly_wage || 0
+                                            )
+                                          )}
+                                        </dd>
+                                      </div>
+                                    </dl>
+
+                                    <div className="owner-shift-card-actions">
+                                      <button
+                                        type="button"
+                                        className="owner-shift-edit-button"
+                                        onClick={() => handleStartEditShift(shift)}
+                                      >
+                                        編集
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        className="owner-shift-delete-button"
+                                        onClick={() => handleDeleteShift(shift)}
+                                      >
+                                        削除
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
+                              </article>
+                            );
+                          })}
                         </div>
-
-                        <div className="owner-shift-card-actions">
-                          <button
-                            type="button"
-                            className="owner-shift-save-button"
-                            onClick={() => handleUpdateShift(shift.id)}
-                          >
-                            保存
-                          </button>
-
-                          <button
-                            type="button"
-                            className="owner-shift-cancel-button"
-                            onClick={handleCancelEditShift}
-                          >
-                            キャンセル
-                          </button>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="owner-shift-card-header">
-                          <div>
-                            <span>{shift.work_date}</span>
-                            <h4>{shift.user_name}</h4>
-                          </div>
-
-                          <strong>
-                            {formatDuration(getShiftDurationMinutes(shift))}
-                          </strong>
-                        </div>
-
-                        <dl className="owner-shift-card-detail">
-                          <div>
-                            <dt>勤務時間</dt>
-                            <dd>
-                              {shift.start_time} 〜 {shift.end_time}
-                            </dd>
-                          </div>
-
-                          <div>
-                            <dt>休憩</dt>
-                            <dd>{shift.break_minutes || 0}分</dd>
-                          </div>
-                        </dl>
-
-                        <div className="owner-shift-card-actions">
-                          <button
-                            type="button"
-                            className="owner-shift-edit-button"
-                            onClick={() => handleStartEditShift(shift)}
-                          >
-                            編集
-                          </button>
-
-                          <button
-                            type="button"
-                            className="owner-shift-delete-button"
-                            onClick={() => handleDeleteShift(shift)}
-                          >
-                            削除
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </article>
-                );
-              })}
-            </div>
-
-            <div className="owner-shifts-table-wrap">
-              <table className="owner-shifts-table">
-                <thead>
-                  <tr>
-                    <th>勤務日</th>
-                    <th>従業員</th>
-                    <th>開始</th>
-                    <th>終了</th>
-                    <th>休憩</th>
-                    <th>勤務時間</th>
-                    <th>操作</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {sortedShifts.map((shift) => (
-                    <tr key={shift.id}>
-                      <td>{shift.work_date}</td>
-                      <td>{shift.user_name}</td>
-                      <td>{shift.start_time}</td>
-                      <td>{shift.end_time}</td>
-                      <td>{shift.break_minutes || 0}分</td>
-                      <td>{formatDuration(getShiftDurationMinutes(shift))}</td>
-                      <td>
-                        <div className="owner-shifts-table-actions">
-                          <button
-                            type="button"
-                            className="owner-shift-edit-button"
-                            onClick={() => handleStartEditShift(shift)}
-                          >
-                            編集
-                          </button>
-
-                          <button
-                            type="button"
-                            className="owner-shift-delete-button"
-                            onClick={() => handleDeleteShift(shift)}
-                          >
-                            削除
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
+                      )}
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
         )}
       </section>
     </div>
