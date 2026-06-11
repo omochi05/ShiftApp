@@ -1,6 +1,6 @@
 /* =========================
    ShiftTimeline.css
-   通常表示 + A3印刷 + PDF出力対応
+   通常表示 + スマホ表示 + A3印刷 + PDF出力対応
 ========================= */
 
 .shift-timeline {
@@ -224,6 +224,11 @@
   background: #374151 !important;
 }
 
+/* =========================
+   スマホ表示
+   PC・印刷は変えず、スマホ画面だけ時間を見やすくする
+========================= */
+
 @media screen and (max-width: 768px) {
   .shift-timeline {
     min-width: 1180px;
@@ -231,6 +236,28 @@
 
   .shift-timeline-print {
     min-width: 1180px;
+  }
+
+  .shift-timeline-day {
+    grid-template-rows: 34px auto;
+  }
+
+  .shift-timeline-hours {
+    min-height: 34px;
+  }
+
+  .shift-timeline-hour {
+    width: 34px;
+    min-height: 34px;
+
+    color: #ffffff !important;
+    font-size: 18px;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .shift-timeline-date {
+    font-size: 22px;
   }
 }
 
@@ -302,7 +329,7 @@
     border-bottom: 1.6px solid #000000 !important;
   }
 
-  /* 印刷時：黒い帯の高さはそのまま、時間文字をさらに大きく */
+  /* 印刷時：黒い帯の高さはそのまま、時間文字を見やすく */
   .shift-timeline-hour {
     position: absolute !important;
     top: 0 !important;
@@ -424,19 +451,19 @@
 }
 
 .pdf-capture-mode .shift-timeline-hours {
-  min-height: 12px !important;
+  min-height: 14px !important;
   border-bottom: 2px solid #000000 !important;
   background: #111111 !important;
   color: #ffffff !important;
 }
 
-/* PDF保存時：スマホでも時間文字をさらに大きく表示 */
+/* PDF保存時：スマホでも時間文字をさらに見やすく */
 .pdf-capture-mode .shift-timeline-hour {
-  width: 24px !important;
-  min-height: 12px !important;
+  width: 28px !important;
+  min-height: 14px !important;
 
   color: #ffffff !important;
-  font-size: 10.5px !important;
+  font-size: 12px !important;
   font-weight: 900 !important;
   line-height: 1 !important;
   text-align: center !important;
