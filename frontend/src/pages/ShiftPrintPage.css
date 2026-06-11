@@ -1,233 +1,214 @@
 /* =========================
    ShiftPrintPage.css
-   A3横 印刷用シフト表
+   A3横 印刷・PDF用
 ========================= */
 
 .shift-print-page {
   min-height: 100vh;
-  padding: 24px;
+  padding: 18px;
+
   background: #f3f4f6 !important;
   color: #000000 !important;
 }
 
 .shift-print-actions {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 12px;
+  gap: 10px;
 
-  margin-bottom: 18px;
-  padding: 14px;
-
-  background: #ffffff;
-  border: 1px solid #d1d5db;
-  border-radius: 16px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  margin-bottom: 14px;
 }
 
 .shift-print-actions button {
-  min-height: 44px;
-  padding: 0 16px;
+  min-height: 42px;
+  padding: 10px 16px;
+
+  background: #111827 !important;
+  color: #ffffff !important;
 
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
 
-  background: #374151;
-  color: #ffffff;
-
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 900;
 
   cursor: pointer;
 }
 
-.shift-print-actions button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.shift-print-actions button:hover {
+  background: #374151 !important;
 }
 
-.pdf-main-button {
-  background: #dc2626 !important;
-}
-
-.image-main-button {
-  background: #2563eb !important;
-}
-
-.print-main-button {
-  background: #111827 !important;
-}
-
-.shift-print-week-selector {
+.shift-print-date-control {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 12px;
-  margin-right: auto;
-}
+  align-items: center;
+  gap: 8px;
 
-.shift-print-week-selector label {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-
-  color: #111827;
-  font-size: 14px;
-  font-weight: 900;
-}
-
-.shift-print-week-selector input {
-  min-height: 44px;
+  min-height: 42px;
   padding: 8px 12px;
 
-  background: #ffffff;
-  color: #111827;
+  background: #ffffff !important;
+  color: #111827 !important;
 
   border: 1px solid #d1d5db;
   border-radius: 10px;
 
-  font-size: 16px;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.shift-print-date-control input {
+  height: 32px;
+  padding: 4px 8px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+
+  font-size: 14px;
   font-weight: 800;
 }
 
-.shift-print-week-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.shift-print-message {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+
+  background: #ffffff !important;
+  color: #111827 !important;
+
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+
+  font-size: 14px;
+  font-weight: 900;
 }
 
-.shift-print-week-buttons button {
-  background: #111827 !important;
+.shift-print-loading {
+  max-width: 640px;
+  margin: 80px auto;
+  padding: 28px;
+
+  background: #ffffff !important;
+  border-radius: 18px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+
+  text-align: center;
 }
 
-.shift-print-sheet {
+.shift-print-loading h1 {
+  margin: 0 0 8px;
+
+  color: #111827 !important;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.shift-print-loading p {
+  margin: 0;
+
+  color: #4b5563 !important;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.shift-print-paper {
   width: 100%;
-  max-width: 1600px;
-
+  max-width: 1580px;
   margin: 0 auto;
-  padding: 18px;
+  padding: 16px;
 
   background: #ffffff !important;
   color: #000000 !important;
 
-  border: 3px solid #000000;
-  box-sizing: border-box;
+  border-radius: 12px;
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.16);
 }
 
-.shift-print-sheet h1 {
+.shift-print-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+
+  border-bottom: 3px solid #000000;
+}
+
+.shift-print-header h1 {
   margin: 0 0 4px;
 
   color: #000000 !important;
-  font-size: 30px;
-  font-weight: 900;
-  text-align: center;
-}
-
-.shift-print-period {
-  margin: 0 0 12px;
-
-  color: #000000 !important;
-  font-size: 18px;
-  font-weight: 900;
-  text-align: center;
-}
-
-.shift-print-message,
-.shift-print-error {
-  padding: 20px;
-
-  background: #ffffff;
-  color: #111827;
-
-  border: 1px solid #d1d5db;
-  border-radius: 16px;
-
-  font-size: 18px;
-  font-weight: 900;
-}
-
-.shift-print-error {
-  color: #dc2626;
-}
-
-/* PDF保存時は少しだけ余白を整える */
-.pdf-capture-mode {
-  background: #ffffff !important;
-  color: #000000 !important;
-}
-
-.pdf-capture-mode.shift-print-sheet {
-  max-width: 1600px;
-  padding: 14px;
-  border: 3px solid #000000;
-}
-
-.pdf-capture-mode h1 {
   font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
 }
 
-.pdf-capture-mode .shift-print-period {
-  font-size: 17px;
+.shift-print-header p {
+  margin: 0;
+
+  color: #000000 !important;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.shift-print-shop-name {
+  color: #000000 !important;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.shift-print-timeline-wrap {
+  width: 100%;
+  overflow: visible;
+}
+
+/* PDF保存時の余白・影を消す */
+.pdf-capture-mode .shift-print-page {
+  background: #ffffff !important;
+}
+
+.pdf-capture-mode .shift-print-paper {
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 10px !important;
+
+  border-radius: 0 !important;
+  box-shadow: none !important;
+
+  background: #ffffff !important;
+}
+
+.pdf-capture-mode .shift-print-header {
+  margin-bottom: 6px !important;
+  padding-bottom: 5px !important;
+  border-bottom: 2px solid #000000 !important;
+}
+
+.pdf-capture-mode .shift-print-header h1 {
+  font-size: 24px !important;
+}
+
+.pdf-capture-mode .shift-print-header p,
+.pdf-capture-mode .shift-print-shop-name {
+  font-size: 13px !important;
 }
 
 /* =========================
-   スマホ表示
-========================= */
-
-@media screen and (max-width: 768px) {
-  .shift-print-page {
-    padding: 12px;
-  }
-
-  .shift-print-actions {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .shift-print-actions button {
-    width: 100%;
-  }
-
-  .shift-print-week-selector {
-    width: 100%;
-    margin-right: 0;
-  }
-
-  .shift-print-week-selector label {
-    width: 100%;
-  }
-
-  .shift-print-week-selector input {
-    width: 100%;
-  }
-
-  .shift-print-week-buttons {
-    width: 100%;
-  }
-
-  .shift-print-week-buttons button {
-    flex: 1;
-  }
-
-  .shift-print-sheet {
-    overflow-x: auto;
-  }
-}
-
-/* =========================
-   印刷用 A3横
+   A3横 印刷設定
 ========================= */
 
 @page {
   size: A3 landscape;
-  margin: 6mm;
+  margin: 5mm;
 }
 
 @media print {
   html,
   body {
     width: 420mm;
-    height: 297mm;
+    min-height: 297mm;
 
     margin: 0 !important;
     padding: 0 !important;
@@ -239,47 +220,59 @@
     print-color-adjust: exact !important;
   }
 
-  .shift-print-page {
-    width: 420mm;
-    min-height: 297mm;
+  .print-hide,
+  .shift-print-actions,
+  .shift-print-message {
+    display: none !important;
+  }
 
+  .shift-print-page {
+    width: 100% !important;
+    min-height: auto !important;
+
+    margin: 0 !important;
     padding: 0 !important;
 
     background: #ffffff !important;
   }
 
-  .shift-print-actions {
-    display: none !important;
-  }
+  .shift-print-paper {
+    width: 100% !important;
+    max-width: none !important;
 
-  .shift-print-sheet {
-    width: 100%;
-    max-width: none;
-
-    margin: 0 auto !important;
+    margin: 0 !important;
     padding: 4mm !important;
-
-    border: 2px solid #000000 !important;
 
     background: #ffffff !important;
     color: #000000 !important;
 
+    border-radius: 0 !important;
     box-shadow: none !important;
-    page-break-inside: avoid;
-    break-inside: avoid;
   }
 
-  .shift-print-sheet h1 {
-    margin-bottom: 1mm !important;
+  .shift-print-header {
+    margin-bottom: 4mm !important;
+    padding-bottom: 2mm !important;
 
-    font-size: 17pt !important;
-    line-height: 1.05 !important;
+    border-bottom: 2px solid #000000 !important;
   }
 
-  .shift-print-period {
-    margin-bottom: 3mm !important;
+  .shift-print-header h1 {
+    font-size: 22px !important;
+    line-height: 1.1 !important;
+  }
 
-    font-size: 10pt !important;
-    line-height: 1.05 !important;
+  .shift-print-header p {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+  }
+
+  .shift-print-shop-name {
+    font-size: 12px !important;
+  }
+
+  .shift-print-timeline-wrap {
+    width: 100% !important;
+    overflow: visible !important;
   }
 }

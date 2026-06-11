@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
-import ShiftTimeline from "../components/ShiftTimeline";
+import jsPDF from "jspdf";
 import { api } from "../api/client";
+import ShiftTimeline from "../components/ShiftTimeline";
 import "./ShiftPrintPage.css";
 
 type User = {
@@ -28,6 +29,15 @@ type Shift = {
 type ShiftForTimeline = Shift & {
   user_name: string;
 };
+
+function getTodayText() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+
+  return `${yyyy}-${mm}-${dd}`;
+}
 
 function getMondayOfCurrentWeek() {
   const now = new Date();
@@ -55,6 +65,15 @@ function addDays(dateText: string, days: number) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function getDateLabel(dateText: string) {
+  const date = new Date(`${dateText}T00:00:00`);
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+
+  return `${yyyy}.${mm}.${dd}`;
+}
+
 function timeToMinutes(time: string) {
   const [hourText, minuteText] = time.slice(0, 5).split(":");
   const hour = Number(hourText);
@@ -78,49 +97,13 @@ function getShiftDurationMinutes(shift: Shift) {
   return end - start;
 }
 
-function getWeekStartDateFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  const weekStartDate = params.get("weekStartDate");
-
-  if (weekStartDate) {
-    return weekStartDate;
-  }
-
-  return getMondayOfCurrentWeek();
-}
-
-function canvasToBlob(
-  canvas: HTMLCanvasElement,
-  type = "image/jpeg",
-  quality = 0.68
-): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        if (blob) {
-          resolve(blob);
-        } else {
-          reject(new Error("画像データの作成に失敗しました"));
-        }
-      },
-      type,
-      quality
-    );
-  });
-}
-
-function resizeCanvas(sourceCanvas: HTMLCanvasElement, maxWidth: number) {
-  if (sourceCanvas.width <= maxWidth) {
-    return sourceCanvas;
-  }
-
-  const ratio = maxWidth / sourceCanvas.width;
-  const newWidth = maxWidth;
-  const newHeight = Math.round(sourceCanvas.height * ratio);
+function resizeCanvas(sourceCanvas: HTMLCanvasElement, targetWidth: number) {
+  const scale = targetWidth / sourceCanvas.width;
+  const targetHeight = Math.round(sourceCanvas.height * scale);
 
   const resizedCanvas = document.createElement("canvas");
-  resizedCanvas.width = newWidth;
-  resizedCanvas.height = newHeight;
+  resizedCanvas.width = targetWidth;
+  resizedCanvas.height = targetHeight;
 
   const ctx = resizedCanvas.getContext("2d");
 
@@ -128,116 +111,38 @@ function resizeCanvas(sourceCanvas: HTMLCanvasElement, maxWidth: number) {
     return sourceCanvas;
   }
 
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, newWidth, newHeight);
-
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
 
-  ctx.drawImage(sourceCanvas, 0, 0, newWidth, newHeight);
+  ctx.drawImage(sourceCanvas, 0, 0, targetWidth, targetHeight);
 
   return resizedCanvas;
 }
 
-function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-
-  URL.revokeObjectURL(url);
-}
-
-async function shareOrDownloadFile(file: File, fallbackBlob: Blob) {
-  const canShareFiles =
-    typeof navigator !== "undefined" &&
-    "canShare" in navigator &&
-    typeof navigator.canShare === "function" &&
-    navigator.canShare({ files: [file] });
-
-  if (canShareFiles && typeof navigator.share === "function") {
-    await navigator.share({
-      title: "シフト表",
-      text: "シフト表を保存してください",
-      files: [file],
-    });
-    return;
-  }
-
-  downloadBlob(fallbackBlob, file.name);
-}
-
 export default function ShiftPrintPage() {
-  const sheetRef = useRef<HTMLElement | null>(null);
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const initialWeekStartDate = useMemo(() => getWeekStartDateFromUrl(), []);
+  const printAreaRef = useRef<HTMLDivElement | null>(null);
 
-  const [selectedWeekStartDate, setSelectedWeekStartDate] =
-    useState(initialWeekStartDate);
+  const urlWeekStartDate = searchParams.get("weekStartDate");
+
+  const [weekStartDate, setWeekStartDate] = useState(
+    urlWeekStartDate || getMondayOfCurrentWeek()
+  );
+
+  const weekEndDate = addDays(weekStartDate, 6);
 
   const [users, setUsers] = useState<User[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(true);
-  const [fileLoading, setFileLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [message, setMessage] = useState("");
 
-  const weekStartDate = selectedWeekStartDate;
-  const weekEndDate = addDays(weekStartDate, 6);
-
-  const weekDates = useMemo(
-    () => Array.from({ length: 7 }, (_, index) => addDays(weekStartDate, index)),
-    [weekStartDate]
-  );
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      setErrorMessage("");
-
-      const [usersRes, shiftsRes] = await Promise.all([
-        api.get<User[]>("/users/"),
-        api.get<Shift[]>("/shifts/"),
-      ]);
-
-      setUsers(usersRes.data);
-      setShifts(shiftsRes.data);
-    } catch (error) {
-      console.error("印刷用シフト取得失敗:", error);
-      setErrorMessage("シフト表の取得に失敗しました。");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    params.set("weekStartDate", selectedWeekStartDate);
-
-    const newUrl = `${window.location.pathname}?${params.toString()}${window.location.hash}`;
-
-    window.history.replaceState(null, "", newUrl);
-  }, [selectedWeekStartDate]);
-
-  const handlePrevWeek = () => {
-    setSelectedWeekStartDate((prev) => addDays(prev, -7));
-  };
-
-  const handleNextWeek = () => {
-    setSelectedWeekStartDate((prev) => addDays(prev, 7));
-  };
-
-  const handleThisWeek = () => {
-    setSelectedWeekStartDate(getMondayOfCurrentWeek());
-  };
+  const weekDates = useMemo(() => {
+    return Array.from({ length: 7 }, (_, index) =>
+      addDays(weekStartDate, index)
+    );
+  }, [weekStartDate]);
 
   const timelineShiftsBeforeDedup: ShiftForTimeline[] = shifts.map((shift) => {
     const user = users.find((u) => u.id === shift.user_id);
@@ -296,149 +201,123 @@ export default function ShiftPrintPage() {
     ...realWeeklyTimelineShifts,
   ];
 
-  const createShiftCanvas = async () => {
-    if (!sheetRef.current) {
-      throw new Error("シフト表が見つかりません");
-    }
-
-    const target = sheetRef.current;
-
-    target.classList.add("pdf-capture-mode");
-
-    await new Promise((resolve) => setTimeout(resolve, 150));
-
+  const fetchData = async () => {
     try {
-      const canvas = await html2canvas(target, {
-        scale: 1.4,
-        backgroundColor: "#ffffff",
-        useCORS: true,
-        logging: false,
-        windowWidth: target.scrollWidth,
-        windowHeight: target.scrollHeight,
-      });
+      setLoading(true);
+      setMessage("");
 
-      return resizeCanvas(canvas, 1800);
+      const [usersRes, shiftsRes] = await Promise.all([
+        api.get<User[]>("/users/"),
+        api.get<Shift[]>("/shifts/"),
+      ]);
+
+      setUsers(usersRes.data);
+      setShifts(shiftsRes.data);
+    } catch (error) {
+      console.error("印刷用データ取得失敗:", error);
+      setMessage("シフト表の取得に失敗しました。API接続を確認してください。");
     } finally {
-      target.classList.remove("pdf-capture-mode");
+      setLoading(false);
     }
   };
 
-  const handleSavePdf = async () => {
-    try {
-      setFileLoading(true);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-      const canvas = await createShiftCanvas();
-      const imgData = canvas.toDataURL("image/jpeg", 0.62);
+  useEffect(() => {
+    setSearchParams({
+      weekStartDate,
+    });
+  }, [weekStartDate, setSearchParams]);
 
-      const pdf = new jsPDF({
-        orientation: "landscape",
-        unit: "mm",
-        format: "a3",
-        compress: true,
-      });
-
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-
-      /*
-        前のサイズ感に近く戻す。
-        ただし上下が少し見切れないように、最低限の安全余白だけ入れる。
-      */
-      const marginX = 4;
-      const marginY = 5;
-
-      const printableWidth = pageWidth - marginX * 2;
-      const printableHeight = pageHeight - marginY * 2;
-
-      const ratio = Math.min(
-        printableWidth / canvas.width,
-        printableHeight / canvas.height
-      );
-
-      const imageWidth = canvas.width * ratio;
-      const imageHeight = canvas.height * ratio;
-
-      const x = (pageWidth - imageWidth) / 2;
-      const y = (pageHeight - imageHeight) / 2;
-
-      pdf.addImage(
-        imgData,
-        "JPEG",
-        x,
-        y,
-        imageWidth,
-        imageHeight,
-        undefined,
-        "FAST"
-      );
-
-      const pdfBlob = pdf.output("blob");
-      const fileName = `shift-${weekStartDate}-${weekEndDate}.pdf`;
-
-      const file = new File([pdfBlob], fileName, {
-        type: "application/pdf",
-      });
-
-      await shareOrDownloadFile(file, pdfBlob);
-    } catch (error) {
-      console.error("PDF保存失敗:", error);
-      alert("PDFの保存に失敗しました。もう一度試してください。");
-    } finally {
-      setFileLoading(false);
-    }
+  const handlePrevWeek = () => {
+    setWeekStartDate((prev) => addDays(prev, -7));
   };
 
-  const handleSaveImage = async () => {
-    try {
-      setFileLoading(true);
+  const handleNextWeek = () => {
+    setWeekStartDate((prev) => addDays(prev, 7));
+  };
 
-      const canvas = await createShiftCanvas();
-
-      const imageBlob = await canvasToBlob(canvas, "image/jpeg", 0.68);
-      const fileName = `shift-${weekStartDate}-${weekEndDate}.jpg`;
-
-      const file = new File([imageBlob], fileName, {
-        type: "image/jpeg",
-      });
-
-      await shareOrDownloadFile(file, imageBlob);
-    } catch (error) {
-      console.error("画像保存失敗:", error);
-      alert("画像の保存に失敗しました。もう一度試してください。");
-    } finally {
-      setFileLoading(false);
-    }
+  const handleThisWeek = () => {
+    setWeekStartDate(getMondayOfCurrentWeek());
   };
 
   const handlePrint = () => {
     window.print();
   };
 
-  const handleBack = () => {
-    window.history.back();
+  const handleSavePdf = async () => {
+    if (!printAreaRef.current) {
+      return;
+    }
+
+    try {
+      setMessage("PDFを作成中です...");
+
+      document.body.classList.add("pdf-capture-mode");
+
+      await new Promise((resolve) => window.setTimeout(resolve, 300));
+
+      const canvas = await html2canvas(printAreaRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        windowWidth: printAreaRef.current.scrollWidth,
+        windowHeight: printAreaRef.current.scrollHeight,
+      });
+
+      const resizedCanvas = resizeCanvas(canvas, 1800);
+      const imageData = resizedCanvas.toDataURL("image/jpeg", 0.92);
+
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a3",
+      });
+
+      const pageWidth = 420;
+      const pageHeight = 297;
+
+      const marginX = 4;
+      const marginY = 5;
+
+      const usableWidth = pageWidth - marginX * 2;
+      const usableHeight = pageHeight - marginY * 2;
+
+      const imageRatio = resizedCanvas.width / resizedCanvas.height;
+      const pageRatio = usableWidth / usableHeight;
+
+      let imageWidth = usableWidth;
+      let imageHeight = usableHeight;
+
+      if (imageRatio > pageRatio) {
+        imageHeight = usableWidth / imageRatio;
+      } else {
+        imageWidth = usableHeight * imageRatio;
+      }
+
+      const x = marginX + (usableWidth - imageWidth) / 2;
+      const y = marginY + (usableHeight - imageHeight) / 2;
+
+      pdf.addImage(imageData, "JPEG", x, y, imageWidth, imageHeight);
+      pdf.save(`shift-${weekStartDate}-${weekEndDate}.pdf`);
+
+      setMessage("PDFを保存しました");
+    } catch (error) {
+      console.error("PDF保存失敗:", error);
+      setMessage("PDF保存に失敗しました");
+    } finally {
+      document.body.classList.remove("pdf-capture-mode");
+    }
   };
 
   if (loading) {
     return (
       <div className="shift-print-page">
-        <p className="shift-print-message">シフト表を読み込み中...</p>
-      </div>
-    );
-  }
-
-  if (errorMessage) {
-    return (
-      <div className="shift-print-page">
-        <p className="shift-print-error">{errorMessage}</p>
-
-        <div className="shift-print-actions">
-          <button type="button" onClick={fetchData}>
-            再読み込み
-          </button>
-
-          <button type="button" onClick={handleBack}>
-            戻る
-          </button>
+        <div className="shift-print-loading">
+          <h1>読み込み中...</h1>
+          <p>シフト表を取得しています。</p>
         </div>
       </div>
     );
@@ -446,77 +325,61 @@ export default function ShiftPrintPage() {
 
   return (
     <div className="shift-print-page">
-      <div className="shift-print-actions">
-        <div className="shift-print-week-selector">
-          <label>
-            印刷する週
-            <input
-              type="date"
-              value={selectedWeekStartDate}
-              onChange={(e) => setSelectedWeekStartDate(e.target.value)}
-            />
-          </label>
-
-          <div className="shift-print-week-buttons">
-            <button type="button" onClick={handlePrevWeek} disabled={fileLoading}>
-              前の週
-            </button>
-
-            <button
-              type="button"
-              onClick={handleThisWeek}
-              disabled={fileLoading}
-            >
-              今週
-            </button>
-
-            <button type="button" onClick={handleNextWeek} disabled={fileLoading}>
-              次の週
-            </button>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className="pdf-main-button"
-          onClick={handleSavePdf}
-          disabled={fileLoading}
-        >
-          {fileLoading ? "作成中..." : "PDFを保存"}
-        </button>
-
-        <button
-          type="button"
-          className="image-main-button"
-          onClick={handleSaveImage}
-          disabled={fileLoading}
-        >
-          {fileLoading ? "作成中..." : "画像を保存"}
-        </button>
-
-        <button
-          type="button"
-          className="print-main-button"
-          onClick={handlePrint}
-          disabled={fileLoading}
-        >
-          このシフト表を印刷
-        </button>
-
-        <button type="button" onClick={handleBack} disabled={fileLoading}>
+      <div className="shift-print-actions print-hide">
+        <button type="button" onClick={() => navigate("/owner")}>
           戻る
+        </button>
+
+        <button type="button" onClick={handlePrevWeek}>
+          前の週
+        </button>
+
+        <button type="button" onClick={handleThisWeek}>
+          今週
+        </button>
+
+        <button type="button" onClick={handleNextWeek}>
+          次の週
+        </button>
+
+        <label className="shift-print-date-control">
+          週の開始日
+          <input
+            type="date"
+            value={weekStartDate}
+            onChange={(e) => setWeekStartDate(e.target.value)}
+          />
+        </label>
+
+        <button type="button" onClick={handlePrint}>
+          印刷
+        </button>
+
+        <button type="button" onClick={handleSavePdf}>
+          PDF保存
         </button>
       </div>
 
-      <main ref={sheetRef} className="shift-print-sheet">
-        <h1>週間シフト表</h1>
+      {message && <p className="shift-print-message print-hide">{message}</p>}
 
-        <p className="shift-print-period">
-          {weekStartDate} 〜 {weekEndDate}
-        </p>
+      <div ref={printAreaRef} className="shift-print-paper">
+        <header className="shift-print-header">
+          <div>
+            <h1>シフト表</h1>
+            <p>
+              {getDateLabel(weekStartDate)} 〜 {getDateLabel(weekEndDate)}
+            </p>
+          </div>
 
-        <ShiftTimeline shifts={weeklyTimelineShifts} printMode />
-      </main>
+          <div className="shift-print-shop-name">
+            <span>ShiftApp</span>
+          </div>
+        </header>
+
+        <div className="shift-print-timeline-wrap">
+          <ShiftTimeline shifts={weeklyTimelineShifts} printMode />
+        </div>
+      </div>
     </div>
   );
 }
