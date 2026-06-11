@@ -1,0 +1,127 @@
+.owner-navigation {
+  width: 260px;
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  padding: 22px 18px;
+
+  background: #111827 !important;
+  color: #ffffff !important;
+
+  border-right: 1px solid #1f2937;
+}
+
+.owner-navigation-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  padding: 12px 10px 18px;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.owner-navigation-title strong {
+  color: #ffffff !important;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.owner-navigation-title span {
+  color: #d1d5db !important;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.owner-navigation-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.owner-nav-link {
+  display: flex;
+  align-items: center;
+
+  min-height: 46px;
+  padding: 12px 14px;
+
+  color: #e5e7eb !important;
+  background: transparent !important;
+
+  border-radius: 12px;
+
+  font-size: 15px;
+  font-weight: 900;
+  text-decoration: none;
+
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.owner-nav-link:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+.owner-nav-link.active {
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+
+.owner-nav-logout {
+  margin-top: auto;
+
+  min-height: 46px;
+  padding: 12px 14px;
+
+  background: #dc2626 !important;
+  color: #ffffff !important;
+
+  border: none;
+  border-radius: 12px;
+
+  font-size: 15px;
+  font-weight: 900;
+
+  cursor: pointer;
+}
+
+.owner-nav-logout:hover {
+  background: #b91c1c !important;
+}
+
+@media screen and (max-width: 900px) {
+  .owner-navigation {
+    width: 100%;
+    min-height: auto;
+
+    padding: 16px;
+
+    border-right: none;
+    border-bottom: 1px solid #1f2937;
+  }
+
+  .owner-navigation-title {
+    padding: 8px 4px 12px;
+  }
+
+  .owner-navigation-links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .owner-nav-link {
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+@media screen and (max-width: 520px) {
+  .owner-navigation-links {
+    grid-template-columns: 1fr;
+  }
+}
