@@ -9,6 +9,7 @@ import OwnerDashboardHome from "./pages/owner/OwnerDashboardHome";
 import OwnerPlaceholderPage from "./pages/owner/OwnerPlaceholderPage";
 import OwnerEmployeesPage from "./pages/owner/OwnerEmployeesPage";
 import OwnerSalesPage from "./pages/owner/OwnerSalesPage";
+import OwnerShiftsPage from "./pages/owner/OwnerShiftsPage";
 
 function AppLayout() {
   return (
@@ -18,15 +19,7 @@ function AppLayout() {
       <Route path="/owner" element={<OwnerLayout />}>
         <Route index element={<OwnerDashboardHome />} />
 
-        <Route
-          path="shifts"
-          element={
-            <OwnerPlaceholderPage
-              title="シフト管理"
-              description="ここにシフト作成・編集・削除機能を移動します。"
-            />
-          }
-        />
+        <Route path="shifts" element={<OwnerShiftsPage />} />
 
         <Route
           path="timeline"
