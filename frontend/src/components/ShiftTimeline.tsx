@@ -51,10 +51,6 @@ const START_HOUR = 6;
 const TOTAL_HOURS = 24;
 const LONG_PRESS_MS = 550;
 
-/*
-  通常画面用
-  時間帯はCSS側で調整し、メンバー枠は見やすく大きめ。
-*/
 const NORMAL_LANE_HEIGHT = 40;
 const NORMAL_BAR_HEIGHT = 34;
 const NORMAL_BAR_TOP_OFFSET = 5;
@@ -219,10 +215,6 @@ function positionShifts(shifts: ShiftForTimeline[]) {
   };
 }
 
-/*
-  印刷・PDF用
-  人数が少ない日は大きく、人数が多い日はA3に収まる範囲で調整。
-*/
 function getAutoPrintSize(maxLaneCount: number): AutoPrintSize {
   if (maxLaneCount <= 1) {
     return {
@@ -467,21 +459,21 @@ export default function ShiftTimeline({
       }
     >
       {groupedWithPositions.map(({ date, positioned, laneCount }) => {
+        const hasShiftBars = positioned.length > 0;
+
         /*
-          修正版：
-          以前は Math.max(84, laneCount * laneHeight + 20) で
-          最低84pxが固定されていたため、1人だけの日に下の余白が大きくなっていた。
-          今回はバーの高さに合わせて必要最低限の高さにする。
+          下の余白を減らすため、minHeightではなくheightで固定する。
+          以前の Math.max(84, ...) のような最低高さをやめて、
+          実際のバーに必要な高さだけ確保する。
         */
-        const bodyHeight = printMode
+        const bodyHeight = hasShiftBars
           ? Math.max(
-              laneCount * laneHeight + barTopOffset + 8,
-              barHeight + barTopOffset + 10
+              (laneCount - 1) * laneHeight + barTopOffset + barHeight + 4,
+              barTopOffset + barHeight + 4
             )
-          : Math.max(
-              barHeight + barTopOffset + 8,
-              laneCount * laneHeight + barTopOffset + 8
-            );
+          : printMode
+          ? 8
+          : 10;
 
         const holidayName = getJapaneseHolidayName(date);
 
@@ -517,7 +509,7 @@ export default function ShiftTimeline({
             <div
               className="shift-timeline-body"
               style={{
-                minHeight: `${bodyHeight}px`,
+                height: `${bodyHeight}px`,
               }}
             >
               {Array.from({ length: TOTAL_HOURS + 1 }, (_, index) => (
