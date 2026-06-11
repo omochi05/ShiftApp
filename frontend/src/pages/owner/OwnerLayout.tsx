@@ -26,7 +26,7 @@ export default function OwnerLayout() {
             className="owner-layout-menu-button"
             onClick={() => setIsMenuOpen((prev) => !prev)}
           >
-            メニュー
+            {isMenuOpen ? "閉じる" : "メニュー"}
           </button>
         </header>
 

@@ -9,31 +9,45 @@ const ownerLinks = [
   {
     to: "/owner",
     label: "ダッシュボード",
+    description: "全体確認",
+    color: "blue",
     end: true,
   },
   {
     to: "/owner/shifts",
     label: "シフト管理",
+    description: "作成・編集",
+    color: "green",
   },
   {
     to: "/owner/timeline",
     label: "シフト表",
+    description: "週シフト確認",
+    color: "purple",
   },
   {
     to: "/owner/sales",
     label: "売上管理",
+    description: "売上・人件費率",
+    color: "orange",
   },
   {
     to: "/owner/employees",
     label: "従業員管理",
+    description: "追加・編集",
+    color: "cyan",
   },
   {
     to: "/owner/templates",
     label: "固定シフト",
+    description: "テンプレート",
+    color: "pink",
   },
   {
     to: "/owner/print/shifts",
     label: "印刷",
+    description: "PDF・印刷",
+    color: "gray",
   },
 ];
 
@@ -63,11 +77,18 @@ export default function OwnerNavigation({ onCloseMenu }: OwnerNavigationProps) {
             to={link.to}
             end={link.end}
             className={({ isActive }) =>
-              isActive ? "owner-nav-link active" : "owner-nav-link"
+              `owner-nav-link owner-nav-${link.color} ${
+                isActive ? "active" : ""
+              }`
             }
             onClick={onCloseMenu}
           >
-            {link.label}
+            <span className="owner-nav-dot" />
+
+            <span className="owner-nav-text">
+              <strong>{link.label}</strong>
+              <small>{link.description}</small>
+            </span>
           </NavLink>
         ))}
       </div>
