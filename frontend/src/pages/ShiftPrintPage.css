@@ -386,14 +386,30 @@
 }
 
 /* =========================
-   印刷時
+   印刷時：A3横 1ページに収める
 ========================= */
 
 @media print {
-  .shift-print-page {
+  html,
+  body {
+    width: 420mm !important;
+    height: 297mm !important;
+    margin: 0 !important;
     padding: 0 !important;
+
     background: #ffffff !important;
-    overflow: visible !important;
+    overflow: hidden !important;
+  }
+
+  .shift-print-page {
+    width: 100% !important;
+    height: 100% !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    background: #ffffff !important;
+    overflow: hidden !important;
   }
 
   .print-hide,
@@ -406,6 +422,10 @@
   }
 
   .shift-print-preview-wrap {
+    width: 100% !important;
+    height: 100% !important;
+
+    margin: 0 !important;
     padding: 0 !important;
 
     background: #ffffff !important;
@@ -414,12 +434,13 @@
     border-radius: 0 !important;
     box-shadow: none !important;
 
-    overflow: visible !important;
+    overflow: hidden !important;
   }
 
   .shift-print-paper {
     width: 100% !important;
     min-width: 0 !important;
+    height: auto !important;
 
     margin: 0 !important;
     padding: 0 !important;
@@ -428,23 +449,34 @@
 
     border-radius: 0 !important;
     box-shadow: none !important;
+
+    /*
+      ここで全体を縮小してA3横1枚に収める
+      2ページになる場合は 0.82 → 0.78 に下げる
+    */
+    zoom: 0.82 !important;
   }
 
   .shift-print-title {
-    margin-bottom: 4mm !important;
+    margin: 0 0 2mm !important;
+    padding: 0 !important;
   }
 
   .shift-print-title h1 {
-    font-size: 18px !important;
+    margin: 0 !important;
+    font-size: 16px !important;
+    line-height: 1.1 !important;
   }
 
   .shift-print-title p,
   .shift-print-title strong {
-    font-size: 10px !important;
+    margin: 0 !important;
+    font-size: 9px !important;
+    line-height: 1.1 !important;
   }
 
   @page {
     size: A3 landscape;
-    margin: 8mm;
+    margin: 4mm;
   }
 }
