@@ -15,7 +15,7 @@
 .shift-timeline-day {
   display: grid;
   grid-template-columns: 96px 1fr;
-  grid-template-rows: 36px auto;
+  grid-template-rows: 30px auto;
 
   border: 3px solid #000000;
   border-bottom: none;
@@ -57,7 +57,7 @@
   grid-row: 1;
 
   position: relative;
-  min-height: 36px;
+  min-height: 30px;
 
   background: #111111 !important;
   color: #ffffff !important;
@@ -74,10 +74,10 @@
   justify-content: center;
 
   width: 24px;
-  min-height: 36px;
+  min-height: 30px;
 
   color: #ffffff !important;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 900;
   text-align: center;
 }
@@ -104,11 +104,11 @@
 
 .shift-bar {
   position: absolute;
-  height: var(--shift-bar-height, 24px);
+  height: var(--shift-bar-height, 28px);
   box-sizing: border-box;
 
   border: 2.5px solid #000000;
-  border-radius: 7px;
+  border-radius: 8px;
 
   background: #ffffff !important;
   color: #000000 !important;
@@ -121,7 +121,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 var(--shift-bar-padding-x, 6px);
+  padding: 0 var(--shift-bar-padding-x, 8px);
 }
 
 .shift-bar-normal-content {
@@ -134,7 +134,7 @@
   min-width: 0;
 
   color: #000000 !important;
-  font-size: var(--shift-name-font-size, 14px);
+  font-size: var(--shift-name-font-size, 15px);
   font-weight: 900;
   line-height: 1;
   letter-spacing: 0.03em;
@@ -169,7 +169,7 @@
 }
 
 .shift-timeline-print .shift-bar {
-  height: var(--shift-bar-height, 28px);
+  height: var(--shift-bar-height, 30px);
 
   display: flex;
   align-items: center;
@@ -191,7 +191,7 @@
   text-overflow: ellipsis;
 
   color: #000000 !important;
-  font-size: var(--shift-name-font-size, 16px);
+  font-size: var(--shift-name-font-size, 17px);
   font-weight: 900;
   line-height: 1;
   letter-spacing: 0.03em;
@@ -256,7 +256,7 @@
 
   .shift-timeline-day {
     grid-template-columns: 62px 1fr !important;
-    grid-template-rows: 18px auto !important;
+    grid-template-rows: 15px auto !important;
 
     border-left: 1.6px solid #000000 !important;
     border-right: 1.6px solid #000000 !important;
@@ -291,7 +291,7 @@
   }
 
   .shift-timeline-hours {
-    min-height: 18px !important;
+    min-height: 15px !important;
 
     background: #111111 !important;
     color: #ffffff !important;
@@ -306,10 +306,10 @@
     transform: translateX(-50%) !important;
 
     width: 18px !important;
-    min-height: 18px !important;
+    min-height: 15px !important;
 
     color: #ffffff !important;
-    font-size: 7.5px !important;
+    font-size: 7px !important;
     font-weight: 900 !important;
     border-right: none !important;
   }
@@ -340,7 +340,7 @@
   }
 
   .shift-bar {
-    height: var(--shift-bar-height, 28px) !important;
+    height: var(--shift-bar-height, 30px) !important;
 
     display: flex !important;
     align-items: center !important;
@@ -365,7 +365,7 @@
     overflow: hidden !important;
     text-overflow: ellipsis !important;
 
-    font-size: var(--shift-name-font-size, 16px) !important;
+    font-size: var(--shift-name-font-size, 17px) !important;
     font-weight: 900 !important;
     line-height: 1 !important;
     letter-spacing: 0.03em !important;
@@ -412,9 +412,15 @@
 }
 
 .pdf-capture-mode .shift-timeline-hours {
+  min-height: 16px !important;
   border-bottom: 2px solid #000000 !important;
   background: #111111 !important;
   color: #ffffff !important;
+}
+
+.pdf-capture-mode .shift-timeline-hour {
+  min-height: 16px !important;
+  font-size: 7.5px !important;
 }
 
 .pdf-capture-mode .shift-timeline-body {
@@ -434,7 +440,7 @@
 }
 
 .pdf-capture-mode .shift-bar {
-  height: var(--shift-bar-height, 28px) !important;
+  height: var(--shift-bar-height, 30px) !important;
   padding: 0 var(--shift-bar-padding-x, 10px) !important;
 
   border: 2px solid #000000 !important;
@@ -447,73 +453,13 @@
 .pdf-capture-mode .shift-bar-normal-content,
 .pdf-capture-mode .shift-bar-name {
   color: #000000 !important;
-  font-size: var(--shift-name-font-size, 16px) !important;
+  font-size: var(--shift-name-font-size, 17px) !important;
   font-weight: 900 !important;
   letter-spacing: 0.03em !important;
 
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   transform: none !important;
-}
-
-/* =========================
-   編集モード：右クリック・長押しメニュー
-========================= */
-
-.shift-timeline-editable .shift-bar {
-  cursor: context-menu;
-}
-
-.shift-context-menu {
-  position: fixed;
-  z-index: 99999;
-
-  width: 170px;
-  padding: 8px;
-
-  background: #ffffff !important;
-  border: 1px solid #d1d5db !important;
-  border-radius: 14px !important;
-  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.24) !important;
-}
-
-.shift-context-menu button {
-  width: 100%;
-  min-height: 42px;
-
-  display: flex !important;
-  align-items: center;
-  justify-content: flex-start;
-
-  padding: 10px 12px !important;
-
-  background: #ffffff !important;
-  color: #111827 !important;
-
-  border: none !important;
-  border-radius: 10px !important;
-
-  font-size: 15px;
-  font-weight: 900;
-  text-align: left;
-
-  cursor: pointer;
-}
-
-.shift-context-menu button:hover {
-  background: #eff6ff !important;
-  color: #1d4ed8 !important;
-}
-
-.shift-context-menu button:last-child:hover {
-  background: #fef2f2 !important;
-  color: #dc2626 !important;
-}
-
-@media print {
-  .shift-context-menu {
-    display: none !important;
-  }
 }
 
 /* =========================
@@ -539,7 +485,9 @@
   box-shadow: 0 16px 32px rgba(15, 23, 42, 0.24) !important;
 }
 
-.shift-context-menu button {
+.shift-context-menu button,
+.shift-context-menu button:focus,
+.shift-context-menu button:active {
   width: 100%;
   min-height: 42px;
 
@@ -560,38 +508,10 @@
   text-align: left;
 
   cursor: pointer;
-}
-
-.shift-context-menu button:hover {
-  background: #eff6ff !important;
-  color: #1d4ed8 !important;
-}
-
-.shift-context-menu button:last-child:hover {
-  background: #fef2f2 !important;
-  color: #dc2626 !important;
-}
-
-@media print {
-  .shift-context-menu {
-    display: none !important;
-  }
-}
-
-/* =========================
-   編集メニュー：編集/削除の色を統一
-========================= */
-
-.shift-context-menu button,
-.shift-context-menu button:focus,
-.shift-context-menu button:active {
-  background: #ffffff !important;
-  color: #111827 !important;
   outline: none !important;
   box-shadow: none !important;
 }
 
-/* 編集ボタンも削除ボタンと同じ赤系にする */
 .shift-context-menu button:first-child:hover,
 .shift-context-menu button:first-child:focus,
 .shift-context-menu button:first-child:active,
@@ -600,4 +520,10 @@
 .shift-context-menu button:last-child:active {
   background: #fef2f2 !important;
   color: #dc2626 !important;
+}
+
+@media print {
+  .shift-context-menu {
+    display: none !important;
+  }
 }

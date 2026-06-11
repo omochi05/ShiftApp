@@ -51,11 +51,11 @@ const START_HOUR = 6;
 const TOTAL_HOURS = 24;
 const LONG_PRESS_MS = 550;
 
-const NORMAL_LANE_HEIGHT = 30;
-const NORMAL_BAR_HEIGHT = 24;
-const NORMAL_BAR_TOP_OFFSET = 8;
-const NORMAL_NAME_FONT_SIZE = 14;
-const NORMAL_BAR_PADDING_X = 6;
+const NORMAL_LANE_HEIGHT = 34;
+const NORMAL_BAR_HEIGHT = 28;
+const NORMAL_BAR_TOP_OFFSET = 6;
+const NORMAL_NAME_FONT_SIZE = 15;
+const NORMAL_BAR_PADDING_X = 8;
 
 const hourLabels = [
   "6",
@@ -218,18 +218,18 @@ function positionShifts(shifts: ShiftForTimeline[]) {
 function getAutoPrintSize(maxLaneCount: number): AutoPrintSize {
   if (maxLaneCount <= 1) {
     return {
-      laneHeight: 44,
-      barHeight: 36,
+      laneHeight: 48,
+      barHeight: 40,
       barTopOffset: 5,
-      nameFontSize: 19,
+      nameFontSize: 20,
       barPaddingX: 12,
     };
   }
 
   if (maxLaneCount === 2) {
     return {
-      laneHeight: 39,
-      barHeight: 32,
+      laneHeight: 42,
+      barHeight: 34,
       barTopOffset: 5,
       nameFontSize: 18,
       barPaddingX: 11,
@@ -238,18 +238,18 @@ function getAutoPrintSize(maxLaneCount: number): AutoPrintSize {
 
   if (maxLaneCount === 3) {
     return {
-      laneHeight: 34,
-      barHeight: 28,
+      laneHeight: 37,
+      barHeight: 30,
       barTopOffset: 5,
-      nameFontSize: 16,
+      nameFontSize: 17,
       barPaddingX: 10,
     };
   }
 
   if (maxLaneCount === 4) {
     return {
-      laneHeight: 31,
-      barHeight: 25,
+      laneHeight: 34,
+      barHeight: 27,
       barTopOffset: 4,
       nameFontSize: 16,
       barPaddingX: 8,
@@ -257,10 +257,10 @@ function getAutoPrintSize(maxLaneCount: number): AutoPrintSize {
   }
 
   return {
-    laneHeight: 27,
-    barHeight: 22,
+    laneHeight: 30,
+    barHeight: 24,
     barTopOffset: 3,
-    nameFontSize: 14.5,
+    nameFontSize: 15,
     barPaddingX: 7,
   };
 }
@@ -464,7 +464,7 @@ export default function ShiftTimeline({
               laneCount * laneHeight + barTopOffset + 6,
               barHeight + barTopOffset + 8
             )
-          : Math.max(66, laneCount * laneHeight + 16);
+          : Math.max(74, laneCount * laneHeight + 18);
 
         const holidayName = getJapaneseHolidayName(date);
 
