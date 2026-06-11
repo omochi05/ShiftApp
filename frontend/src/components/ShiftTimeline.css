@@ -302,7 +302,7 @@
     border-bottom: 1.6px solid #000000 !important;
   }
 
-  /* 印刷時：黒い帯の高さはそのまま、時間文字だけ見やすく */
+  /* 印刷時：黒い帯の高さはそのまま、時間文字をさらに大きく */
   .shift-timeline-hour {
     position: absolute !important;
     top: 0 !important;
@@ -312,11 +312,11 @@
     align-items: center !important;
     justify-content: center !important;
 
-    width: 20px !important;
+    width: 24px !important;
     min-height: 12px !important;
 
     color: #ffffff !important;
-    font-size: 8.5px !important;
+    font-size: 10.5px !important;
     font-weight: 900 !important;
     line-height: 1 !important;
     text-align: center !important;
@@ -430,13 +430,13 @@
   color: #ffffff !important;
 }
 
-/* PDF保存時：スマホでも時間文字を大きく表示 */
+/* PDF保存時：スマホでも時間文字をさらに大きく表示 */
 .pdf-capture-mode .shift-timeline-hour {
-  width: 20px !important;
+  width: 24px !important;
   min-height: 12px !important;
 
   color: #ffffff !important;
-  font-size: 8.5px !important;
+  font-size: 10.5px !important;
   font-weight: 900 !important;
   line-height: 1 !important;
   text-align: center !important;
