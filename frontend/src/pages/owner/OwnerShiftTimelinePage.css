@@ -18,56 +18,52 @@
 
 /* =========================
    シフト表トップ
+   他ページと同じ形・紫バージョン
 ========================= */
 
 .owner-shift-hero {
-  position: relative;
-
   width: 100%;
-  padding: 34px 32px 34px 86px;
+  padding: 64px 36px;
 
   background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%) !important;
   color: #ffffff !important;
 
-  border-radius: 32px;
-  box-shadow: 0 18px 36px rgba(124, 58, 237, 0.22);
+  border-radius: 46px;
+  box-shadow: 0 20px 40px rgba(124, 58, 237, 0.22);
 
-  text-align: left;
-  overflow: hidden;
+  text-align: center;
 }
 
-.owner-shift-hero::before {
-  content: "";
-
-  position: absolute;
-  left: 30px;
-  top: 30px;
-  bottom: 30px;
-
-  width: 20px;
-
-  background: #ffffff !important;
-  border-radius: 999px;
-}
-
-.owner-shift-hero h1 {
-  margin: 0 0 6px;
+.owner-shift-hero p {
+  margin: 0 0 14px;
 
   color: #ffffff !important;
 
-  font-size: 34px;
+  font-size: 28px;
   font-weight: 900;
-  line-height: 1.15;
+  letter-spacing: 0.14em;
+}
+
+.owner-shift-hero h1 {
+  margin: 0 0 24px;
+
+  color: #ffffff !important;
+
+  font-size: 58px;
+  font-weight: 900;
+  line-height: 1.1;
 }
 
 .owner-shift-hero span {
   display: block;
+  max-width: 980px;
+  margin: 0 auto;
 
   color: #ffffff !important;
 
-  font-size: 21px;
+  font-size: 24px;
   font-weight: 900;
-  line-height: 1.4;
+  line-height: 1.9;
 }
 
 /* =========================
@@ -367,23 +363,21 @@
 
 @media screen and (max-width: 900px) {
   .owner-shift-hero {
-    padding: 30px 24px 30px 78px;
-    border-radius: 30px;
+    padding: 46px 24px;
+    border-radius: 36px;
   }
 
-  .owner-shift-hero::before {
-    left: 28px;
-    top: 28px;
-    bottom: 28px;
-    width: 18px;
+  .owner-shift-hero p {
+    font-size: 18px;
   }
 
   .owner-shift-hero h1 {
-    font-size: 32px;
+    font-size: 42px;
   }
 
   .owner-shift-hero span {
-    font-size: 20px;
+    font-size: 18px;
+    line-height: 1.8;
   }
 
   .owner-shift-week-box {
@@ -415,23 +409,22 @@
   }
 
   .owner-shift-hero {
-    padding: 28px 22px 28px 70px;
-    border-radius: 28px;
+    padding: 36px 18px;
+    border-radius: 30px;
   }
 
-  .owner-shift-hero::before {
-    left: 28px;
-    top: 28px;
-    bottom: 28px;
-    width: 18px;
+  .owner-shift-hero p {
+    font-size: 14px;
+    letter-spacing: 0.12em;
   }
 
   .owner-shift-hero h1 {
-    font-size: 30px;
+    font-size: 36px;
   }
 
   .owner-shift-hero span {
-    font-size: 20px;
+    font-size: 15px;
+    line-height: 1.8;
   }
 
   .owner-shift-control-panel {
