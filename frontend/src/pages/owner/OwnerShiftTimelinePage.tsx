@@ -32,27 +32,25 @@ type ShiftForTimeline = {
   created_by?: number | null;
 };
 
-type ShiftTemplate = {
-  id: number;
-  name?: string;
-  template_name?: string;
-  title?: string;
-  shifts?: TemplateShift[];
-  items?: TemplateShift[];
-  details?: TemplateShift[];
-};
-
 type TemplateShift = {
-  user_id?: number;
-  user_name?: string;
-  name?: string;
-  weekday?: number;
-  day_of_week?: number;
-  week_day?: number;
+  user_id: number;
+  user_name: string;
+  weekday: number;
   start_time: string;
   end_time: string;
-  break_minutes?: number;
+  break_minutes: number;
 };
+
+type ShiftTemplate = {
+  id: string;
+  name: string;
+  week_start: string;
+  week_end: string;
+  created_at: string;
+  items: TemplateShift[];
+};
+
+const TEMPLATE_STORAGE_KEY = "owner_shift_timeline_templates_v2";
 
 const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
 
@@ -142,26 +140,24 @@ function getUserName(userId: number, users: User[]) {
   return user?.name || "名前未設定";
 }
 
-function getTemplateName(template: ShiftTemplate) {
-  return (
-    template.name ||
-    template.template_name ||
-    template.title ||
-    `テンプレート${template.id}`
-  );
+function loadTemplatesFromStorage(): ShiftTemplate[] {
+  try {
+    const raw = localStorage.getItem(TEMPLATE_STORAGE_KEY);
+
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw);
+
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed;
+  } catch {
+    return [];
+  }
 }
 
-function getTemplateItems(template: ShiftTemplate) {
-  return template.shifts || template.items || template.details || [];
-}
-
-function getTemplateWeekday(item: TemplateShift) {
-  const value = item.weekday ?? item.day_of_week ?? item.week_day ?? 1;
-
-  if (value >= 0 && value <= 6) return value;
-  if (value >= 1 && value <= 7) return value % 7;
-
-  return 1;
+function saveTemplatesToStorage(templates: ShiftTemplate[]) {
+  localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(templates));
 }
 
 export default function OwnerShiftTimelinePage() {
@@ -242,9 +238,7 @@ export default function OwnerShiftTimelinePage() {
   }, [weeklyShifts]);
 
   const selectedTemplate = useMemo(() => {
-    return templates.find(
-      (template) => String(template.id) === selectedTemplateId
-    );
+    return templates.find((template) => template.id === selectedTemplateId);
   }, [templates, selectedTemplateId]);
 
   const fetchData = async () => {
@@ -267,24 +261,9 @@ export default function OwnerShiftTimelinePage() {
     }
   };
 
-  const fetchTemplates = async () => {
-    try {
-      const res = await api.get<ShiftTemplate[]>("/shift-templates/");
-      setTemplates(res.data);
-    } catch (firstError) {
-      try {
-        const res = await api.get<ShiftTemplate[]>("/shift_templates/");
-        setTemplates(res.data);
-      } catch (secondError) {
-        console.warn("テンプレート取得失敗:", firstError, secondError);
-        setTemplates([]);
-      }
-    }
-  };
-
   useEffect(() => {
+    setTemplates(loadTemplatesFromStorage());
     fetchData();
-    fetchTemplates();
   }, []);
 
   const goPrevWeek = () => {
@@ -303,7 +282,7 @@ export default function OwnerShiftTimelinePage() {
     setTargetDate(getTodayDate());
   };
 
-  const handleSaveWeekAsTemplate = async () => {
+  const handleSaveWeekAsTemplate = () => {
     if (weeklyShifts.length === 0) {
       setMessage("この週には保存できるシフトがありません");
       return;
@@ -322,42 +301,39 @@ export default function OwnerShiftTimelinePage() {
       setTemplateLoading(true);
       setMessage("");
 
-      const items = weeklyShifts.map((shift) => {
+      const items: TemplateShift[] = weeklyShifts.map((shift) => {
         const date = toDate(shift.work_date);
 
         return {
           user_id: shift.user_id,
           user_name: shift.user_name,
           weekday: date.getDay(),
-          day_of_week: date.getDay(),
-          week_day: date.getDay(),
           start_time: shift.start_time,
           end_time: shift.end_time,
           break_minutes: shift.break_minutes || 0,
         };
       });
 
-      const payload = {
+      const newTemplate: ShiftTemplate = {
+        id: crypto.randomUUID(),
         name,
-        template_name: name,
-        title: name,
-        shifts: items,
+        week_start: weekStart,
+        week_end: weekEnd,
+        created_at: new Date().toISOString(),
         items,
-        details: items,
       };
 
-      try {
-        await api.post("/shift-templates/", payload);
-      } catch (firstError) {
-        await api.post("/shift_templates/", payload);
-      }
+      const nextTemplates = [newTemplate, ...templates];
 
-      setMessage("この週をテンプレートとして保存しました");
+      setTemplates(nextTemplates);
+      saveTemplatesToStorage(nextTemplates);
+
+      setSelectedTemplateId(newTemplate.id);
       setTemplateName("");
-      await fetchTemplates();
-    } catch (error: any) {
+      setMessage("この週をテンプレートとして保存しました");
+    } catch (error) {
       console.error("テンプレート保存失敗:", error);
-      setMessage(formatApiError(error, "テンプレート保存に失敗しました"));
+      setMessage("テンプレート保存に失敗しました");
     } finally {
       setTemplateLoading(false);
     }
@@ -369,15 +345,13 @@ export default function OwnerShiftTimelinePage() {
       return;
     }
 
-    const items = getTemplateItems(selectedTemplate);
-
-    if (items.length === 0) {
+    if (selectedTemplate.items.length === 0) {
       setMessage("このテンプレートにはシフトが登録されていません");
       return;
     }
 
     const ok = window.confirm(
-      `${getTemplateName(selectedTemplate)} を ${weekStart}〜${weekEnd} に反映しますか？`
+      `${selectedTemplate.name} を ${weekStart}〜${weekEnd} に反映しますか？`
     );
 
     if (!ok) return;
@@ -388,17 +362,14 @@ export default function OwnerShiftTimelinePage() {
 
       const requests: Promise<unknown>[] = [];
 
-      items.forEach((item) => {
-        const weekday = getTemplateWeekday(item);
+      selectedTemplate.items.forEach((item) => {
         const targetDay = weekDays.find(
-          (day) => day.weekdayIndex === weekday
+          (day) => day.weekdayIndex === item.weekday
         );
 
         const userId =
           item.user_id ||
-          employeeUsers.find(
-            (user) => user.name === item.user_name || user.name === item.name
-          )?.id;
+          employeeUsers.find((user) => user.name === item.user_name)?.id;
 
         if (!targetDay || !userId) {
           return;
@@ -432,94 +403,121 @@ export default function OwnerShiftTimelinePage() {
     }
   };
 
+  const handleDeleteTemplate = () => {
+    if (!selectedTemplate) {
+      setMessage("削除するテンプレートを選択してください");
+      return;
+    }
+
+    const ok = window.confirm(
+      `「${selectedTemplate.name}」を削除しますか？`
+    );
+
+    if (!ok) return;
+
+    const nextTemplates = templates.filter(
+      (template) => template.id !== selectedTemplate.id
+    );
+
+    setTemplates(nextTemplates);
+    saveTemplatesToStorage(nextTemplates);
+    setSelectedTemplateId("");
+    setMessage("テンプレートを削除しました");
+  };
+
   return (
     <div className="owner-shift-timeline-page">
-      <section className="owner-shift-toolbar">
-        <div className="owner-shift-toolbar-main">
-          <div>
-            <p className="owner-shift-toolbar-label">Weekly Shift Board</p>
-            <h2>シフト表</h2>
-            <p>
-              シフト管理ページで登録したシフトを、印刷形式の表で表示します。
-            </p>
+      <section className="owner-shift-hero">
+        <p>WEEKLY SHIFT BOARD</p>
+        <h1>シフト表</h1>
+        <span>
+          登録済みのシフトを週ごとに確認できます。テンプレート保存と反映で、固定シフトの作成もスムーズに行えます。
+        </span>
+      </section>
+
+      <section className="owner-shift-control-panel">
+        <div className="owner-shift-week-box">
+          <label>
+            対象週
+            <input
+              type="date"
+              value={targetDate}
+              onChange={(e) => setTargetDate(e.target.value)}
+            />
+          </label>
+
+          <div className="owner-shift-week-buttons">
+            <button type="button" onClick={goPrevWeek}>
+              前の週
+            </button>
+
+            <button type="button" onClick={goThisWeek}>
+              今週
+            </button>
+
+            <button type="button" onClick={goNextWeek}>
+              次の週
+            </button>
+
+            <button type="button" onClick={fetchData}>
+              再読み込み
+            </button>
           </div>
         </div>
 
-        <div className="owner-shift-toolbar-side">
-          <div className="owner-shift-week-box">
+        <div className="owner-shift-template-box">
+          <div className="owner-shift-template-save">
             <label>
-              対象週
+              この週をテンプレートとして保存
               <input
-                type="date"
-                value={targetDate}
-                onChange={(e) => setTargetDate(e.target.value)}
+                type="text"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                placeholder={`${weekStart}〜${weekEnd} のテンプレート`}
               />
             </label>
 
-            <div className="owner-shift-week-buttons">
-              <button type="button" onClick={goPrevWeek}>
-                前の週
-              </button>
-
-              <button type="button" onClick={goThisWeek}>
-                今週
-              </button>
-
-              <button type="button" onClick={goNextWeek}>
-                次の週
-              </button>
-
-              <button type="button" onClick={fetchData}>
-                再読み込み
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleSaveWeekAsTemplate}
+              disabled={templateLoading || weeklyShifts.length === 0}
+            >
+              {templateLoading ? "処理中..." : "テンプレート保存"}
+            </button>
           </div>
 
-          <div className="owner-shift-template-box">
-            <div className="owner-shift-template-save">
-              <label>
-                この週をテンプレートとして保存
-                <input
-                  type="text"
-                  value={templateName}
-                  onChange={(e) => setTemplateName(e.target.value)}
-                  placeholder={`${weekStart}〜${weekEnd} のテンプレート`}
-                />
-              </label>
-
-              <button
-                type="button"
-                onClick={handleSaveWeekAsTemplate}
-                disabled={templateLoading || weeklyShifts.length === 0}
+          <div className="owner-shift-template-apply">
+            <label>
+              テンプレートを選択
+              <select
+                value={selectedTemplateId}
+                onChange={(e) => setSelectedTemplateId(e.target.value)}
               >
-                {templateLoading ? "処理中..." : "テンプレート保存"}
-              </button>
-            </div>
+                <option value="">保存したテンプレートを選択</option>
+                {templates.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.name}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-            <div className="owner-shift-template-apply">
-              <label>
-                テンプレートを選択
-                <select
-                  value={selectedTemplateId}
-                  onChange={(e) => setSelectedTemplateId(e.target.value)}
-                >
-                  <option value="">選択してください</option>
-                  {templates.map((template) => (
-                    <option key={template.id} value={template.id}>
-                      {getTemplateName(template)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+            <button
+              type="button"
+              onClick={handleApplyTemplate}
+              disabled={templateLoading || !selectedTemplateId}
+            >
+              {templateLoading ? "反映中..." : "テンプレートを反映"}
+            </button>
 
-              <button
-                type="button"
-                onClick={handleApplyTemplate}
-                disabled={templateLoading || !selectedTemplateId}
-              >
-                {templateLoading ? "反映中..." : "テンプレートを反映"}
-              </button>
-            </div>
+            <button
+              type="button"
+              className="owner-shift-template-delete-button"
+              onClick={handleDeleteTemplate}
+              disabled={!selectedTemplateId}
+            >
+              削除
+            </button>
           </div>
         </div>
       </section>
