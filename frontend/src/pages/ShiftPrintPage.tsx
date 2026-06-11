@@ -123,6 +123,7 @@ export default function ShiftPrintPage() {
   const [weekStartDate, setWeekStartDate] = useState(
     urlWeekStartDate || getMondayOfCurrentWeek()
   );
+  const ownerName = localStorage.getItem("ownerName") || "オーナー";
 
   const weekEndDate = addDays(weekStartDate, 6);
 
@@ -393,9 +394,8 @@ export default function ShiftPrintPage() {
               {getDateLabel(weekStartDate)} 〜 {getDateLabel(weekEndDate)}
             </p>
           </div>
-
           <div className="shift-print-shop-name">
-            <span>ShiftApp</span>
+            <span>作成者：{ownerName}</span>
           </div>
         </header>
 
