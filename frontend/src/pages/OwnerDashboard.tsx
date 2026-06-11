@@ -3,7 +3,9 @@ import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import ShiftTimeline from "../components/ShiftTimeline";
+import LaborCostSummary from "../components/LaborCostSummary";
 import "./OwnerDashboard.css";
+import WeekdayLaborTable from "../components/WeekdayLaborTable";
 
 type User = {
   id: number;
@@ -933,32 +935,16 @@ function OwnerDashboard() {
       </section>
 
       <section className="owner-section">
-        <h2>曜日別 売上・人件費率</h2>
+  <h2>曜日別 売上・人件費率</h2>
 
-        <div className="weekday-table-wrap">
-          <table className="weekday-table">
-            <thead>
-              <tr>
-                <th>曜日</th>
-                <th>売上</th>
-                <th>人件費</th>
-                <th>人件費率</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {weekdayDashboard.map((item) => (
-                <tr key={item.weekday}>
-                  <td>{item.weekday}</td>
-                  <td>{item.total_sales.toLocaleString()}円</td>
-                  <td>{item.total_labor_cost.toLocaleString()}円</td>
-                  <td>{item.labor_cost_rate}%</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+  <WeekdayLaborTable
+    weekdayDashboard={weekdayDashboard}
+    users={users}
+    shifts={shifts}
+    year={year}
+    month={month}
+  />
+</section>
 
       <section className="owner-section">
         <h2>従業員追加</h2>
@@ -1351,6 +1337,8 @@ function OwnerDashboard() {
 
         {shiftMessage && <p className="form-message">{shiftMessage}</p>}
       </section>
+      
+      <LaborCostSummary shifts={realWeeklyTimelineShifts} users={users} />
 
       <section className="owner-section shift-print-area">
         <div className="shift-section-header">
