@@ -8,6 +8,7 @@ import OwnerLayout from "./pages/owner/OwnerLayout";
 import OwnerDashboardHome from "./pages/owner/OwnerDashboardHome";
 import OwnerPlaceholderPage from "./pages/owner/OwnerPlaceholderPage";
 import OwnerEmployeesPage from "./pages/owner/OwnerEmployeesPage";
+import OwnerSalesPage from "./pages/owner/OwnerSalesPage";
 
 function AppLayout() {
   return (
@@ -37,15 +38,7 @@ function AppLayout() {
           }
         />
 
-        <Route
-          path="sales"
-          element={
-            <OwnerPlaceholderPage
-              title="売上管理"
-              description="ここに売上登録と売上一覧を移動します。"
-            />
-          }
-        />
+        <Route path="sales" element={<OwnerSalesPage />} />
 
         <Route path="employees" element={<OwnerEmployeesPage />} />
 
