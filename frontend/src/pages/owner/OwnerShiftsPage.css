@@ -3,7 +3,15 @@
   flex-direction: column;
   gap: 20px;
 
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
+  box-sizing: border-box;
+
+  overflow-x: hidden;
+}
+
+.owner-shifts-page * {
   box-sizing: border-box;
 }
 
@@ -51,6 +59,10 @@
   justify-content: space-between;
   gap: 14px;
 
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
   padding: 18px;
 
   background: #ffffff !important;
@@ -59,9 +71,6 @@
   border: 1px solid #e5e7eb;
   border-radius: 20px;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-
-  min-width: 0;
-  box-sizing: border-box;
 }
 
 .owner-shifts-month-filter label {
@@ -69,17 +78,22 @@
   flex-direction: column;
   gap: 7px;
 
+  width: 220px;
+  max-width: 100%;
+  min-width: 0;
+
   color: #374151 !important;
   font-size: 13px;
   font-weight: 900;
 }
 
 .owner-shifts-month-filter input {
-  width: 220px;
+  display: block;
+
+  width: 100%;
   max-width: 100%;
   min-width: 0;
   min-height: 42px;
-  box-sizing: border-box;
 
   padding: 10px 12px;
 
@@ -100,6 +114,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+
+  min-width: 0;
 }
 
 .owner-shifts-month-filter button {
@@ -122,6 +138,9 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
+
+  width: 100%;
+  min-width: 0;
 }
 
 .owner-shifts-summary-card {
@@ -135,7 +154,6 @@
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
 
   min-width: 0;
-  box-sizing: border-box;
 }
 
 .owner-shifts-summary-card span {
@@ -151,9 +169,14 @@
   color: #111827 !important;
   font-size: 28px;
   font-weight: 900;
+  overflow-wrap: anywhere;
 }
 
 .owner-shifts-section {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
   padding: 22px;
 
   background: #ffffff !important;
@@ -163,8 +186,7 @@
   border-radius: 22px;
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
 
-  min-width: 0;
-  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .owner-shifts-section-title {
@@ -184,6 +206,7 @@
 
 .owner-shifts-section-title > div {
   width: 100%;
+  min-width: 0;
 }
 
 .owner-shifts-section-title h3 {
@@ -210,13 +233,13 @@
     minmax(0, 0.8fr)
     minmax(0, 0.8fr)
     minmax(0, 0.8fr)
-    auto;
+    minmax(140px, auto);
   gap: 14px;
   align-items: end;
 
   width: 100%;
+  max-width: 100%;
   min-width: 0;
-  box-sizing: border-box;
 }
 
 .owner-shifts-form label,
@@ -225,23 +248,25 @@
   flex-direction: column;
   gap: 8px;
 
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
   color: #374151 !important;
   font-size: 13px;
   font-weight: 900;
-
-  min-width: 0;
-  box-sizing: border-box;
 }
 
 .owner-shifts-form input,
 .owner-shifts-form select,
 .owner-shift-card-edit-grid input,
 .owner-shift-card-edit-grid select {
+  display: block;
+
   width: 100%;
   max-width: 100%;
   min-width: 0;
   min-height: 42px;
-  box-sizing: border-box;
 
   padding: 10px 12px;
 
@@ -253,6 +278,30 @@
 
   font-size: 16px;
   font-weight: 800;
+
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.owner-shifts-form input[type="date"],
+.owner-shifts-form input[type="time"],
+.owner-shift-card-edit-grid input[type="date"],
+.owner-shift-card-edit-grid input[type="time"] {
+  position: relative;
+  display: block;
+
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  text-align: left;
+}
+
+.owner-shifts-form input[type="date"]::-webkit-date-and-time-value,
+.owner-shifts-form input[type="time"]::-webkit-date-and-time-value,
+.owner-shift-card-edit-grid input[type="date"]::-webkit-date-and-time-value,
+.owner-shift-card-edit-grid input[type="time"]::-webkit-date-and-time-value {
+  text-align: left;
 }
 
 .owner-shifts-form input:focus,
@@ -268,8 +317,8 @@
 .owner-shifts-form button {
   width: 100%;
   max-width: 100%;
+  min-width: 0;
   min-height: 42px;
-  box-sizing: border-box;
 
   padding: 10px 16px;
 
@@ -347,6 +396,10 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .owner-employee-shift-card {
@@ -358,8 +411,9 @@
   border: 1px solid #e5e7eb;
   border-radius: 20px;
 
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
-  box-sizing: border-box;
 }
 
 .owner-employee-shift-card.open {
@@ -374,6 +428,12 @@
   gap: 14px;
 
   margin-bottom: 14px;
+
+  min-width: 0;
+}
+
+.owner-employee-shift-header > div {
+  min-width: 0;
 }
 
 .owner-employee-shift-header span {
@@ -383,6 +443,8 @@
   color: #6b7280 !important;
   font-size: 13px;
   font-weight: 900;
+
+  overflow-wrap: anywhere;
 }
 
 .owner-employee-shift-header h4 {
@@ -413,8 +475,11 @@
 
 .owner-employee-shift-summary {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
+
+  width: 100%;
+  min-width: 0;
 }
 
 .owner-employee-shift-summary div {
@@ -449,6 +514,10 @@
   padding-top: 16px;
 
   border-top: 1px solid #bbf7d0;
+
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .owner-employee-log-empty {
@@ -470,6 +539,9 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+
+  width: 100%;
+  min-width: 0;
 }
 
 .owner-shift-log-card {
@@ -481,8 +553,9 @@
   border: 1px solid #e5e7eb;
   border-radius: 18px;
 
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
-  box-sizing: border-box;
 }
 
 .owner-shift-log-header {
@@ -492,6 +565,10 @@
   gap: 12px;
 
   margin-bottom: 12px;
+}
+
+.owner-shift-log-header > div {
+  min-width: 0;
 }
 
 .owner-shift-log-header span {
@@ -538,6 +615,8 @@
   background: #f9fafb !important;
   border: 1px solid #e5e7eb;
   border-radius: 14px;
+
+  min-width: 0;
 }
 
 .owner-shift-log-detail dt {
@@ -560,6 +639,10 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
+
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 
   margin-bottom: 14px;
 }
@@ -622,12 +705,19 @@
 }
 
 @media screen and (max-width: 960px) {
+  .owner-shifts-page {
+    overflow-x: hidden;
+  }
+
   .owner-shifts-month-filter {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .owner-shifts-month-filter label,
+  .owner-shifts-month-filter label {
+    width: 100%;
+  }
+
   .owner-shifts-month-filter input {
     width: 100%;
   }
@@ -635,6 +725,7 @@
   .owner-shifts-month-filter > div {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    width: 100%;
   }
 
   .owner-shifts-month-filter button {
@@ -646,8 +737,20 @@
   }
 
   .owner-shifts-form {
+    display: grid;
     grid-template-columns: minmax(0, 1fr);
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .owner-shifts-form label,
+  .owner-shifts-form input,
+  .owner-shifts-form select,
+  .owner-shifts-form button {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
   .owner-shifts-section-title {
@@ -675,6 +778,21 @@
   .owner-shifts-section {
     padding: 14px;
     border-radius: 20px;
+  }
+
+  .owner-shifts-form {
+    gap: 12px;
+  }
+
+  .owner-shifts-form input,
+  .owner-shifts-form select,
+  .owner-shift-card-edit-grid input,
+  .owner-shift-card-edit-grid select {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    font-size: 16px;
   }
 
   .owner-shifts-month-filter > div {

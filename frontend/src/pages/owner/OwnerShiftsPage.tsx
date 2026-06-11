@@ -33,7 +33,6 @@ type EmployeeMonthlySummary = {
   user: User;
   shifts: Shift[];
   totalMinutes: number;
-  estimatedSalary: number;
 };
 
 const initialShiftForm: ShiftForm = {
@@ -56,24 +55,9 @@ function getCurrentMonth() {
   return getTodayDate().slice(0, 7);
 }
 
-function formatCurrency(value: number) {
-  return `${Math.round(value).toLocaleString()}円`;
-}
-
 function timeToMinutes(time: string) {
   const [hour, minute] = time.split(":").map(Number);
   return hour * 60 + minute;
-}
-
-function getOverlapMinutes(
-  start: number,
-  end: number,
-  rangeStart: number,
-  rangeEnd: number
-) {
-  const overlapStart = Math.max(start, rangeStart);
-  const overlapEnd = Math.min(end, rangeEnd);
-  return Math.max(0, overlapEnd - overlapStart);
 }
 
 function getShiftDurationMinutes(shift: Shift) {
@@ -85,43 +69,6 @@ function getShiftDurationMinutes(shift: Shift) {
   }
 
   return Math.max(0, end - start - (shift.break_minutes || 0));
-}
-
-function calculateShiftSalary(shift: Shift, hourlyWage: number) {
-  let start = timeToMinutes(shift.start_time);
-  let end = timeToMinutes(shift.end_time);
-
-  if (end <= start) {
-    end += 24 * 60;
-  }
-
-  const breakMinutes = shift.break_minutes || 0;
-
-  const rawNightMinutes =
-    getOverlapMinutes(start, end, 0, 6 * 60) +
-    getOverlapMinutes(start, end, 22 * 60, 30 * 60);
-
-  const rawEarlyMinutes = getOverlapMinutes(start, end, 6 * 60, 9 * 60);
-  const rawNormalMinutes = getOverlapMinutes(start, end, 9 * 60, 22 * 60);
-
-  let remainingBreak = breakMinutes;
-
-  const normalBreak = Math.min(rawNormalMinutes, remainingBreak);
-  const normalMinutes = Math.max(0, rawNormalMinutes - normalBreak);
-  remainingBreak -= normalBreak;
-
-  const earlyBreak = Math.min(rawEarlyMinutes, remainingBreak);
-  const earlyMinutes = Math.max(0, rawEarlyMinutes - earlyBreak);
-  remainingBreak -= earlyBreak;
-
-  const nightBreak = Math.min(rawNightMinutes, remainingBreak);
-  const nightMinutes = Math.max(0, rawNightMinutes - nightBreak);
-
-  const normalSalary = (normalMinutes / 60) * hourlyWage;
-  const earlySalary = (earlyMinutes / 60) * hourlyWage;
-  const nightSalary = (nightMinutes / 60) * hourlyWage * 1.25;
-
-  return normalSalary + earlySalary + nightSalary;
 }
 
 function formatDuration(minutes: number) {
@@ -208,15 +155,10 @@ export default function OwnerShiftsPage() {
         return sum + getShiftDurationMinutes(shift);
       }, 0);
 
-      const estimatedSalary = userShifts.reduce((sum, shift) => {
-        return sum + calculateShiftSalary(shift, user.hourly_wage || 0);
-      }, 0);
-
       return {
         user,
         shifts: userShifts,
         totalMinutes,
-        estimatedSalary,
       };
     });
   }, [employeeUsers, sortedMonthlyShifts]);
@@ -224,12 +166,6 @@ export default function OwnerShiftsPage() {
   const totalMonthlyMinutes = useMemo(() => {
     return employeeMonthlySummaries.reduce((sum, item) => {
       return sum + item.totalMinutes;
-    }, 0);
-  }, [employeeMonthlySummaries]);
-
-  const totalMonthlySalary = useMemo(() => {
-    return employeeMonthlySummaries.reduce((sum, item) => {
-      return sum + item.estimatedSalary;
     }, 0);
   }, [employeeMonthlySummaries]);
 
@@ -437,7 +373,7 @@ export default function OwnerShiftsPage() {
           <p className="owner-shifts-label">Shift Management</p>
           <h2>シフト管理</h2>
           <p>
-            従業員ごとの月間労働時間・概算給料・シフト登録ログを確認できます。
+            従業員ごとの月間労働時間とシフト登録ログを確認できます。
             登録したシフトは売上分析や人件費計算にも反映されます。
           </p>
         </div>
@@ -476,8 +412,8 @@ export default function OwnerShiftsPage() {
         </div>
 
         <div className="owner-shifts-summary-card">
-          <span>対象月の概算人件費</span>
-          <strong>{formatCurrency(totalMonthlySalary)}</strong>
+          <span>登録従業員数</span>
+          <strong>{employeeUsers.length}人</strong>
         </div>
       </section>
 
@@ -588,7 +524,7 @@ export default function OwnerShiftsPage() {
           <div>
             <h3>従業員別シフト一覧</h3>
             <p>
-              従業員を全員表示し、対象月の労働時間・概算給料・登録ログを確認できます。
+              従業員を全員表示し、対象月の労働時間と登録ログを確認できます。
             </p>
           </div>
 
@@ -640,18 +576,13 @@ export default function OwnerShiftsPage() {
                     </div>
 
                     <div>
-                      <span>概算給料</span>
-                      <strong>{formatCurrency(summary.estimatedSalary)}</strong>
-                    </div>
-
-                    <div>
                       <span>登録ログ</span>
                       <strong>{summary.shifts.length}件</strong>
                     </div>
 
                     <div>
-                      <span>時給</span>
-                      <strong>{formatCurrency(summary.user.hourly_wage || 0)}</strong>
+                      <span>対象月</span>
+                      <strong>{targetMonth}</strong>
                     </div>
                   </div>
 
@@ -667,7 +598,10 @@ export default function OwnerShiftsPage() {
                             const isEditing = editingShiftId === shift.id;
 
                             return (
-                              <article key={shift.id} className="owner-shift-log-card">
+                              <article
+                                key={shift.id}
+                                className="owner-shift-log-card"
+                              >
                                 {isEditing ? (
                                   <>
                                     <div className="owner-shift-card-edit-grid">
@@ -682,9 +616,14 @@ export default function OwnerShiftsPage() {
                                             })
                                           }
                                         >
-                                          <option value="">選択してください</option>
+                                          <option value="">
+                                            選択してください
+                                          </option>
                                           {employeeUsers.map((user) => (
-                                            <option key={user.id} value={user.id}>
+                                            <option
+                                              key={user.id}
+                                              value={user.id}
+                                            >
                                               {user.name}（{user.email}）
                                             </option>
                                           ))}
@@ -759,7 +698,9 @@ export default function OwnerShiftsPage() {
                                       <button
                                         type="button"
                                         className="owner-shift-save-button"
-                                        onClick={() => handleUpdateShift(shift.id)}
+                                        onClick={() =>
+                                          handleUpdateShift(shift.id)
+                                        }
                                       >
                                         保存
                                       </button>
@@ -779,7 +720,8 @@ export default function OwnerShiftsPage() {
                                       <div>
                                         <span>{shift.work_date}</span>
                                         <strong>
-                                          {shift.start_time} 〜 {shift.end_time}
+                                          {shift.start_time} 〜{" "}
+                                          {shift.end_time}
                                         </strong>
                                       </div>
 
@@ -797,13 +739,10 @@ export default function OwnerShiftsPage() {
                                       </div>
 
                                       <div>
-                                        <dt>概算給料</dt>
+                                        <dt>勤務時間</dt>
                                         <dd>
-                                          {formatCurrency(
-                                            calculateShiftSalary(
-                                              shift,
-                                              summary.user.hourly_wage || 0
-                                            )
+                                          {formatDuration(
+                                            getShiftDurationMinutes(shift)
                                           )}
                                         </dd>
                                       </div>
@@ -813,7 +752,9 @@ export default function OwnerShiftsPage() {
                                       <button
                                         type="button"
                                         className="owner-shift-edit-button"
-                                        onClick={() => handleStartEditShift(shift)}
+                                        onClick={() =>
+                                          handleStartEditShift(shift)
+                                        }
                                       >
                                         編集
                                       </button>
@@ -821,7 +762,9 @@ export default function OwnerShiftsPage() {
                                       <button
                                         type="button"
                                         className="owner-shift-delete-button"
-                                        onClick={() => handleDeleteShift(shift)}
+                                        onClick={() =>
+                                          handleDeleteShift(shift)
+                                        }
                                       >
                                         削除
                                       </button>
