@@ -142,7 +142,7 @@
   border: 1px solid #d1d5db;
   border-radius: 12px;
 
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 800;
 
   appearance: none;
@@ -515,7 +515,7 @@
   border: 1px solid #d1d5db;
   border-radius: 12px;
 
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 800;
 }
 
@@ -750,10 +750,15 @@
 
   .owner-sales-period-tabs {
     width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 
   .owner-sales-period-tabs button {
-    flex: 1;
+    width: 100%;
+    min-width: 0;
+    padding-left: 8px;
+    padding-right: 8px;
   }
 
   .owner-sales-period-inputs {
@@ -764,6 +769,7 @@
   .owner-sales-period-inputs input {
     width: 100%;
     max-width: 100%;
+    min-width: 0;
   }
 
   .owner-sales-period-label {
@@ -803,7 +809,7 @@
   .owner-sales-filter-section,
   .owner-sales-section,
   .owner-sales-ai-section {
-    padding: 18px;
+    padding: 14px;
     border-radius: 20px;
   }
 

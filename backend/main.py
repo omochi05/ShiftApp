@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import HTTPException
 
 from routers import auth
 from routers import owner
@@ -37,3 +38,28 @@ app.include_router(users.router)
 @app.get("/")
 def read_root():
     return {"message": "Shift app API is running"}
+
+@app.delete("/sales/{sale_id}")
+def delete_sale(sale_id: int, db: Session = Depends(get_db)):
+    sale = db.query(Sale).filter(Sale.id == sale_id).first()
+
+    if sale is None:
+        raise HTTPException(status_code=404, detail="売上データが見つかりません")
+
+    db.delete(sale)
+    db.commit()
+
+    return {"message": "売上を削除しました"}
+
+
+@app.delete("/sales/{sale_id}/")
+def delete_sale_with_slash(sale_id: int, db: Session = Depends(get_db)):
+    sale = db.query(Sale).filter(Sale.id == sale_id).first()
+
+    if sale is None:
+        raise HTTPException(status_code=404, detail="売上データが見つかりません")
+
+    db.delete(sale)
+    db.commit()
+
+    return {"message": "売上を削除しました"}
