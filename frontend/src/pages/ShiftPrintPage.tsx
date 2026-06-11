@@ -1,7 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 import { api } from "../api/client";
 import ShiftTimeline from "../components/ShiftTimeline";
 import "./ShiftPrintPage.css";
@@ -11,189 +8,223 @@ type User = {
   name: string;
   email: string;
   role: string;
-  hourly_wage: number;
 };
 
 type Shift = {
   id: number;
   user_id: number;
+  user_name?: string;
   work_date: string;
   start_time: string;
   end_time: string;
   break_minutes: number;
   created_by?: number | null;
-  created_at?: string | null;
-  updated_at?: string | null;
 };
 
-type ShiftForTimeline = Shift & {
+type ShiftForTimeline = {
+  id: number;
+  user_id: number;
   user_name: string;
+  work_date: string;
+  start_time: string;
+  end_time: string;
+  break_minutes: number;
+  created_by?: number | null;
 };
 
-const PDF_CAPTURE_WIDTH = 1600;
+const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
 
-function getMondayOfCurrentWeek() {
-  const now = new Date();
-  const day = now.getDay();
-  const monday = new Date(now);
+function getTodayDate() {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
 
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function toDate(value: string) {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function formatDate(date: Date) {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function getMonday(value: string) {
+  const date = toDate(value);
+  const day = date.getDay();
   const diff = day === 0 ? -6 : 1 - day;
-  monday.setDate(now.getDate() + diff);
 
-  const yyyy = monday.getFullYear();
-  const mm = String(monday.getMonth() + 1).padStart(2, "0");
-  const dd = String(monday.getDate()).padStart(2, "0");
+  date.setDate(date.getDate() + diff);
 
-  return `${yyyy}-${mm}-${dd}`;
+  return date;
 }
 
-function addDays(dateText: string, days: number) {
-  const date = new Date(`${dateText}T00:00:00`);
-  date.setDate(date.getDate() + days);
+function addDays(date: Date, days: number) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
 
-  const yyyy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, "0");
-  const dd = String(date.getDate()).padStart(2, "0");
-
-  return `${yyyy}-${mm}-${dd}`;
+  return next;
 }
 
-function getDateLabel(dateText: string) {
-  const date = new Date(`${dateText}T00:00:00`);
-  const yyyy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, "0");
-  const dd = String(date.getDate()).padStart(2, "0");
-
-  return `${yyyy}.${mm}.${dd}`;
+function normalizeTime(time: string) {
+  return time.slice(0, 5);
 }
 
-function timeToMinutes(time: string) {
-  const [hourText, minuteText] = time.slice(0, 5).split(":");
-  const hour = Number(hourText);
-  const minute = Number(minuteText);
+function getHashQueryValue(key: string) {
+  const hash = window.location.hash;
+  const queryIndex = hash.indexOf("?");
 
-  if (Number.isNaN(hour) || Number.isNaN(minute)) {
-    return 0;
+  if (queryIndex === -1) return null;
+
+  const query = hash.slice(queryIndex + 1);
+  const params = new URLSearchParams(query);
+
+  return params.get(key);
+}
+
+function getUserName(userId: number, users: User[]) {
+  const user = users.find((item) => item.id === userId);
+  return user?.name || "名前未設定";
+}
+
+function getShiftUniqueKey(shift: {
+  user_id: number;
+  work_date: string;
+  start_time: string;
+  end_time: string;
+  break_minutes: number;
+}) {
+  return [
+    shift.user_id,
+    shift.work_date,
+    normalizeTime(shift.start_time),
+    normalizeTime(shift.end_time),
+    shift.break_minutes || 0,
+  ].join("-");
+}
+
+function removeDuplicateShifts(shifts: ShiftForTimeline[]) {
+  const map = new Map<string, ShiftForTimeline>();
+
+  shifts.forEach((shift) => {
+    const key = getShiftUniqueKey(shift);
+
+    if (!map.has(key)) {
+      map.set(key, shift);
+    }
+  });
+
+  return Array.from(map.values());
+}
+
+function formatApiError(error: any, fallbackMessage: string) {
+  const detail = error.response?.data?.detail;
+
+  if (Array.isArray(detail)) {
+    return `${fallbackMessage}：${detail.map((d) => d.msg).join(" / ")}`;
   }
 
-  return hour * 60 + minute;
-}
+  if (detail) return `${fallbackMessage}：${detail}`;
 
-function getShiftDurationMinutes(shift: Shift) {
-  let start = timeToMinutes(shift.start_time);
-  let end = timeToMinutes(shift.end_time);
-
-  if (end <= start) {
-    end += 24 * 60;
+  if (error.response?.status) {
+    return `${fallbackMessage}：HTTP ${error.response.status}`;
   }
 
-  return end - start;
-}
-
-function resizeCanvas(sourceCanvas: HTMLCanvasElement, targetWidth: number) {
-  const scale = targetWidth / sourceCanvas.width;
-  const targetHeight = Math.round(sourceCanvas.height * scale);
-
-  const resizedCanvas = document.createElement("canvas");
-  resizedCanvas.width = targetWidth;
-  resizedCanvas.height = targetHeight;
-
-  const ctx = resizedCanvas.getContext("2d");
-
-  if (!ctx) {
-    return sourceCanvas;
-  }
-
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-
-  ctx.drawImage(sourceCanvas, 0, 0, targetWidth, targetHeight);
-
-  return resizedCanvas;
+  return `${fallbackMessage}：APIに接続できませんでした`;
 }
 
 export default function ShiftPrintPage() {
-  const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const printAreaRef = useRef<HTMLDivElement | null>(null);
-
-  const urlWeekStartDate = searchParams.get("weekStartDate");
-
-  const [weekStartDate, setWeekStartDate] = useState(
-    urlWeekStartDate || getMondayOfCurrentWeek()
-  );
-  const ownerName = localStorage.getItem("ownerName") || "オーナー";
-
-  const weekEndDate = addDays(weekStartDate, 6);
+  const initialWeek = getHashQueryValue("week") || getTodayDate();
 
   const [users, setUsers] = useState<User[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
+  const [targetDate, setTargetDate] = useState(initialWeek);
+
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
-  const weekDates = useMemo(() => {
-    return Array.from({ length: 7 }, (_, index) =>
-      addDays(weekStartDate, index)
-    );
-  }, [weekStartDate]);
+  const printAreaRef = useRef<HTMLDivElement | null>(null);
 
-  const timelineShiftsBeforeDedup: ShiftForTimeline[] = shifts.map((shift) => {
-    const user = users.find((u) => u.id === shift.user_id);
+  const ownerName = localStorage.getItem("ownerName") || "オーナー";
 
-    return {
-      ...shift,
-      user_name: user?.name ?? `従業員${shift.user_id}`,
-    };
-  });
+  const weekDays = useMemo(() => {
+    const monday = getMonday(targetDate);
 
-  const timelineShifts: ShiftForTimeline[] = Array.from(
-    timelineShiftsBeforeDedup
-      .reduce((map, shift) => {
-        const normalizedName = shift.user_name.trim();
-        const key = `${shift.work_date}-${normalizedName}`;
+    return Array.from({ length: 7 }).map((_, index) => {
+      const date = addDays(monday, index);
+      const dateText = formatDate(date);
 
-        const existing = map.get(key);
+      return {
+        date: dateText,
+        label: `${date.getMonth() + 1}/${date.getDate()}`,
+        dayLabel: dayNames[date.getDay()],
+      };
+    });
+  }, [targetDate]);
 
-        if (!existing) {
-          map.set(key, shift);
-          return map;
-        }
+  const weekStart = weekDays[0]?.date;
+  const weekEnd = weekDays[6]?.date;
 
-        const existingDuration = getShiftDurationMinutes(existing);
-        const currentDuration = getShiftDurationMinutes(shift);
+  const weeklyShifts = useMemo<ShiftForTimeline[]>(() => {
+    if (!weekStart || !weekEnd) return [];
 
-        if (
-          currentDuration > existingDuration ||
-          (currentDuration === existingDuration && shift.id > existing.id)
-        ) {
-          map.set(key, shift);
-        }
+    const realShifts = shifts
+      .filter(
+        (shift) => shift.work_date >= weekStart && shift.work_date <= weekEnd
+      )
+      .map((shift) => ({
+        id: shift.id,
+        user_id: shift.user_id,
+        user_name:
+          shift.user_name && shift.user_name.trim() !== ""
+            ? shift.user_name
+            : getUserName(shift.user_id, users),
+        work_date: shift.work_date,
+        start_time: normalizeTime(shift.start_time),
+        end_time: normalizeTime(shift.end_time),
+        break_minutes: shift.break_minutes || 0,
+        created_by: shift.created_by,
+      }))
+      .sort((a, b) => {
+        if (a.work_date < b.work_date) return -1;
+        if (a.work_date > b.work_date) return 1;
+        if (a.start_time < b.start_time) return -1;
+        if (a.start_time > b.start_time) return 1;
+        return a.id - b.id;
+      });
 
-        return map;
-      }, new Map<string, ShiftForTimeline>())
-      .values()
-  );
+    const uniqueShifts = removeDuplicateShifts(realShifts);
 
-  const realWeeklyTimelineShifts = timelineShifts.filter(
-    (shift) =>
-      shift.work_date >= weekStartDate && shift.work_date <= weekEndDate
-  );
+    const placeholderDays: ShiftForTimeline[] = weekDays.map((day, index) => ({
+      id: -1000 - index,
+      user_id: -1,
+      user_name: "",
+      work_date: day.date,
+      start_time: "06:00",
+      end_time: "06:00",
+      break_minutes: 0,
+      created_by: null,
+    }));
 
-  const emptyWeekRows: ShiftForTimeline[] = weekDates.map((date, index) => ({
-    id: -1000 - index,
-    user_id: 0,
-    user_name: "",
-    work_date: date,
-    start_time: "00:00",
-    end_time: "00:00",
-    break_minutes: 0,
-  }));
+    return [...uniqueShifts, ...placeholderDays].sort((a, b) => {
+      if (a.work_date < b.work_date) return -1;
+      if (a.work_date > b.work_date) return 1;
+      if (a.start_time < b.start_time) return -1;
+      if (a.start_time > b.start_time) return 1;
+      return a.id - b.id;
+    });
+  }, [shifts, users, weekStart, weekEnd, weekDays]);
 
-  const weeklyTimelineShifts = [
-    ...emptyWeekRows,
-    ...realWeeklyTimelineShifts,
-  ];
+  const visibleShiftCount = useMemo(() => {
+    return weeklyShifts.filter((shift) => shift.user_name.trim() !== "").length;
+  }, [weeklyShifts]);
 
   const fetchData = async () => {
     try {
@@ -207,9 +238,9 @@ export default function ShiftPrintPage() {
 
       setUsers(usersRes.data);
       setShifts(shiftsRes.data);
-    } catch (error) {
-      console.error("印刷用データ取得失敗:", error);
-      setMessage("シフト表の取得に失敗しました。API接続を確認してください。");
+    } catch (error: any) {
+      console.error("印刷用シフト取得失敗:", error);
+      setMessage(formatApiError(error, "印刷用シフトの取得に失敗しました"));
     } finally {
       setLoading(false);
     }
@@ -219,190 +250,130 @@ export default function ShiftPrintPage() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    setSearchParams({
-      weekStartDate,
-    });
-  }, [weekStartDate, setSearchParams]);
-
-  const handlePrevWeek = () => {
-    setWeekStartDate((prev) => addDays(prev, -7));
+  const goBack = () => {
+    window.location.hash = "/owner/timeline";
   };
 
-  const handleNextWeek = () => {
-    setWeekStartDate((prev) => addDays(prev, 7));
+  const goPrevWeek = () => {
+    const date = toDate(targetDate);
+    date.setDate(date.getDate() - 7);
+    setTargetDate(formatDate(date));
   };
 
-  const handleThisWeek = () => {
-    setWeekStartDate(getMondayOfCurrentWeek());
+  const goNextWeek = () => {
+    const date = toDate(targetDate);
+    date.setDate(date.getDate() + 7);
+    setTargetDate(formatDate(date));
+  };
+
+  const goThisWeek = () => {
+    setTargetDate(getTodayDate());
   };
 
   const handlePrint = () => {
     window.print();
   };
 
-  const handleSavePdf = async () => {
-    if (!printAreaRef.current) {
-      return;
-    }
-
-    const printArea = printAreaRef.current;
-
-    const originalWidth = printArea.style.width;
-    const originalMinWidth = printArea.style.minWidth;
-    const originalMaxWidth = printArea.style.maxWidth;
-    const originalMargin = printArea.style.margin;
-
-    try {
-      setMessage("PDFを作成中です...");
-
-      document.body.classList.add("pdf-capture-mode");
-
-      /*
-        スマホ幅のままPDF化されるのを防ぐ。
-        PDF保存時だけA3横向き用の横幅に固定してからキャプチャする。
-      */
-      printArea.style.width = `${PDF_CAPTURE_WIDTH}px`;
-      printArea.style.minWidth = `${PDF_CAPTURE_WIDTH}px`;
-      printArea.style.maxWidth = `${PDF_CAPTURE_WIDTH}px`;
-      printArea.style.margin = "0";
-
-      await new Promise((resolve) => window.setTimeout(resolve, 500));
-
-      const captureHeight = printArea.scrollHeight;
-
-      const canvas = await html2canvas(printArea, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-
-        width: PDF_CAPTURE_WIDTH,
-        height: captureHeight,
-
-        windowWidth: PDF_CAPTURE_WIDTH,
-        windowHeight: captureHeight,
-
-        scrollX: 0,
-        scrollY: 0,
-      });
-
-      const resizedCanvas = resizeCanvas(canvas, 2200);
-      const imageData = resizedCanvas.toDataURL("image/jpeg", 0.95);
-
-      const pdf = new jsPDF({
-        orientation: "landscape",
-        unit: "mm",
-        format: "a3",
-      });
-
-      const pageWidth = 420;
-      const pageHeight = 297;
-
-      const marginX = 4;
-      const marginY = 5;
-
-      const usableWidth = pageWidth - marginX * 2;
-      const usableHeight = pageHeight - marginY * 2;
-
-      const imageRatio = resizedCanvas.width / resizedCanvas.height;
-      const pageRatio = usableWidth / usableHeight;
-
-      let imageWidth = usableWidth;
-      let imageHeight = usableHeight;
-
-      if (imageRatio > pageRatio) {
-        imageHeight = usableWidth / imageRatio;
-      } else {
-        imageWidth = usableHeight * imageRatio;
-      }
-
-      const x = marginX + (usableWidth - imageWidth) / 2;
-      const y = marginY + (usableHeight - imageHeight) / 2;
-
-      pdf.addImage(imageData, "JPEG", x, y, imageWidth, imageHeight);
-      pdf.save(`shift-${weekStartDate}-${weekEndDate}.pdf`);
-
-      setMessage("PDFを保存しました");
-    } catch (error) {
-      console.error("PDF保存失敗:", error);
-      setMessage("PDF保存に失敗しました");
-    } finally {
-      printArea.style.width = originalWidth;
-      printArea.style.minWidth = originalMinWidth;
-      printArea.style.maxWidth = originalMaxWidth;
-      printArea.style.margin = originalMargin;
-
-      document.body.classList.remove("pdf-capture-mode");
-    }
+  const handleSavePdf = () => {
+    window.print();
   };
-
-  if (loading) {
-    return (
-      <div className="shift-print-page">
-        <div className="shift-print-loading">
-          <h1>読み込み中...</h1>
-          <p>シフト表を取得しています。</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="shift-print-page">
-      <div className="shift-print-actions print-hide">
-        <button type="button" onClick={() => navigate("/owner")}>
-          戻る
-        </button>
+      <section className="shift-print-hero print-hide">
+        <p>PRINT PREVIEW</p>
+        <h1>印刷プレビュー</h1>
+        <span>
+          選択した週のシフト表を確認して、印刷またはPDF保存できます。
+        </span>
+      </section>
 
-        <button type="button" onClick={handlePrevWeek}>
-          前の週
-        </button>
+      <section className="shift-print-control-panel print-hide">
+        <div className="shift-print-navigation">
+          <button type="button" onClick={goBack}>
+            戻る
+          </button>
 
-        <button type="button" onClick={handleThisWeek}>
-          今週
-        </button>
+          <button type="button" onClick={goPrevWeek}>
+            前の週
+          </button>
 
-        <button type="button" onClick={handleNextWeek}>
-          次の週
-        </button>
+          <button type="button" onClick={goThisWeek}>
+            今週
+          </button>
 
-        <label className="shift-print-date-control">
-          週の開始日
-          <input
-            type="date"
-            value={weekStartDate}
-            onChange={(e) => setWeekStartDate(e.target.value)}
-          />
-        </label>
+          <button type="button" onClick={goNextWeek}>
+            次の週
+          </button>
+        </div>
 
-        <button type="button" onClick={handlePrint}>
-          印刷
-        </button>
+        <div className="shift-print-week-control">
+          <label>
+            週の開始日
+            <input
+              type="date"
+              value={targetDate}
+              onChange={(e) => setTargetDate(e.target.value)}
+            />
+          </label>
 
-        <button type="button" onClick={handleSavePdf}>
-          PDF保存
-        </button>
-      </div>
+          <button type="button" onClick={fetchData}>
+            再読み込み
+          </button>
+
+          <button type="button" onClick={handlePrint}>
+            印刷
+          </button>
+
+          <button type="button" onClick={handleSavePdf}>
+            PDF保存
+          </button>
+        </div>
+      </section>
+
+      <section className="shift-print-status-row print-hide">
+        <div>
+          <span>対象期間</span>
+          <strong>
+            {weekStart} ～ {weekEnd}
+          </strong>
+        </div>
+
+        <div>
+          <span>シフト件数</span>
+          <strong>{visibleShiftCount}件</strong>
+        </div>
+
+        <div>
+          <span>作成者</span>
+          <strong>{ownerName}</strong>
+        </div>
+      </section>
 
       {message && <p className="shift-print-message print-hide">{message}</p>}
 
-      <div ref={printAreaRef} className="shift-print-paper">
-        <header className="shift-print-header">
-          <div>
-            <h1>シフト表</h1>
-            <p>
-              {getDateLabel(weekStartDate)} 〜 {getDateLabel(weekEndDate)}
-            </p>
-          </div>
-          <div className="shift-print-shop-name">
-            <span>作成者：{ownerName}</span>
-          </div>
-        </header>
+      {loading ? (
+        <section className="shift-print-loading print-hide">
+          読み込み中...
+        </section>
+      ) : (
+        <section className="shift-print-preview-wrap">
+          <div className="shift-print-paper" ref={printAreaRef}>
+            <div className="shift-print-title">
+              <div>
+                <h1>シフト表</h1>
+                <p>
+                  {weekStart} ～ {weekEnd}
+                </p>
+              </div>
 
-        <div className="shift-print-timeline-wrap">
-          <ShiftTimeline shifts={weeklyTimelineShifts} printMode />
-        </div>
-      </div>
+              <strong>作成者：{ownerName}</strong>
+            </div>
+
+            <ShiftTimeline shifts={weeklyShifts} printMode />
+          </div>
+        </section>
+      )}
     </div>
   );
 }
