@@ -64,7 +64,7 @@
   overflow: visible;
 }
 
-/* 黒い帯の高さはそのまま、時間の文字だけ大きく */
+/* 通常画面：黒い帯の高さはそのまま、時間文字だけ大きめ */
 .shift-timeline-hour {
   position: absolute;
   top: 0;
@@ -80,6 +80,7 @@
   color: #ffffff !important;
   font-size: 14px;
   font-weight: 900;
+  line-height: 1;
   text-align: center;
 }
 
@@ -301,18 +302,25 @@
     border-bottom: 1.6px solid #000000 !important;
   }
 
-  /* 印刷時も黒い帯の高さはそのまま、時間文字だけ大きく */
+  /* 印刷時：黒い帯の高さはそのまま、時間文字だけ見やすく */
   .shift-timeline-hour {
     position: absolute !important;
     top: 0 !important;
     transform: translateX(-50%) !important;
 
-    width: 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    width: 20px !important;
     min-height: 12px !important;
 
     color: #ffffff !important;
-    font-size: 8px !important;
+    font-size: 8.5px !important;
     font-weight: 900 !important;
+    line-height: 1 !important;
+    text-align: center !important;
+
     border-right: none !important;
   }
 
@@ -422,10 +430,16 @@
   color: #ffffff !important;
 }
 
-/* PDF保存時も黒い帯の高さはそのまま、時間文字だけ大きく */
+/* PDF保存時：スマホでも時間文字を大きく表示 */
 .pdf-capture-mode .shift-timeline-hour {
+  width: 20px !important;
   min-height: 12px !important;
-  font-size: 8px !important;
+
+  color: #ffffff !important;
+  font-size: 8.5px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  text-align: center !important;
 }
 
 .pdf-capture-mode .shift-timeline-body {
