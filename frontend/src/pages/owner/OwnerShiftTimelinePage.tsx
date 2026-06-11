@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../../api/client";
+import ShiftTimeline from "../../components/ShiftTimeline";
 import "./OwnerShiftTimelinePage.css";
 
 type User = {
@@ -17,6 +18,18 @@ type Shift = {
   start_time: string;
   end_time: string;
   break_minutes: number;
+  created_by?: number | null;
+};
+
+type ShiftForTimeline = {
+  id: number;
+  user_id: number;
+  user_name: string;
+  work_date: string;
+  start_time: string;
+  end_time: string;
+  break_minutes: number;
+  created_by?: number | null;
 };
 
 type ShiftTemplate = {
@@ -40,45 +53,6 @@ type TemplateShift = {
   end_time: string;
   break_minutes?: number;
 };
-
-type WeekDay = {
-  date: string;
-  label: string;
-  dayLabel: string;
-  weekdayIndex: number;
-};
-
-type PositionedShift = Shift & {
-  lane: number;
-};
-
-const hourLabels = [
-  "6",
-  "7",
-  "8",
-  "9",
-  "10",
-  "11",
-  "12",
-  "13",
-  "14",
-  "15",
-  "16",
-  "17",
-  "18",
-  "19",
-  "20",
-  "21",
-  "22",
-  "23",
-  "0",
-  "1",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-];
 
 const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
 
@@ -126,32 +100,7 @@ function timeToMinutes(time: string) {
   return hour * 60 + minute;
 }
 
-function getTimelineStartMinutes(time: string) {
-  let minutes = timeToMinutes(time);
-
-  if (minutes < 6 * 60) {
-    minutes += 24 * 60;
-  }
-
-  return minutes;
-}
-
-function getTimelineEndMinutes(startTime: string, endTime: string) {
-  const originalStart = timeToMinutes(startTime);
-  let end = timeToMinutes(endTime);
-
-  if (end <= originalStart) {
-    end += 24 * 60;
-  }
-
-  if (end <= 6 * 60) {
-    end += 24 * 60;
-  }
-
-  return end;
-}
-
-function getShiftDurationMinutes(shift: Shift) {
+function getShiftDurationMinutes(shift: ShiftForTimeline) {
   const start = timeToMinutes(shift.start_time);
   let end = timeToMinutes(shift.end_time);
 
@@ -172,64 +121,6 @@ function formatDuration(minutes: number) {
   return `${hours}時間${mins}分`;
 }
 
-function getShiftBarStyle(shift: Shift) {
-  const dayStart = 6 * 60;
-  const dayEnd = 30 * 60;
-  const totalMinutes = dayEnd - dayStart;
-
-  const start = getTimelineStartMinutes(shift.start_time);
-  const end = getTimelineEndMinutes(shift.start_time, shift.end_time);
-
-  const clampedStart = Math.max(dayStart, start);
-  const clampedEnd = Math.min(dayEnd, end);
-
-  const left = ((clampedStart - dayStart) / totalMinutes) * 100;
-  const width = Math.max(
-    2,
-    ((clampedEnd - clampedStart) / totalMinutes) * 100
-  );
-
-  return {
-    left: `${left}%`,
-    width: `${width}%`,
-  };
-}
-
-function assignLanes(shifts: Shift[]): PositionedShift[] {
-  const sorted = [...shifts].sort((a, b) => {
-    const aStart = getTimelineStartMinutes(a.start_time);
-    const bStart = getTimelineStartMinutes(b.start_time);
-
-    if (aStart !== bStart) return aStart - bStart;
-
-    const aEnd = getTimelineEndMinutes(a.start_time, a.end_time);
-    const bEnd = getTimelineEndMinutes(b.start_time, b.end_time);
-
-    return aEnd - bEnd;
-  });
-
-  const laneEndTimes: number[] = [];
-
-  return sorted.map((shift) => {
-    const start = getTimelineStartMinutes(shift.start_time);
-    const end = getTimelineEndMinutes(shift.start_time, shift.end_time);
-
-    let lane = laneEndTimes.findIndex((laneEnd) => start >= laneEnd);
-
-    if (lane === -1) {
-      lane = laneEndTimes.length;
-      laneEndTimes.push(end);
-    } else {
-      laneEndTimes[lane] = end;
-    }
-
-    return {
-      ...shift,
-      lane,
-    };
-  });
-}
-
 function formatApiError(error: any, fallbackMessage: string) {
   const detail = error.response?.data?.detail;
 
@@ -246,18 +137,9 @@ function formatApiError(error: any, fallbackMessage: string) {
   return `${fallbackMessage}：APIに接続できませんでした`;
 }
 
-function getShiftDisplayName(shift: Shift, users: User[]) {
-  if (shift.user_name && shift.user_name.trim() !== "") {
-    return shift.user_name;
-  }
-
-  const user = users.find((item) => item.id === shift.user_id);
-
-  if (user && user.name.trim() !== "") {
-    return user.name;
-  }
-
-  return "名前未設定";
+function getUserName(userId: number, users: User[]) {
+  const user = users.find((item) => item.id === userId);
+  return user?.name || "名前未設定";
 }
 
 function getTemplateName(template: ShiftTemplate) {
@@ -301,7 +183,7 @@ export default function OwnerShiftTimelinePage() {
     return users.filter((user) => user.role === "employee");
   }, [users]);
 
-  const weekDays = useMemo<WeekDay[]>(() => {
+  const weekDays = useMemo(() => {
     const monday = getMonday(targetDate);
 
     return Array.from({ length: 7 }).map((_, index) => {
@@ -320,13 +202,26 @@ export default function OwnerShiftTimelinePage() {
   const weekStart = weekDays[0]?.date;
   const weekEnd = weekDays[6]?.date;
 
-  const weeklyShifts = useMemo(() => {
+  const weeklyShifts = useMemo<ShiftForTimeline[]>(() => {
     if (!weekStart || !weekEnd) return [];
 
     return shifts
       .filter(
         (shift) => shift.work_date >= weekStart && shift.work_date <= weekEnd
       )
+      .map((shift) => ({
+        id: shift.id,
+        user_id: shift.user_id,
+        user_name:
+          shift.user_name && shift.user_name.trim() !== ""
+            ? shift.user_name
+            : getUserName(shift.user_id, users),
+        work_date: shift.work_date,
+        start_time: shift.start_time,
+        end_time: shift.end_time,
+        break_minutes: shift.break_minutes || 0,
+        created_by: shift.created_by,
+      }))
       .sort((a, b) => {
         if (a.work_date < b.work_date) return -1;
         if (a.work_date > b.work_date) return 1;
@@ -334,7 +229,7 @@ export default function OwnerShiftTimelinePage() {
         if (a.start_time > b.start_time) return 1;
         return a.id - b.id;
       });
-  }, [shifts, weekStart, weekEnd]);
+  }, [shifts, users, weekStart, weekEnd]);
 
   const totalWeeklyMinutes = useMemo(() => {
     return weeklyShifts.reduce((sum, shift) => {
@@ -408,14 +303,6 @@ export default function OwnerShiftTimelinePage() {
     setTargetDate(getTodayDate());
   };
 
-  const getShiftsByDate = (date: string) => {
-    return weeklyShifts.filter((shift) => shift.work_date === date);
-  };
-
-  const getPositionedShiftsByDate = (date: string) => {
-    return assignLanes(getShiftsByDate(date));
-  };
-
   const handleSaveWeekAsTemplate = async () => {
     if (weeklyShifts.length === 0) {
       setMessage("この週には保存できるシフトがありません");
@@ -440,7 +327,7 @@ export default function OwnerShiftTimelinePage() {
 
         return {
           user_id: shift.user_id,
-          user_name: getShiftDisplayName(shift, users),
+          user_name: shift.user_name,
           weekday: date.getDay(),
           day_of_week: date.getDay(),
           week_day: date.getDay(),
@@ -553,7 +440,7 @@ export default function OwnerShiftTimelinePage() {
             <p className="owner-shift-toolbar-label">Weekly Shift Board</p>
             <h2>シフト表</h2>
             <p>
-              シフト管理ページで登録したシフトを、PDFと同じ形式で表示します。
+              シフト管理ページで登録したシフトを、印刷形式の表で表示します。
             </p>
           </div>
         </div>
@@ -671,77 +558,8 @@ export default function OwnerShiftTimelinePage() {
             <strong>作成者：{ownerName}</strong>
           </div>
 
-          <div className="owner-shift-board-scroll">
-            <div className="owner-shift-board-canvas">
-              {weekDays.map((day) => {
-                const positionedShifts = getPositionedShiftsByDate(day.date);
-
-                const maxLane =
-                  positionedShifts.length === 0
-                    ? 3
-                    : Math.max(...positionedShifts.map((shift) => shift.lane)) +
-                      1;
-
-                const bodyHeight = Math.max(94, maxLane * 30 + 10);
-
-                const isSunday = day.dayLabel === "日";
-
-                return (
-                  <article key={day.date} className="owner-shift-print-day">
-                    <div
-                      className={`owner-shift-date-cell ${
-                        isSunday ? "owner-shift-date-red" : ""
-                      }`}
-                    >
-                      <strong>{day.label}</strong>
-                      <span>（{day.dayLabel}）</span>
-                    </div>
-
-                    <div className="owner-shift-day-timeline">
-                      <div className="owner-shift-hour-header">
-                        {hourLabels.map((hour, index) => (
-                          <div key={`${day.date}-${hour}-${index}`}>
-                            {hour}
-                          </div>
-                        ))}
-                      </div>
-
-                      <div
-                        className="owner-shift-lane-area"
-                        style={{ height: `${bodyHeight}px` }}
-                      >
-                        <div className="owner-shift-vertical-lines">
-                          {hourLabels.slice(0, -1).map((hour, index) => (
-                            <span key={`${day.date}-line-${hour}-${index}`} />
-                          ))}
-                        </div>
-
-                        {positionedShifts.map((shift) => {
-                          const displayName = getShiftDisplayName(
-                            shift,
-                            users
-                          );
-
-                          return (
-                            <div
-                              key={shift.id}
-                              className="owner-shift-name-bar"
-                              style={{
-                                ...getShiftBarStyle(shift),
-                                top: `${shift.lane * 30 + 6}px`,
-                              }}
-                              title={`${displayName} ${shift.start_time}〜${shift.end_time}`}
-                            >
-                              {displayName}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
+          <div className="owner-shift-timeline-wrap">
+            <ShiftTimeline shifts={weeklyShifts} printMode />
           </div>
         </section>
       )}

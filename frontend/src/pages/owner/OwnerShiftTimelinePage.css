@@ -40,7 +40,6 @@
   justify-content: center;
 
   min-width: 0;
-
   text-align: center;
 }
 
@@ -260,7 +259,7 @@
 }
 
 /* =========================
-   PDF形式シフト表
+   シフト表表示エリア
 ========================= */
 
 .owner-shift-print-board {
@@ -311,7 +310,7 @@
   font-weight: 900;
 }
 
-.owner-shift-board-scroll {
+.owner-shift-timeline-wrap {
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -321,165 +320,13 @@
 
   padding-bottom: 8px;
 
+  background: #ffffff !important;
+
   -webkit-overflow-scrolling: touch;
 }
 
-.owner-shift-board-canvas {
-  display: block;
-
-  width: 1520px;
-  min-width: 1520px;
-
-  background: #ffffff !important;
-  color: #111827 !important;
-
-  border: 3px solid #111827;
-}
-
-.owner-shift-print-day {
-  display: grid !important;
-  grid-template-columns: 94px 1fr !important;
-
-  width: 100%;
-
-  border-bottom: 3px solid #111827;
-}
-
-.owner-shift-print-day:last-child {
-  border-bottom: none;
-}
-
-.owner-shift-date-cell {
-  display: flex !important;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  min-height: 112px;
-  padding: 8px;
-
-  background: #ffffff !important;
-  color: #111827 !important;
-
-  border-right: 3px solid #111827;
-}
-
-.owner-shift-date-cell strong {
-  color: #111827 !important;
-  font-size: 28px;
-  font-weight: 900;
-  line-height: 1.1;
-}
-
-.owner-shift-date-cell span {
-  color: #111827 !important;
-  font-size: 22px;
-  font-weight: 900;
-}
-
-.owner-shift-date-red strong,
-.owner-shift-date-red span {
-  color: #dc2626 !important;
-}
-
-.owner-shift-day-timeline {
-  width: 100%;
-  min-width: 0;
-
-  background: #ffffff !important;
-}
-
-.owner-shift-hour-header {
-  display: grid !important;
-  grid-template-columns: repeat(25, minmax(0, 1fr)) !important;
-
-  width: 100%;
-  height: 22px;
-
-  background: #111827 !important;
-  color: #ffffff !important;
-}
-
-.owner-shift-hour-header div {
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-
-  min-width: 0;
-
-  color: #ffffff !important;
-
-  border-right: 1px solid #4b5563;
-
-  font-size: 10px;
-  font-weight: 900;
-  line-height: 1;
-  text-align: center;
-}
-
-.owner-shift-hour-header div:last-child {
-  border-right: none;
-}
-
-.owner-shift-lane-area {
-  position: relative;
-
-  width: 100%;
-  min-height: 94px;
-
-  background: #ffffff !important;
-}
-
-.owner-shift-vertical-lines {
-  position: absolute;
-  inset: 0;
-
-  display: grid !important;
-  grid-template-columns: repeat(24, minmax(0, 1fr)) !important;
-
-  width: 100%;
-  height: 100%;
-
-  pointer-events: none;
-}
-
-.owner-shift-vertical-lines span {
-  display: block;
-  min-width: 0;
-
-  border-right: 2px solid #9ca3af;
-}
-
-.owner-shift-vertical-lines span:nth-child(3n) {
-  border-right: 3px solid #111827;
-}
-
-.owner-shift-name-bar {
-  position: absolute;
-
-  height: 24px;
-
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-
-  padding: 0 10px;
-
-  background: #ffffff !important;
-  color: #111827 !important;
-
-  border: 3px solid #111827;
-  border-radius: 7px;
-
-  font-size: 14px;
-  font-weight: 900;
-  line-height: 1;
-
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-
-  z-index: 2;
+.owner-shift-timeline-wrap .shift-timeline {
+  margin: 0;
 }
 
 /* =========================
@@ -544,32 +391,5 @@
   .owner-shift-print-title {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .owner-shift-board-canvas {
-    width: 1320px;
-    min-width: 1320px;
-  }
-
-  .owner-shift-print-day {
-    grid-template-columns: 82px 1fr !important;
-  }
-
-  .owner-shift-date-cell {
-    min-height: 104px;
-  }
-
-  .owner-shift-date-cell strong {
-    font-size: 22px;
-  }
-
-  .owner-shift-date-cell span {
-    font-size: 18px;
-  }
-
-  .owner-shift-name-bar {
-    height: 23px;
-    font-size: 13px;
-    border-width: 2px;
   }
 }
