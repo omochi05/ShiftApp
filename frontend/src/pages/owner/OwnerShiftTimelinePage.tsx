@@ -2,10 +2,17 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "../../api/client";
 import "./OwnerShiftTimelinePage.css";
 
+type User = {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+};
+
 type Shift = {
   id: number;
   user_id: number;
-  user_name: string;
+  user_name?: string;
   work_date: string;
   start_time: string;
   end_time: string;
@@ -208,12 +215,29 @@ function formatApiError(error: any, fallbackMessage: string) {
   }
 
   if (detail) return `${fallbackMessage}：${detail}`;
-  if (error.response?.status) return `${fallbackMessage}：HTTP ${error.response.status}`;
+  if (error.response?.status) {
+    return `${fallbackMessage}：HTTP ${error.response.status}`;
+  }
 
   return `${fallbackMessage}：APIに接続できませんでした`;
 }
 
+function getShiftDisplayName(shift: Shift, users: User[]) {
+  if (shift.user_name && shift.user_name.trim() !== "") {
+    return shift.user_name;
+  }
+
+  const user = users.find((user) => user.id === shift.user_id);
+
+  if (user && user.name.trim() !== "") {
+    return user.name;
+  }
+
+  return "名前未設定";
+}
+
 export default function OwnerShiftTimelinePage() {
+  const [users, setUsers] = useState<User[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [targetDate, setTargetDate] = useState(getTodayDate());
 
@@ -271,7 +295,12 @@ export default function OwnerShiftTimelinePage() {
       setLoading(true);
       setMessage("");
 
-      const shiftsRes = await api.get<Shift[]>("/shifts/");
+      const [usersRes, shiftsRes] = await Promise.all([
+        api.get<User[]>("/users/"),
+        api.get<Shift[]>("/shifts/"),
+      ]);
+
+      setUsers(usersRes.data);
       setShifts(shiftsRes.data);
     } catch (error: any) {
       console.error("シフト表データ取得失敗:", error);
@@ -389,7 +418,8 @@ export default function OwnerShiftTimelinePage() {
                 const maxLane =
                   positionedShifts.length === 0
                     ? 3
-                    : Math.max(...positionedShifts.map((shift) => shift.lane)) + 1;
+                    : Math.max(...positionedShifts.map((shift) => shift.lane)) +
+                      1;
 
                 const bodyHeight = Math.max(94, maxLane * 30 + 10);
 
@@ -425,19 +455,26 @@ export default function OwnerShiftTimelinePage() {
                           ))}
                         </div>
 
-                        {positionedShifts.map((shift) => (
-                          <div
-                            key={shift.id}
-                            className="owner-shift-name-bar"
-                            style={{
-                              ...getShiftBarStyle(shift),
-                              top: `${shift.lane * 30 + 6}px`,
-                            }}
-                            title={`${shift.user_name} ${shift.start_time}〜${shift.end_time}`}
-                          >
-                            {shift.user_name}
-                          </div>
-                        ))}
+                        {positionedShifts.map((shift) => {
+                          const displayName = getShiftDisplayName(
+                            shift,
+                            users
+                          );
+
+                          return (
+                            <div
+                              key={shift.id}
+                              className="owner-shift-name-bar"
+                              style={{
+                                ...getShiftBarStyle(shift),
+                                top: `${shift.lane * 30 + 6}px`,
+                              }}
+                              title={`${displayName} ${shift.start_time}〜${shift.end_time}`}
+                            >
+                              {displayName}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </article>
