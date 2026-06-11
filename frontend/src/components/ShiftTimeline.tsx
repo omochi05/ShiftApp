@@ -53,7 +53,7 @@ const LONG_PRESS_MS = 550;
 
 /*
   通常画面用
-  黒い時間帯はCSS側で細くし、白いメンバー枠を大きめにする。
+  時間帯はCSS側で調整し、メンバー枠は見やすく大きめ。
 */
 const NORMAL_LANE_HEIGHT = 40;
 const NORMAL_BAR_HEIGHT = 34;
@@ -221,7 +221,7 @@ function positionShifts(shifts: ShiftForTimeline[]) {
 
 /*
   印刷・PDF用
-  人数が少ない日は大きく、人数が多い日はA3に収まる範囲で大きくする。
+  人数が少ない日は大きく、人数が多い日はA3に収まる範囲で調整。
 */
 function getAutoPrintSize(maxLaneCount: number): AutoPrintSize {
   if (maxLaneCount <= 1) {
@@ -467,12 +467,21 @@ export default function ShiftTimeline({
       }
     >
       {groupedWithPositions.map(({ date, positioned, laneCount }) => {
+        /*
+          修正版：
+          以前は Math.max(84, laneCount * laneHeight + 20) で
+          最低84pxが固定されていたため、1人だけの日に下の余白が大きくなっていた。
+          今回はバーの高さに合わせて必要最低限の高さにする。
+        */
         const bodyHeight = printMode
           ? Math.max(
               laneCount * laneHeight + barTopOffset + 8,
               barHeight + barTopOffset + 10
             )
-          : Math.max(84, laneCount * laneHeight + 20);
+          : Math.max(
+              barHeight + barTopOffset + 8,
+              laneCount * laneHeight + barTopOffset + 8
+            );
 
         const holidayName = getJapaneseHolidayName(date);
 
