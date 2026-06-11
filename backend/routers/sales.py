@@ -42,3 +42,19 @@ def create_sale(sale: SaleCreate, db: Session = Depends(get_db)):
         )
 
     return new_sale
+
+
+@router.delete("/{sale_id}")
+def delete_sale(sale_id: int, db: Session = Depends(get_db)):
+    sale = db.query(Sale).filter(Sale.id == sale_id).first()
+
+    if sale is None:
+        raise HTTPException(
+            status_code=404,
+            detail="売上データが見つかりません"
+        )
+
+    db.delete(sale)
+    db.commit()
+
+    return {"message": "売上を削除しました"}
