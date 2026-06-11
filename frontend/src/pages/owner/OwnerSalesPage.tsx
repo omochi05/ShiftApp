@@ -478,7 +478,22 @@ export default function OwnerSalesPage() {
     try {
       setMessage("");
 
-      await api.delete(`/sales/${sale.id}`);
+      try {
+        await api.delete(`/sales/${sale.id}`);
+      } catch (firstError: any) {
+        const status = firstError.response?.status;
+
+        if (
+          status === 404 ||
+          status === 405 ||
+          status === 307 ||
+          status === 308
+        ) {
+          await api.delete(`/sales/${sale.id}/`);
+        } else {
+          throw firstError;
+        }
+      }
 
       setMessage("売上を削除しました");
       await fetchData();
@@ -594,7 +609,9 @@ export default function OwnerSalesPage() {
         <div className="owner-section-title-row">
           <div>
             <h3>曜日別 売上・人件費分析</h3>
-            <p>対象期間内で、曜日ごとに人件費が高くなっていないか確認できます。</p>
+            <p>
+              対象期間内で、曜日ごとに人件費が高くなっていないか確認できます。
+            </p>
           </div>
         </div>
 
@@ -622,7 +639,9 @@ export default function OwnerSalesPage() {
 
                 <div>
                   <dt>人件費率</dt>
-                  <dd>{item.sales > 0 ? `${item.laborRate.toFixed(1)}%` : "-"}</dd>
+                  <dd>
+                    {item.sales > 0 ? `${item.laborRate.toFixed(1)}%` : "-"}
+                  </dd>
                 </div>
 
                 <div>
@@ -738,7 +757,9 @@ export default function OwnerSalesPage() {
                     }, 0);
 
                     const dailyRate =
-                      sale.amount > 0 ? (dailyLaborCost / sale.amount) * 100 : 0;
+                      sale.amount > 0
+                        ? (dailyLaborCost / sale.amount) * 100
+                        : 0;
 
                     const dailyStatus = getRateStatus(dailyRate, sale.amount);
 
