@@ -32,6 +32,8 @@ type SaleForm = {
   amount: string;
 };
 
+type PeriodMode = "week" | "month";
+
 type WeekdayAnalysis = {
   weekdayIndex: number;
   weekdayName: string;
@@ -54,9 +56,37 @@ function getTodayDate() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function getCurrentMonth() {
+  return getTodayDate().slice(0, 7);
+}
+
+function toDate(dateText: string) {
+  return new Date(`${dateText}T00:00:00`);
+}
+
+function formatDate(date: Date) {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function getMonday(dateText: string) {
+  const date = toDate(dateText);
+  const day = date.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  date.setDate(date.getDate() + diff);
+  return date;
+}
+
+function addDays(date: Date, days: number) {
+  const copied = new Date(date);
+  copied.setDate(copied.getDate() + days);
+  return copied;
+}
+
 function getWeekdayIndex(dateText: string) {
-  const date = new Date(`${dateText}T00:00:00`);
-  return date.getDay();
+  return toDate(dateText).getDay();
 }
 
 function formatCurrency(value: number) {
@@ -77,17 +107,6 @@ function getOverlapMinutes(
   const overlapStart = Math.max(start, rangeStart);
   const overlapEnd = Math.min(end, rangeEnd);
   return Math.max(0, overlapEnd - overlapStart);
-}
-
-function getShiftDurationMinutes(shift: Shift) {
-  const start = timeToMinutes(shift.start_time);
-  let end = timeToMinutes(shift.end_time);
-
-  if (end <= start) {
-    end += 24 * 60;
-  }
-
-  return Math.max(0, end - start - (shift.break_minutes || 0));
 }
 
 function calculateShiftCost(shift: Shift, users: User[]) {
@@ -112,22 +131,16 @@ function calculateShiftCost(shift: Shift, users: User[]) {
 
   let remainingBreak = breakMinutes;
 
-  const normalMinutes = Math.max(
-    0,
-    rawNormalMinutes - Math.min(rawNormalMinutes, remainingBreak)
-  );
-  remainingBreak = Math.max(0, remainingBreak - rawNormalMinutes);
+  const normalBreak = Math.min(rawNormalMinutes, remainingBreak);
+  const normalMinutes = Math.max(0, rawNormalMinutes - normalBreak);
+  remainingBreak -= normalBreak;
 
-  const earlyMinutes = Math.max(
-    0,
-    rawEarlyMinutes - Math.min(rawEarlyMinutes, remainingBreak)
-  );
-  remainingBreak = Math.max(0, remainingBreak - rawEarlyMinutes);
+  const earlyBreak = Math.min(rawEarlyMinutes, remainingBreak);
+  const earlyMinutes = Math.max(0, rawEarlyMinutes - earlyBreak);
+  remainingBreak -= earlyBreak;
 
-  const nightMinutes = Math.max(
-    0,
-    rawNightMinutes - Math.min(rawNightMinutes, remainingBreak)
-  );
+  const nightBreak = Math.min(rawNightMinutes, remainingBreak);
+  const nightMinutes = Math.max(0, rawNightMinutes - nightBreak);
 
   const normalCost = (normalMinutes / 60) * hourlyWage;
   const earlyCost = (earlyMinutes / 60) * hourlyWage;
@@ -176,7 +189,7 @@ function createAdvice(weekdayName: string, sales: number, laborCost: number) {
   const rate = (laborCost / sales) * 100;
 
   if (rate >= 35) {
-    return `${weekdayName}曜日は人件費率が高めです。売上に対して人員が多い可能性があります。ピーク時間以外の人数や勤務時間を見直すと改善できるかもしれません。`;
+    return `${weekdayName}曜日は人件費率が高めです。売上に対して人員が多い可能性があります。ピーク時間以外の人数や勤務時間を見直しましょう。`;
   }
 
   if (rate >= 25) {
@@ -212,6 +225,12 @@ export default function OwnerSalesPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
+  const [periodMode, setPeriodMode] = useState<PeriodMode>("week");
+  const [targetDate, setTargetDate] = useState(getTodayDate());
+  const [targetMonth, setTargetMonth] = useState(getCurrentMonth());
+
+  const [isAiOpen, setIsAiOpen] = useState(true);
+
   const [saleForm, setSaleForm] = useState<SaleForm>({
     sale_date: getTodayDate(),
     amount: "",
@@ -243,23 +262,63 @@ export default function OwnerSalesPage() {
     fetchData();
   }, []);
 
+  const periodLabel = useMemo(() => {
+    if (periodMode === "month") {
+      return `${targetMonth} の集計`;
+    }
+
+    const monday = getMonday(targetDate);
+    const sunday = addDays(monday, 6);
+
+    return `${formatDate(monday)} 〜 ${formatDate(sunday)} の集計`;
+  }, [periodMode, targetDate, targetMonth]);
+
+  const filteredSales = useMemo(() => {
+    if (periodMode === "month") {
+      return sales.filter((sale) => sale.sale_date.startsWith(targetMonth));
+    }
+
+    const monday = formatDate(getMonday(targetDate));
+    const sunday = formatDate(addDays(getMonday(targetDate), 6));
+
+    return sales.filter(
+      (sale) => sale.sale_date >= monday && sale.sale_date <= sunday
+    );
+  }, [sales, periodMode, targetDate, targetMonth]);
+
+  const filteredShifts = useMemo(() => {
+    if (periodMode === "month") {
+      return shifts.filter((shift) => shift.work_date.startsWith(targetMonth));
+    }
+
+    const monday = formatDate(getMonday(targetDate));
+    const sunday = formatDate(addDays(getMonday(targetDate), 6));
+
+    return shifts.filter(
+      (shift) => shift.work_date >= monday && shift.work_date <= sunday
+    );
+  }, [shifts, periodMode, targetDate, targetMonth]);
+
   const sortedSales = useMemo(() => {
-    return [...sales].sort((a, b) => {
+    return [...filteredSales].sort((a, b) => {
       if (a.sale_date < b.sale_date) return 1;
       if (a.sale_date > b.sale_date) return -1;
       return b.id - a.id;
     });
-  }, [sales]);
+  }, [filteredSales]);
 
   const totalSales = useMemo(() => {
-    return sales.reduce((sum, sale) => sum + Number(sale.amount || 0), 0);
-  }, [sales]);
+    return filteredSales.reduce(
+      (sum, sale) => sum + Number(sale.amount || 0),
+      0
+    );
+  }, [filteredSales]);
 
   const totalLaborCost = useMemo(() => {
-    return shifts.reduce((sum, shift) => {
+    return filteredShifts.reduce((sum, shift) => {
       return sum + calculateShiftCost(shift, users);
     }, 0);
-  }, [shifts, users]);
+  }, [filteredShifts, users]);
 
   const laborCostRate = totalSales > 0 ? (totalLaborCost / totalSales) * 100 : 0;
 
@@ -288,11 +347,11 @@ export default function OwnerSalesPage() {
 
   const weekdayAnalysis = useMemo<WeekdayAnalysis[]>(() => {
     return weekdayNames.map((weekdayName, weekdayIndex) => {
-      const weekdaySales = sales.filter(
+      const weekdaySales = filteredSales.filter(
         (sale) => getWeekdayIndex(sale.sale_date) === weekdayIndex
       );
 
-      const weekdayShifts = shifts.filter(
+      const weekdayShifts = filteredShifts.filter(
         (shift) => getWeekdayIndex(shift.work_date) === weekdayIndex
       );
 
@@ -320,21 +379,21 @@ export default function OwnerSalesPage() {
         advice: createAdvice(weekdayName, salesTotal, laborTotal),
       };
     });
-  }, [sales, shifts, users]);
-
-  const dangerWeekdays = weekdayAnalysis.filter(
-    (item) => item.status === "danger"
-  );
-
-  const warningWeekdays = weekdayAnalysis.filter(
-    (item) => item.status === "warning"
-  );
-
-  const bestWeekday = [...weekdayAnalysis]
-    .filter((item) => item.sales > 0)
-    .sort((a, b) => a.laborRate - b.laborRate)[0];
+  }, [filteredSales, filteredShifts, users]);
 
   const aiSupportMessages = useMemo(() => {
+    const dangerWeekdays = weekdayAnalysis.filter(
+      (item) => item.status === "danger"
+    );
+
+    const warningWeekdays = weekdayAnalysis.filter(
+      (item) => item.status === "warning"
+    );
+
+    const bestWeekday = [...weekdayAnalysis]
+      .filter((item) => item.sales > 0)
+      .sort((a, b) => a.laborRate - b.laborRate)[0];
+
     const messages: string[] = [];
 
     if (dangerWeekdays.length > 0) {
@@ -363,12 +422,12 @@ export default function OwnerSalesPage() {
 
     if (messages.length === 0) {
       messages.push(
-        "売上とシフトを登録すると、曜日ごとの人件費率をもとに改善ポイントを表示します。"
+        "対象期間の売上とシフトを登録すると、曜日ごとの人件費率をもとに改善ポイントを表示します。"
       );
     }
 
     return messages;
-  }, [dangerWeekdays, warningWeekdays, bestWeekday]);
+  }, [weekdayAnalysis]);
 
   const handleCreateSale = async (e: FormEvent) => {
     e.preventDefault();
@@ -438,54 +497,104 @@ export default function OwnerSalesPage() {
           <p className="owner-sales-label">Sales Analysis</p>
           <h2>売上管理</h2>
           <p>
-            日別売上を登録し、曜日ごとの売上・人件費率を確認します。
+            週ごと・月ごとに売上と人件費率を確認できます。
             AIサポートが人件費が高い曜日を見つけて改善ポイントを表示します。
           </p>
         </div>
       </section>
 
+      <section className="owner-sales-filter-section">
+        <div className="owner-sales-period-tabs">
+          <button
+            type="button"
+            className={periodMode === "week" ? "active" : ""}
+            onClick={() => setPeriodMode("week")}
+          >
+            週ごと
+          </button>
+
+          <button
+            type="button"
+            className={periodMode === "month" ? "active" : ""}
+            onClick={() => setPeriodMode("month")}
+          >
+            月ごと
+          </button>
+        </div>
+
+        <div className="owner-sales-period-inputs">
+          {periodMode === "week" ? (
+            <label>
+              対象週
+              <input
+                type="date"
+                value={targetDate}
+                onChange={(e) => setTargetDate(e.target.value)}
+              />
+            </label>
+          ) : (
+            <label>
+              対象月
+              <input
+                type="month"
+                value={targetMonth}
+                onChange={(e) => setTargetMonth(e.target.value)}
+              />
+            </label>
+          )}
+        </div>
+
+        <p className="owner-sales-period-label">{periodLabel}</p>
+      </section>
+
       <section className="owner-sales-summary-grid">
         <div className="owner-sales-summary-card">
-          <span>総売上</span>
+          <span>対象期間の売上</span>
           <strong>{formatCurrency(totalSales)}</strong>
         </div>
 
         <div className="owner-sales-summary-card">
-          <span>総人件費</span>
+          <span>対象期間の人件費</span>
           <strong>{formatCurrency(totalLaborCost)}</strong>
         </div>
 
         <div className="owner-sales-summary-card">
-          <span>平均人件費率</span>
+          <span>対象期間の人件費率</span>
           <strong>{laborCostRate.toFixed(1)}%</strong>
         </div>
       </section>
 
-      <section className="owner-sales-ai-section">
-        <div className="owner-sales-ai-header">
-          <div>
-            <p>AI Support</p>
-            <h3>AIサポート</h3>
+      <section className={`owner-sales-ai-section ${isAiOpen ? "open" : ""}`}>
+        <button
+          type="button"
+          className="owner-sales-ai-toggle"
+          onClick={() => setIsAiOpen((prev) => !prev)}
+        >
+          <span>
+            <small>AI Support</small>
+            <strong>AIサポート</strong>
+          </span>
+
+          <em>{isAiOpen ? "閉じる" : "開く"}</em>
+        </button>
+
+        {isAiOpen && (
+          <div className="owner-sales-ai-list">
+            {aiSupportMessages.map((text, index) => (
+              <div key={index} className="owner-sales-ai-message">
+                <strong>{index + 1}</strong>
+                <p>{text}</p>
+              </div>
+            ))}
           </div>
-
-          <span>自動分析</span>
-        </div>
-
-        <div className="owner-sales-ai-list">
-          {aiSupportMessages.map((text, index) => (
-            <div key={index} className="owner-sales-ai-message">
-              <strong>{index + 1}</strong>
-              <p>{text}</p>
-            </div>
-          ))}
-        </div>
+        )}
       </section>
 
       <section className="owner-sales-section">
         <div className="owner-section-title-row">
           <div>
             <h3>曜日別 売上・人件費分析</h3>
-            <p>曜日ごとに人件費がかかりすぎていないか確認できます。</p>
+            <p>対象期間内で、曜日ごとに人件費が高くなっていないか確認できます。</p>
           </div>
         </div>
 
@@ -585,7 +694,7 @@ export default function OwnerSalesPage() {
         <div className="owner-section-title-row">
           <div>
             <h3>売上一覧</h3>
-            <p>登録済みの売上を確認できます。</p>
+            <p>対象期間内の売上を確認できます。</p>
           </div>
 
           <button
@@ -616,11 +725,11 @@ export default function OwnerSalesPage() {
               <tbody>
                 {sortedSales.length === 0 ? (
                   <tr>
-                    <td colSpan={6}>売上がまだ登録されていません</td>
+                    <td colSpan={6}>対象期間の売上がまだ登録されていません</td>
                   </tr>
                 ) : (
                   sortedSales.map((sale) => {
-                    const dailyShifts = shifts.filter(
+                    const dailyShifts = filteredShifts.filter(
                       (shift) => shift.work_date === sale.sale_date
                     );
 

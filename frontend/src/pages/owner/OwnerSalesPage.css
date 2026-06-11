@@ -665,3 +665,185 @@
     font-size: 24px;
   }
 }
+
+/* =========================
+   週・月 切り替えフィルター
+========================= */
+
+.owner-sales-filter-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding: 18px;
+
+  background: #ffffff !important;
+  color: #111827 !important;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.owner-sales-period-tabs {
+  display: inline-flex;
+  gap: 8px;
+
+  padding: 6px;
+
+  background: #f3f4f6 !important;
+  border-radius: 16px;
+}
+
+.owner-sales-period-tabs button {
+  min-height: 40px;
+  padding: 9px 16px;
+
+  background: transparent !important;
+  color: #374151 !important;
+
+  border: none;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: 900;
+
+  cursor: pointer;
+}
+
+.owner-sales-period-tabs button.active {
+  background: #ea580c !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 18px rgba(234, 88, 12, 0.22);
+}
+
+.owner-sales-period-inputs {
+  min-width: 190px;
+}
+
+.owner-sales-period-inputs label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  color: #374151 !important;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.owner-sales-period-inputs input {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  box-sizing: border-box;
+
+  padding: 9px 12px;
+
+  background: #ffffff !important;
+  color: #111827 !important;
+
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.owner-sales-period-label {
+  margin: 0;
+
+  color: #4b5563 !important;
+  font-size: 14px;
+  font-weight: 900;
+  text-align: right;
+}
+
+/* =========================
+   AIサポート 折りたたみ
+========================= */
+
+.owner-sales-ai-toggle {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 0;
+
+  background: transparent !important;
+  color: #ffffff !important;
+
+  border: none;
+
+  text-align: left;
+  cursor: pointer;
+}
+
+.owner-sales-ai-toggle span {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.owner-sales-ai-toggle small {
+  color: #bfdbfe !important;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.owner-sales-ai-toggle strong {
+  color: #ffffff !important;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.owner-sales-ai-toggle em {
+  flex-shrink: 0;
+
+  padding: 8px 12px;
+
+  color: #1e3a8a !important;
+  background: #ffffff !important;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.owner-sales-ai-section .owner-sales-ai-list {
+  margin-top: 16px;
+}
+
+@media screen and (max-width: 960px) {
+  .owner-sales-filter-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .owner-sales-period-tabs {
+    width: 100%;
+  }
+
+  .owner-sales-period-tabs button {
+    flex: 1;
+  }
+
+  .owner-sales-period-inputs {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .owner-sales-period-label {
+    text-align: center;
+  }
+}
