@@ -10,6 +10,7 @@ import OwnerPlaceholderPage from "./pages/owner/OwnerPlaceholderPage";
 import OwnerEmployeesPage from "./pages/owner/OwnerEmployeesPage";
 import OwnerSalesPage from "./pages/owner/OwnerSalesPage";
 import OwnerShiftsPage from "./pages/owner/OwnerShiftsPage";
+import OwnerShiftTimelinePage from "./pages/owner/OwnerShiftTimelinePage";
 
 function AppLayout() {
   return (
@@ -21,15 +22,7 @@ function AppLayout() {
 
         <Route path="shifts" element={<OwnerShiftsPage />} />
 
-        <Route
-          path="timeline"
-          element={
-            <OwnerPlaceholderPage
-              title="シフト表"
-              description="ここに週ごとのシフト表を移動します。"
-            />
-          }
-        />
+        <Route path="timeline" element={<OwnerShiftTimelinePage />} />
 
         <Route path="sales" element={<OwnerSalesPage />} />
 
