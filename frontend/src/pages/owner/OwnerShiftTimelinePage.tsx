@@ -490,11 +490,8 @@ export default function OwnerShiftTimelinePage() {
   return (
     <div className="owner-shift-timeline-page">
       <section className="owner-shift-hero">
-        <p>WEEKLY SHIFT BOARD</p>
         <h1>シフト表</h1>
-        <span>
-          登録済みのシフトを週ごとに確認できます。テンプレート保存と反映で、固定シフトの作成もスムーズに行えます。
-        </span>
+        <span>週シフト確認</span>
       </section>
 
       <section className="owner-shift-control-panel">
