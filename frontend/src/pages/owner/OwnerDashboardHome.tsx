@@ -27,12 +27,6 @@ const menuCards = [
     color: "cyan",
   },
   {
-    title: "固定シフト",
-    description: "週シフトをテンプレート化して反映します。",
-    to: "/owner/templates",
-    color: "pink",
-  },
-  {
     title: "印刷",
     description: "A3横のシフト表を印刷・PDF保存します。",
     to: "/owner/print/shifts",

@@ -38,12 +38,6 @@ const ownerLinks = [
     color: "cyan",
   },
   {
-    to: "/owner/templates",
-    label: "固定シフト",
-    description: "テンプレート",
-    color: "pink",
-  },
-  {
     to: "/owner/print/shifts",
     label: "印刷",
     description: "PDF・印刷",

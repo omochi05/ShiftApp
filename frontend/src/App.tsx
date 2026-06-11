@@ -6,7 +6,6 @@ import ShiftPrintPage from "./pages/ShiftPrintPage";
 
 import OwnerLayout from "./pages/owner/OwnerLayout";
 import OwnerDashboardHome from "./pages/owner/OwnerDashboardHome";
-import OwnerPlaceholderPage from "./pages/owner/OwnerPlaceholderPage";
 import OwnerEmployeesPage from "./pages/owner/OwnerEmployeesPage";
 import OwnerSalesPage from "./pages/owner/OwnerSalesPage";
 import OwnerShiftsPage from "./pages/owner/OwnerShiftsPage";
@@ -19,24 +18,10 @@ function AppLayout() {
 
       <Route path="/owner" element={<OwnerLayout />}>
         <Route index element={<OwnerDashboardHome />} />
-
         <Route path="shifts" element={<OwnerShiftsPage />} />
-
         <Route path="timeline" element={<OwnerShiftTimelinePage />} />
-
         <Route path="sales" element={<OwnerSalesPage />} />
-
         <Route path="employees" element={<OwnerEmployeesPage />} />
-
-        <Route
-          path="templates"
-          element={
-            <OwnerPlaceholderPage
-              title="固定シフト"
-              description="ここに固定シフトテンプレート機能を移動します。"
-            />
-          }
-        />
       </Route>
 
       <Route path="/owner/print/shifts" element={<ShiftPrintPage />} />
