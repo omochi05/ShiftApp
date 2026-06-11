@@ -113,6 +113,8 @@ export default function OwnerShiftsPage() {
 
   const [targetMonth, setTargetMonth] = useState(getCurrentMonth());
   const [openedEmployeeIds, setOpenedEmployeeIds] = useState<number[]>([]);
+  const [selectedShiftIds, setSelectedShiftIds] = useState<number[]>([]);
+  const [deleting, setDeleting] = useState(false);
 
   const [shiftForm, setShiftForm] = useState<ShiftForm>({
     ...initialShiftForm,
@@ -169,10 +171,21 @@ export default function OwnerShiftsPage() {
     }, 0);
   }, [employeeMonthlySummaries]);
 
-  const fetchData = async () => {
+  const monthlyShiftIds = useMemo(() => {
+    return monthlyShifts.map((shift) => shift.id);
+  }, [monthlyShifts]);
+
+  const selectedMonthlyShiftIds = useMemo(() => {
+    return selectedShiftIds.filter((id) => monthlyShiftIds.includes(id));
+  }, [selectedShiftIds, monthlyShiftIds]);
+
+  const fetchData = async (options?: { showLoading?: boolean }) => {
+    const showLoading = options?.showLoading ?? true;
+
     try {
-      setLoading(true);
-      setMessage("");
+      if (showLoading) {
+        setLoading(true);
+      }
 
       const [usersRes, shiftsRes] = await Promise.all([
         api.get<User[]>("/users/"),
@@ -185,12 +198,14 @@ export default function OwnerShiftsPage() {
       console.error("シフト管理データ取得失敗:", error);
       setMessage("シフト管理データの取得に失敗しました。");
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData({ showLoading: true });
   }, []);
 
   const toggleEmployeeLog = (userId: number) => {
@@ -209,6 +224,29 @@ export default function OwnerShiftsPage() {
 
   const closeAllLogs = () => {
     setOpenedEmployeeIds([]);
+  };
+
+  const toggleShiftSelection = (shiftId: number) => {
+    setSelectedShiftIds((prev) => {
+      if (prev.includes(shiftId)) {
+        return prev.filter((id) => id !== shiftId);
+      }
+
+      return [...prev, shiftId];
+    });
+  };
+
+  const selectAllMonthlyShifts = () => {
+    setSelectedShiftIds((prev) => {
+      const merged = new Set([...prev, ...monthlyShiftIds]);
+      return Array.from(merged);
+    });
+  };
+
+  const clearSelectedShifts = () => {
+    setSelectedShiftIds((prev) =>
+      prev.filter((id) => !monthlyShiftIds.includes(id))
+    );
   };
 
   const validateShiftForm = (form: ShiftForm) => {
@@ -267,7 +305,7 @@ export default function OwnerShiftsPage() {
         prev.includes(createdUserId) ? prev : [...prev, createdUserId]
       );
 
-      await fetchData();
+      await fetchData({ showLoading: false });
     } catch (error: any) {
       console.error("シフト作成失敗:", error);
       console.error("レスポンス:", error.response?.data);
@@ -320,12 +358,31 @@ export default function OwnerShiftsPage() {
       setMessage("シフトを更新しました");
 
       handleCancelEditShift();
-      await fetchData();
+      await fetchData({ showLoading: false });
     } catch (error: any) {
       console.error("シフト更新失敗:", error);
       console.error("レスポンス:", error.response?.data);
 
       setMessage(formatApiError(error, "シフト更新に失敗しました"));
+    }
+  };
+
+  const deleteShiftById = async (shiftId: number) => {
+    try {
+      await api.delete(`/shifts/${shiftId}`);
+    } catch (firstError: any) {
+      const status = firstError.response?.status;
+
+      if (
+        status === 404 ||
+        status === 405 ||
+        status === 307 ||
+        status === 308
+      ) {
+        await api.delete(`/shifts/${shiftId}/`);
+      } else {
+        throw firstError;
+      }
     }
   };
 
@@ -337,32 +394,59 @@ export default function OwnerShiftsPage() {
     if (!ok) return;
 
     try {
+      setDeleting(true);
       setMessage("");
 
-      try {
-        await api.delete(`/shifts/${shift.id}`);
-      } catch (firstError: any) {
-        const status = firstError.response?.status;
+      await deleteShiftById(shift.id);
 
-        if (
-          status === 404 ||
-          status === 405 ||
-          status === 307 ||
-          status === 308
-        ) {
-          await api.delete(`/shifts/${shift.id}/`);
-        } else {
-          throw firstError;
-        }
-      }
-
+      setSelectedShiftIds((prev) => prev.filter((id) => id !== shift.id));
       setMessage("シフトを削除しました");
-      await fetchData();
+
+      await fetchData({ showLoading: false });
     } catch (error: any) {
       console.error("シフト削除失敗:", error);
       console.error("レスポンス:", error.response?.data);
 
       setMessage(formatApiError(error, "シフト削除に失敗しました"));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleBulkDeleteShifts = async () => {
+    if (selectedMonthlyShiftIds.length === 0) {
+      setMessage("削除するシフトを選択してください");
+      return;
+    }
+
+    const ok = window.confirm(
+      `選択したシフト ${selectedMonthlyShiftIds.length}件を一括削除しますか？`
+    );
+
+    if (!ok) return;
+
+    try {
+      setDeleting(true);
+      setMessage("");
+
+      for (const shiftId of selectedMonthlyShiftIds) {
+        await deleteShiftById(shiftId);
+      }
+
+      setSelectedShiftIds((prev) =>
+        prev.filter((id) => !selectedMonthlyShiftIds.includes(id))
+      );
+
+      setMessage(`シフトを${selectedMonthlyShiftIds.length}件削除しました`);
+
+      await fetchData({ showLoading: false });
+    } catch (error: any) {
+      console.error("シフト一括削除失敗:", error);
+      console.error("レスポンス:", error.response?.data);
+
+      setMessage(formatApiError(error, "シフト一括削除に失敗しました"));
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -385,7 +469,10 @@ export default function OwnerShiftsPage() {
           <input
             type="month"
             value={targetMonth}
-            onChange={(e) => setTargetMonth(e.target.value)}
+            onChange={(e) => {
+              setTargetMonth(e.target.value);
+              setEditingShiftId(null);
+            }}
           />
         </label>
 
@@ -513,7 +600,9 @@ export default function OwnerShiftsPage() {
             </select>
           </label>
 
-          <button type="submit">シフトを作成</button>
+          <button type="submit" disabled={deleting}>
+            シフトを作成
+          </button>
         </form>
 
         {message && <p className="owner-shifts-message">{message}</p>}
@@ -524,17 +613,54 @@ export default function OwnerShiftsPage() {
           <div>
             <h3>従業員別シフト一覧</h3>
             <p>
-              従業員を全員表示し、対象月の労働時間と登録ログを確認できます。
+              チェックしたシフトは一括削除できます。削除後も画面位置はそのままです。
             </p>
           </div>
 
           <button
             type="button"
             className="owner-shifts-refresh-button"
-            onClick={fetchData}
+            onClick={() => fetchData({ showLoading: true })}
+            disabled={deleting}
           >
             再読み込み
           </button>
+        </div>
+
+        <div className="owner-shifts-bulk-bar">
+          <div>
+            <strong>選択中：{selectedMonthlyShiftIds.length}件</strong>
+            <span>対象月：{targetMonth}</span>
+          </div>
+
+          <div className="owner-shifts-bulk-actions">
+            <button
+              type="button"
+              className="owner-shifts-select-button"
+              onClick={selectAllMonthlyShifts}
+              disabled={deleting || monthlyShifts.length === 0}
+            >
+              対象月を全選択
+            </button>
+
+            <button
+              type="button"
+              className="owner-shifts-clear-button"
+              onClick={clearSelectedShifts}
+              disabled={deleting || selectedMonthlyShiftIds.length === 0}
+            >
+              選択解除
+            </button>
+
+            <button
+              type="button"
+              className="owner-shifts-bulk-delete-button"
+              onClick={handleBulkDeleteShifts}
+              disabled={deleting || selectedMonthlyShiftIds.length === 0}
+            >
+              {deleting ? "削除中..." : "一括削除"}
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -564,6 +690,7 @@ export default function OwnerShiftsPage() {
                     <button
                       type="button"
                       onClick={() => toggleEmployeeLog(summary.user.id)}
+                      disabled={deleting}
                     >
                       {isOpen ? "ログを閉じる" : "ログを見る"}
                     </button>
@@ -596,11 +723,16 @@ export default function OwnerShiftsPage() {
                         <div className="owner-employee-log-list">
                           {summary.shifts.map((shift) => {
                             const isEditing = editingShiftId === shift.id;
+                            const isSelected = selectedShiftIds.includes(
+                              shift.id
+                            );
 
                             return (
                               <article
                                 key={shift.id}
-                                className="owner-shift-log-card"
+                                className={`owner-shift-log-card ${
+                                  isSelected ? "selected" : ""
+                                }`}
                               >
                                 {isEditing ? (
                                   <>
@@ -701,6 +833,7 @@ export default function OwnerShiftsPage() {
                                         onClick={() =>
                                           handleUpdateShift(shift.id)
                                         }
+                                        disabled={deleting}
                                       >
                                         保存
                                       </button>
@@ -709,6 +842,7 @@ export default function OwnerShiftsPage() {
                                         type="button"
                                         className="owner-shift-cancel-button"
                                         onClick={handleCancelEditShift}
+                                        disabled={deleting}
                                       >
                                         キャンセル
                                       </button>
@@ -716,6 +850,20 @@ export default function OwnerShiftsPage() {
                                   </>
                                 ) : (
                                   <>
+                                    <div className="owner-shift-log-select-row">
+                                      <label>
+                                        <input
+                                          type="checkbox"
+                                          checked={isSelected}
+                                          onChange={() =>
+                                            toggleShiftSelection(shift.id)
+                                          }
+                                          disabled={deleting}
+                                        />
+                                        一括削除に選択
+                                      </label>
+                                    </div>
+
                                     <div className="owner-shift-log-header">
                                       <div>
                                         <span>{shift.work_date}</span>
@@ -755,6 +903,7 @@ export default function OwnerShiftsPage() {
                                         onClick={() =>
                                           handleStartEditShift(shift)
                                         }
+                                        disabled={deleting}
                                       >
                                         編集
                                       </button>
@@ -765,6 +914,7 @@ export default function OwnerShiftsPage() {
                                         onClick={() =>
                                           handleDeleteShift(shift)
                                         }
+                                        disabled={deleting}
                                       >
                                         削除
                                       </button>

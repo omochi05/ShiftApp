@@ -828,3 +828,142 @@
     flex: 1;
   }
 }
+
+/* =========================
+   一括削除バー
+========================= */
+
+.owner-shifts-bulk-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  margin-bottom: 18px;
+  padding: 14px;
+
+  background: #f9fafb !important;
+  color: #111827 !important;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+
+  min-width: 0;
+}
+
+.owner-shifts-bulk-bar > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  min-width: 0;
+}
+
+.owner-shifts-bulk-bar strong {
+  color: #111827 !important;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.owner-shifts-bulk-bar span {
+  color: #6b7280 !important;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.owner-shifts-bulk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  flex-shrink: 0;
+}
+
+.owner-shifts-bulk-actions button {
+  min-height: 38px;
+  padding: 8px 12px;
+
+  border: none;
+  border-radius: 11px;
+
+  font-size: 13px;
+  font-weight: 900;
+
+  cursor: pointer;
+}
+
+.owner-shifts-select-button {
+  background: #2563eb !important;
+  color: #ffffff !important;
+}
+
+.owner-shifts-clear-button {
+  background: #6b7280 !important;
+  color: #ffffff !important;
+}
+
+.owner-shifts-bulk-delete-button {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+.owner-shifts-bulk-actions button:disabled,
+.owner-shifts-refresh-button:disabled,
+.owner-employee-shift-header button:disabled,
+.owner-shift-card-actions button:disabled,
+.owner-shift-log-select-row input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.owner-shift-log-card.selected {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.owner-shift-log-select-row {
+  margin-bottom: 12px;
+}
+
+.owner-shift-log-select-row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  width: fit-content;
+
+  color: #374151 !important;
+  font-size: 13px;
+  font-weight: 900;
+
+  cursor: pointer;
+}
+
+.owner-shift-log-select-row input {
+  width: 18px;
+  height: 18px;
+
+  accent-color: #dc2626;
+}
+
+@media screen and (max-width: 960px) {
+  .owner-shifts-bulk-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .owner-shifts-bulk-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .owner-shifts-bulk-actions button {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 560px) {
+  .owner-shifts-bulk-actions {
+    grid-template-columns: 1fr;
+  }
+}
