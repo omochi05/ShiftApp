@@ -2,13 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "../../api/client";
 import "./OwnerShiftTimelinePage.css";
 
-type User = {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-};
-
 type Shift = {
   id: number;
   user_id: number;
@@ -19,42 +12,42 @@ type Shift = {
   break_minutes: number;
 };
 
-type ShiftTemplate = {
-  id: number;
-  name?: string;
-  template_name?: string;
-  title?: string;
-  shifts?: TemplateShift[];
-  items?: TemplateShift[];
-  details?: TemplateShift[];
-};
-
-type TemplateShift = {
-  user_id?: number;
-  user_name?: string;
-  name?: string;
-  weekday?: number;
-  day_of_week?: number;
-  week_day?: number;
-  start_time: string;
-  end_time: string;
-  break_minutes?: number;
-};
-
 type WeekDay = {
   date: string;
   label: string;
   dayLabel: string;
-  weekdayIndex: number;
 };
 
-type TimelineShift = Shift & {
+type PositionedShift = Shift & {
   lane: number;
 };
 
 const hourLabels = [
-  "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17",
-  "18", "19", "20", "21", "22", "23", "0", "1", "2", "3", "4", "5", "6",
+  "6",
+  "7",
+  "8",
+  "9",
+  "10",
+  "11",
+  "12",
+  "13",
+  "14",
+  "15",
+  "16",
+  "17",
+  "18",
+  "19",
+  "20",
+  "21",
+  "22",
+  "23",
+  "0",
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
 ];
 
 const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
@@ -64,6 +57,7 @@ function getTodayDate() {
   const yyyy = today.getFullYear();
   const mm = String(today.getMonth() + 1).padStart(2, "0");
   const dd = String(today.getDate()).padStart(2, "0");
+
   return `${yyyy}-${mm}-${dd}`;
 }
 
@@ -76,6 +70,7 @@ function formatDate(date: Date) {
   const yyyy = date.getFullYear();
   const mm = String(date.getMonth() + 1).padStart(2, "0");
   const dd = String(date.getDate()).padStart(2, "0");
+
   return `${yyyy}-${mm}-${dd}`;
 }
 
@@ -83,13 +78,16 @@ function getMonday(value: string) {
   const date = toDate(value);
   const day = date.getDay();
   const diff = day === 0 ? -6 : 1 - day;
+
   date.setDate(date.getDate() + diff);
+
   return date;
 }
 
 function addDays(date: Date, days: number) {
   const next = new Date(date);
   next.setDate(next.getDate() + days);
+
   return next;
 }
 
@@ -156,7 +154,10 @@ function getShiftBarStyle(shift: Shift) {
   const clampedEnd = Math.min(dayEnd, end);
 
   const left = ((clampedStart - dayStart) / totalMinutes) * 100;
-  const width = Math.max(2, ((clampedEnd - clampedStart) / totalMinutes) * 100);
+  const width = Math.max(
+    2,
+    ((clampedEnd - clampedStart) / totalMinutes) * 100
+  );
 
   return {
     left: `${left}%`,
@@ -164,42 +165,7 @@ function getShiftBarStyle(shift: Shift) {
   };
 }
 
-function formatApiError(error: any, fallbackMessage: string) {
-  const detail = error.response?.data?.detail;
-
-  if (Array.isArray(detail)) {
-    return `${fallbackMessage}：${detail.map((d) => d.msg).join(" / ")}`;
-  }
-
-  if (detail) return `${fallbackMessage}：${detail}`;
-  if (error.response?.status) return `${fallbackMessage}：HTTP ${error.response.status}`;
-
-  return `${fallbackMessage}：APIに接続できませんでした`;
-}
-
-function getTemplateName(template: ShiftTemplate) {
-  return template.name || template.template_name || template.title || `テンプレート${template.id}`;
-}
-
-function getTemplateItems(template: ShiftTemplate) {
-  return template.shifts || template.items || template.details || [];
-}
-
-function getTemplateWeekday(item: TemplateShift) {
-  const value = item.weekday ?? item.day_of_week ?? item.week_day ?? 1;
-
-  if (value >= 0 && value <= 6) return value;
-  if (value >= 1 && value <= 7) return value % 7;
-
-  return 1;
-}
-
-function getUserNameById(users: User[], userId?: number) {
-  if (!userId) return "";
-  return users.find((user) => user.id === userId)?.name || "";
-}
-
-function assignLanes(shifts: Shift[]): TimelineShift[] {
+function assignLanes(shifts: Shift[]): PositionedShift[] {
   const sorted = [...shifts].sort((a, b) => {
     const aStart = getTimelineStartMinutes(a.start_time);
     const bStart = getTimelineStartMinutes(b.start_time);
@@ -234,21 +200,27 @@ function assignLanes(shifts: Shift[]): TimelineShift[] {
   });
 }
 
-export default function OwnerShiftTimelinePage() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [shifts, setShifts] = useState<Shift[]>([]);
-  const [templates, setTemplates] = useState<ShiftTemplate[]>([]);
+function formatApiError(error: any, fallbackMessage: string) {
+  const detail = error.response?.data?.detail;
 
+  if (Array.isArray(detail)) {
+    return `${fallbackMessage}：${detail.map((d) => d.msg).join(" / ")}`;
+  }
+
+  if (detail) return `${fallbackMessage}：${detail}`;
+  if (error.response?.status) return `${fallbackMessage}：HTTP ${error.response.status}`;
+
+  return `${fallbackMessage}：APIに接続できませんでした`;
+}
+
+export default function OwnerShiftTimelinePage() {
+  const [shifts, setShifts] = useState<Shift[]>([]);
   const [targetDate, setTargetDate] = useState(getTodayDate());
-  const [selectedTemplateId, setSelectedTemplateId] = useState("");
 
   const [loading, setLoading] = useState(true);
-  const [templateLoading, setTemplateLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const employeeUsers = useMemo(() => {
-    return users.filter((user) => user.role === "employee");
-  }, [users]);
+  const ownerName = localStorage.getItem("ownerName") || "オーナー";
 
   const weekDays = useMemo<WeekDay[]>(() => {
     const monday = getMonday(targetDate);
@@ -261,7 +233,6 @@ export default function OwnerShiftTimelinePage() {
         date: dateText,
         label: `${date.getMonth() + 1}/${date.getDate()}`,
         dayLabel: dayNames[date.getDay()],
-        weekdayIndex: date.getDay(),
       };
     });
   }, [targetDate]);
@@ -273,7 +244,9 @@ export default function OwnerShiftTimelinePage() {
     if (!weekStart || !weekEnd) return [];
 
     return shifts
-      .filter((shift) => shift.work_date >= weekStart && shift.work_date <= weekEnd)
+      .filter(
+        (shift) => shift.work_date >= weekStart && shift.work_date <= weekEnd
+      )
       .sort((a, b) => {
         if (a.work_date < b.work_date) return -1;
         if (a.work_date > b.work_date) return 1;
@@ -293,21 +266,12 @@ export default function OwnerShiftTimelinePage() {
     return new Set(weeklyShifts.map((shift) => shift.user_id)).size;
   }, [weeklyShifts]);
 
-  const selectedTemplate = useMemo(() => {
-    return templates.find((template) => String(template.id) === selectedTemplateId);
-  }, [templates, selectedTemplateId]);
-
   const fetchData = async () => {
     try {
       setLoading(true);
       setMessage("");
 
-      const [usersRes, shiftsRes] = await Promise.all([
-        api.get<User[]>("/users/"),
-        api.get<Shift[]>("/shifts/"),
-      ]);
-
-      setUsers(usersRes.data);
+      const shiftsRes = await api.get<Shift[]>("/shifts/");
       setShifts(shiftsRes.data);
     } catch (error: any) {
       console.error("シフト表データ取得失敗:", error);
@@ -317,24 +281,8 @@ export default function OwnerShiftTimelinePage() {
     }
   };
 
-  const fetchTemplates = async () => {
-    try {
-      const res = await api.get<ShiftTemplate[]>("/shift-templates/");
-      setTemplates(res.data);
-    } catch (firstError) {
-      try {
-        const res = await api.get<ShiftTemplate[]>("/shift_templates/");
-        setTemplates(res.data);
-      } catch (secondError) {
-        console.warn("テンプレート取得失敗:", firstError, secondError);
-        setTemplates([]);
-      }
-    }
-  };
-
   useEffect(() => {
     fetchData();
-    fetchTemplates();
   }, []);
 
   const goPrevWeek = () => {
@@ -361,88 +309,17 @@ export default function OwnerShiftTimelinePage() {
     return assignLanes(getShiftsByDate(date));
   };
 
-  const handleApplyTemplate = async () => {
-    if (!selectedTemplate) {
-      setMessage("反映するテンプレートを選択してください");
-      return;
-    }
-
-    const items = getTemplateItems(selectedTemplate);
-
-    if (items.length === 0) {
-      setMessage("このテンプレートにはシフトが登録されていません");
-      return;
-    }
-
-    const ok = window.confirm(
-      `${getTemplateName(selectedTemplate)} を ${weekStart} 〜 ${weekEnd} に反映しますか？`
-    );
-
-    if (!ok) return;
-
-    try {
-      setTemplateLoading(true);
-      setMessage("");
-
-      const requests = items.map((item) => {
-        const weekday = getTemplateWeekday(item);
-        const targetDay = weekDays.find((day) => day.weekdayIndex === weekday);
-
-        const userId =
-          item.user_id ||
-          employeeUsers.find(
-            (user) =>
-              user.name === item.user_name ||
-              user.name === item.name
-          )?.id;
-
-        if (!targetDay || !userId) {
-          return null;
-        }
-
-        return api.post("/shifts/", {
-          user_id: userId,
-          work_date: targetDay.date,
-          start_time: item.start_time,
-          end_time: item.end_time,
-          break_minutes: item.break_minutes || 0,
-        });
-      });
-
-      const validRequests = requests.filter(Boolean);
-
-      if (validRequests.length === 0) {
-        setMessage("テンプレート内の従業員情報をシフトに変換できませんでした");
-        return;
-      }
-
-      await Promise.all(validRequests);
-
-      setMessage(`テンプレートを${validRequests.length}件反映しました`);
-      await fetchData();
-    } catch (error: any) {
-      console.error("テンプレート反映失敗:", error);
-      setMessage(formatApiError(error, "テンプレート反映に失敗しました"));
-    } finally {
-      setTemplateLoading(false);
-    }
-  };
-
   return (
     <div className="owner-shift-timeline-page">
-      <section className="owner-shift-timeline-hero">
+      <section className="owner-shift-toolbar">
         <div>
-          <p className="owner-shift-timeline-label">Weekly Shift Board</p>
           <h2>シフト表</h2>
           <p>
-            印刷用シフト表に近い形式で、対象週のシフトを確認できます。
-            テンプレートを選択して、この週に反映することもできます。
+            シフト管理ページで登録したシフトを、PDFと同じ形式で表示します。
           </p>
         </div>
-      </section>
 
-      <section className="owner-shift-control-panel">
-        <div className="owner-shift-week-control">
+        <div className="owner-shift-toolbar-actions">
           <label>
             対象週
             <input
@@ -452,56 +329,36 @@ export default function OwnerShiftTimelinePage() {
             />
           </label>
 
-          <div className="owner-shift-week-range">
-            {weekStart} 〜 {weekEnd}
-          </div>
+          <button type="button" onClick={goPrevWeek}>
+            前の週
+          </button>
 
-          <div className="owner-shift-week-buttons">
-            <button type="button" onClick={goPrevWeek}>前の週</button>
-            <button type="button" onClick={goThisWeek}>今週</button>
-            <button type="button" onClick={goNextWeek}>次の週</button>
-            <button type="button" onClick={fetchData}>再読み込み</button>
-          </div>
-        </div>
+          <button type="button" onClick={goThisWeek}>
+            今週
+          </button>
 
-        <div className="owner-shift-template-control">
-          <label>
-            テンプレート選択
-            <select
-              value={selectedTemplateId}
-              onChange={(e) => setSelectedTemplateId(e.target.value)}
-            >
-              <option value="">選択してください</option>
-              {templates.map((template) => (
-                <option key={template.id} value={template.id}>
-                  {getTemplateName(template)}
-                </option>
-              ))}
-            </select>
-          </label>
+          <button type="button" onClick={goNextWeek}>
+            次の週
+          </button>
 
-          <button
-            type="button"
-            onClick={handleApplyTemplate}
-            disabled={templateLoading || !selectedTemplateId}
-          >
-            {templateLoading ? "反映中..." : "この週にテンプレートを反映"}
+          <button type="button" onClick={fetchData}>
+            再読み込み
           </button>
         </div>
       </section>
 
-      <section className="owner-shift-summary-grid">
-        <div className="owner-shift-summary-card">
+      <section className="owner-shift-summary-row">
+        <div>
           <span>週間シフト数</span>
           <strong>{weeklyShifts.length}件</strong>
         </div>
 
-        <div className="owner-shift-summary-card">
+        <div>
           <span>週間総勤務時間</span>
           <strong>{formatDuration(totalWeeklyMinutes)}</strong>
         </div>
 
-        <div className="owner-shift-summary-card">
+        <div>
           <span>勤務予定の従業員</span>
           <strong>{workingEmployeeCount}人</strong>
         </div>
@@ -512,30 +369,39 @@ export default function OwnerShiftTimelinePage() {
       {loading ? (
         <section className="owner-shift-loading">読み込み中...</section>
       ) : (
-        <section className="owner-shift-print-like-board">
-          <div className="owner-shift-print-header">
+        <section className="owner-shift-print-board">
+          <div className="owner-shift-print-title">
             <div>
-              <h3>シフト表</h3>
-              <p>{weekStart} 〜 {weekEnd}</p>
+              <h1>シフト表</h1>
+              <p>
+                {weekStart} ～ {weekEnd}
+              </p>
             </div>
 
-            <strong>作成者：オーナー</strong>
+            <strong>作成者：{ownerName}</strong>
           </div>
 
           <div className="owner-shift-board-scroll">
             <div className="owner-shift-board-canvas">
               {weekDays.map((day) => {
                 const positionedShifts = getPositionedShiftsByDate(day.date);
+
                 const maxLane =
                   positionedShifts.length === 0
-                    ? 2
+                    ? 3
                     : Math.max(...positionedShifts.map((shift) => shift.lane)) + 1;
 
-                const bodyHeight = Math.max(82, maxLane * 34 + 12);
+                const bodyHeight = Math.max(94, maxLane * 30 + 10);
+
+                const isSunday = day.dayLabel === "日";
 
                 return (
                   <article key={day.date} className="owner-shift-print-day">
-                    <div className="owner-shift-date-cell">
+                    <div
+                      className={`owner-shift-date-cell ${
+                        isSunday ? "owner-shift-date-red" : ""
+                      }`}
+                    >
                       <strong>{day.label}</strong>
                       <span>（{day.dayLabel}）</span>
                     </div>
@@ -565,7 +431,7 @@ export default function OwnerShiftTimelinePage() {
                             className="owner-shift-name-bar"
                             style={{
                               ...getShiftBarStyle(shift),
-                              top: `${shift.lane * 34 + 8}px`,
+                              top: `${shift.lane * 30 + 6}px`,
                             }}
                             title={`${shift.user_name} ${shift.start_time}〜${shift.end_time}`}
                           >
