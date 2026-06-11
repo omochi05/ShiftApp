@@ -480,3 +480,90 @@
     margin: 4mm;
   }
 }
+
+/* =========================
+   余白だけ詰める調整
+   見た目はそのまま
+========================= */
+
+@page {
+  size: A3 landscape;
+  margin: 6mm;
+}
+
+.shift-print-page {
+  margin: 0 !important;
+  padding: 8px !important;
+  background: #ffffff !important;
+  box-sizing: border-box;
+}
+
+.shift-print-sheet {
+  width: 100%;
+  max-width: none !important;
+  margin: 0 auto !important;
+  padding: 6px 8px 4px !important;
+  box-sizing: border-box;
+}
+
+.shift-print-sheet h1 {
+  margin: 0 0 2px 0 !important;
+}
+
+.shift-print-sheet p {
+  margin: 0 0 6px 0 !important;
+}
+
+.shift-print-timeline-wrap {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* =========================
+   印刷時
+========================= */
+@media print {
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  .shift-print-page {
+    width: 100% !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    overflow: hidden !important;
+  }
+
+  .shift-print-sheet {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 2mm 2mm 1mm !important;
+    box-sizing: border-box !important;
+    background: #ffffff !important;
+  }
+
+  .shift-print-sheet h1 {
+    margin: 0 0 1mm 0 !important;
+    font-size: 16px !important;
+    line-height: 1.1 !important;
+    text-align: center !important;
+  }
+
+  .shift-print-sheet p {
+    margin: 0 0 1.5mm 0 !important;
+    font-size: 10px !important;
+    line-height: 1.1 !important;
+    text-align: center !important;
+  }
+
+  .shift-print-timeline-wrap {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
