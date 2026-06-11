@@ -94,8 +94,12 @@ function addDays(date: Date, days: number) {
 }
 
 function timeToMinutes(time: string) {
-  const [hour, minute] = time.split(":").map(Number);
+  const [hour, minute] = time.slice(0, 5).split(":").map(Number);
   return hour * 60 + minute;
+}
+
+function normalizeTime(time: string) {
+  return time.slice(0, 5);
 }
 
 function getShiftDurationMinutes(shift: ShiftForTimeline) {
@@ -107,6 +111,36 @@ function getShiftDurationMinutes(shift: ShiftForTimeline) {
   }
 
   return Math.max(0, end - start - (shift.break_minutes || 0));
+}
+
+function getShiftUniqueKey(shift: {
+  user_id: number;
+  work_date: string;
+  start_time: string;
+  end_time: string;
+  break_minutes: number;
+}) {
+  return [
+    shift.user_id,
+    shift.work_date,
+    normalizeTime(shift.start_time),
+    normalizeTime(shift.end_time),
+    shift.break_minutes || 0,
+  ].join("-");
+}
+
+function removeDuplicateShifts(shifts: ShiftForTimeline[]) {
+  const map = new Map<string, ShiftForTimeline>();
+
+  shifts.forEach((shift) => {
+    const key = getShiftUniqueKey(shift);
+
+    if (!map.has(key)) {
+      map.set(key, shift);
+    }
+  });
+
+  return Array.from(map.values());
 }
 
 function formatDuration(minutes: number) {
@@ -201,7 +235,7 @@ export default function OwnerShiftTimelinePage() {
   const weeklyShifts = useMemo<ShiftForTimeline[]>(() => {
     if (!weekStart || !weekEnd) return [];
 
-    return shifts
+    const mappedShifts = shifts
       .filter(
         (shift) => shift.work_date >= weekStart && shift.work_date <= weekEnd
       )
@@ -213,8 +247,8 @@ export default function OwnerShiftTimelinePage() {
             ? shift.user_name
             : getUserName(shift.user_id, users),
         work_date: shift.work_date,
-        start_time: shift.start_time,
-        end_time: shift.end_time,
+        start_time: normalizeTime(shift.start_time),
+        end_time: normalizeTime(shift.end_time),
         break_minutes: shift.break_minutes || 0,
         created_by: shift.created_by,
       }))
@@ -225,6 +259,8 @@ export default function OwnerShiftTimelinePage() {
         if (a.start_time > b.start_time) return 1;
         return a.id - b.id;
       });
+
+    return removeDuplicateShifts(mappedShifts);
   }, [shifts, users, weekStart, weekEnd]);
 
   const totalWeeklyMinutes = useMemo(() => {
@@ -301,18 +337,34 @@ export default function OwnerShiftTimelinePage() {
       setTemplateLoading(true);
       setMessage("");
 
-      const items: TemplateShift[] = weeklyShifts.map((shift) => {
+      const templateMap = new Map<string, TemplateShift>();
+
+      weeklyShifts.forEach((shift) => {
         const date = toDate(shift.work_date);
 
-        return {
+        const item: TemplateShift = {
           user_id: shift.user_id,
           user_name: shift.user_name,
           weekday: date.getDay(),
-          start_time: shift.start_time,
-          end_time: shift.end_time,
+          start_time: normalizeTime(shift.start_time),
+          end_time: normalizeTime(shift.end_time),
           break_minutes: shift.break_minutes || 0,
         };
+
+        const key = [
+          item.user_id,
+          item.weekday,
+          item.start_time,
+          item.end_time,
+          item.break_minutes,
+        ].join("-");
+
+        if (!templateMap.has(key)) {
+          templateMap.set(key, item);
+        }
       });
+
+      const items = Array.from(templateMap.values());
 
       const newTemplate: ShiftTemplate = {
         id: crypto.randomUUID(),
@@ -361,6 +413,7 @@ export default function OwnerShiftTimelinePage() {
       setMessage("");
 
       const requests: Promise<unknown>[] = [];
+      const alreadyQueuedKeys = new Set<string>();
 
       selectedTemplate.items.forEach((item) => {
         const targetDay = weekDays.find(
@@ -375,19 +428,30 @@ export default function OwnerShiftTimelinePage() {
           return;
         }
 
-        requests.push(
-          api.post("/shifts/", {
-            user_id: userId,
-            work_date: targetDay.date,
-            start_time: item.start_time,
-            end_time: item.end_time,
-            break_minutes: item.break_minutes || 0,
-          })
-        );
+        const newShift = {
+          user_id: userId,
+          work_date: targetDay.date,
+          start_time: normalizeTime(item.start_time),
+          end_time: normalizeTime(item.end_time),
+          break_minutes: item.break_minutes || 0,
+        };
+
+        const newShiftKey = getShiftUniqueKey(newShift);
+
+        const alreadyExists = weeklyShifts.some((shift) => {
+          return getShiftUniqueKey(shift) === newShiftKey;
+        });
+
+        if (alreadyExists || alreadyQueuedKeys.has(newShiftKey)) {
+          return;
+        }
+
+        alreadyQueuedKeys.add(newShiftKey);
+        requests.push(api.post("/shifts/", newShift));
       });
 
       if (requests.length === 0) {
-        setMessage("テンプレート内のシフトを反映できませんでした");
+        setMessage("このテンプレートのシフトは、すでにこの週に反映済みです");
         return;
       }
 
@@ -409,9 +473,7 @@ export default function OwnerShiftTimelinePage() {
       return;
     }
 
-    const ok = window.confirm(
-      `「${selectedTemplate.name}」を削除しますか？`
-    );
+    const ok = window.confirm(`「${selectedTemplate.name}」を削除しますか？`);
 
     if (!ok) return;
 
