@@ -51,11 +51,15 @@ const START_HOUR = 6;
 const TOTAL_HOURS = 24;
 const LONG_PRESS_MS = 550;
 
-const NORMAL_LANE_HEIGHT = 34;
-const NORMAL_BAR_HEIGHT = 28;
-const NORMAL_BAR_TOP_OFFSET = 6;
-const NORMAL_NAME_FONT_SIZE = 15;
-const NORMAL_BAR_PADDING_X = 8;
+/*
+  通常画面用
+  黒い時間帯はCSS側で細くし、白いメンバー枠を大きめにする。
+*/
+const NORMAL_LANE_HEIGHT = 40;
+const NORMAL_BAR_HEIGHT = 34;
+const NORMAL_BAR_TOP_OFFSET = 5;
+const NORMAL_NAME_FONT_SIZE = 17;
+const NORMAL_BAR_PADDING_X = 10;
 
 const hourLabels = [
   "6",
@@ -215,53 +219,57 @@ function positionShifts(shifts: ShiftForTimeline[]) {
   };
 }
 
+/*
+  印刷・PDF用
+  人数が少ない日は大きく、人数が多い日はA3に収まる範囲で大きくする。
+*/
 function getAutoPrintSize(maxLaneCount: number): AutoPrintSize {
   if (maxLaneCount <= 1) {
     return {
-      laneHeight: 48,
-      barHeight: 40,
+      laneHeight: 52,
+      barHeight: 44,
       barTopOffset: 5,
-      nameFontSize: 20,
+      nameFontSize: 21,
       barPaddingX: 12,
     };
   }
 
   if (maxLaneCount === 2) {
     return {
-      laneHeight: 42,
-      barHeight: 34,
+      laneHeight: 46,
+      barHeight: 38,
       barTopOffset: 5,
-      nameFontSize: 18,
+      nameFontSize: 20,
       barPaddingX: 11,
     };
   }
 
   if (maxLaneCount === 3) {
     return {
-      laneHeight: 37,
-      barHeight: 30,
+      laneHeight: 41,
+      barHeight: 34,
       barTopOffset: 5,
-      nameFontSize: 17,
+      nameFontSize: 18,
       barPaddingX: 10,
     };
   }
 
   if (maxLaneCount === 4) {
     return {
-      laneHeight: 34,
-      barHeight: 27,
+      laneHeight: 37,
+      barHeight: 30,
       barTopOffset: 4,
-      nameFontSize: 16,
-      barPaddingX: 8,
+      nameFontSize: 17,
+      barPaddingX: 9,
     };
   }
 
   return {
-    laneHeight: 30,
-    barHeight: 24,
+    laneHeight: 33,
+    barHeight: 27,
     barTopOffset: 3,
-    nameFontSize: 15,
-    barPaddingX: 7,
+    nameFontSize: 16,
+    barPaddingX: 8,
   };
 }
 
@@ -461,10 +469,10 @@ export default function ShiftTimeline({
       {groupedWithPositions.map(({ date, positioned, laneCount }) => {
         const bodyHeight = printMode
           ? Math.max(
-              laneCount * laneHeight + barTopOffset + 6,
-              barHeight + barTopOffset + 8
+              laneCount * laneHeight + barTopOffset + 8,
+              barHeight + barTopOffset + 10
             )
-          : Math.max(74, laneCount * laneHeight + 18);
+          : Math.max(84, laneCount * laneHeight + 20);
 
         const holidayName = getJapaneseHolidayName(date);
 
