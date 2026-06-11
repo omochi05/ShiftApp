@@ -7,6 +7,7 @@ import ShiftPrintPage from "./pages/ShiftPrintPage";
 import OwnerLayout from "./pages/owner/OwnerLayout";
 import OwnerDashboardHome from "./pages/owner/OwnerDashboardHome";
 import OwnerPlaceholderPage from "./pages/owner/OwnerPlaceholderPage";
+import OwnerEmployeesPage from "./pages/owner/OwnerEmployeesPage";
 
 function AppLayout() {
   return (
@@ -46,15 +47,7 @@ function AppLayout() {
           }
         />
 
-        <Route
-          path="employees"
-          element={
-            <OwnerPlaceholderPage
-              title="従業員管理"
-              description="ここに従業員追加・編集・削除機能を移動します。"
-            />
-          }
-        />
+        <Route path="employees" element={<OwnerEmployeesPage />} />
 
         <Route
           path="templates"
