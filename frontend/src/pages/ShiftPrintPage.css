@@ -164,13 +164,25 @@
   overflow: visible;
 }
 
-/* PDF保存時の余白・影を消す */
+/* =========================
+   PDF保存時の共通設定
+========================= */
+
 .pdf-capture-mode .shift-print-page {
+  width: 1600px !important;
+  min-width: 1600px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
   background: #ffffff !important;
 }
 
 .pdf-capture-mode .shift-print-paper {
-  max-width: none !important;
+  width: 1600px !important;
+  min-width: 1600px !important;
+  max-width: 1600px !important;
+
   margin: 0 !important;
   padding: 10px !important;
 
@@ -193,6 +205,11 @@
 .pdf-capture-mode .shift-print-header p,
 .pdf-capture-mode .shift-print-shop-name {
   font-size: 13px !important;
+}
+
+.pdf-capture-mode .shift-print-timeline-wrap {
+  width: 100% !important;
+  overflow: visible !important;
 }
 
 /* =========================

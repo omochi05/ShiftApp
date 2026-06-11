@@ -30,14 +30,7 @@ type ShiftForTimeline = Shift & {
   user_name: string;
 };
 
-function getTodayText() {
-  const now = new Date();
-  const yyyy = now.getFullYear();
-  const mm = String(now.getMonth() + 1).padStart(2, "0");
-  const dd = String(now.getDate()).padStart(2, "0");
-
-  return `${yyyy}-${mm}-${dd}`;
-}
+const PDF_CAPTURE_WIDTH = 1600;
 
 function getMondayOfCurrentWeek() {
   const now = new Date();
@@ -252,23 +245,48 @@ export default function ShiftPrintPage() {
       return;
     }
 
+    const printArea = printAreaRef.current;
+
+    const originalWidth = printArea.style.width;
+    const originalMinWidth = printArea.style.minWidth;
+    const originalMaxWidth = printArea.style.maxWidth;
+    const originalMargin = printArea.style.margin;
+
     try {
       setMessage("PDFを作成中です...");
 
       document.body.classList.add("pdf-capture-mode");
 
-      await new Promise((resolve) => window.setTimeout(resolve, 300));
+      /*
+        スマホ幅のままPDF化されるのを防ぐ。
+        PDF保存時だけA3横向き用の横幅に固定してからキャプチャする。
+      */
+      printArea.style.width = `${PDF_CAPTURE_WIDTH}px`;
+      printArea.style.minWidth = `${PDF_CAPTURE_WIDTH}px`;
+      printArea.style.maxWidth = `${PDF_CAPTURE_WIDTH}px`;
+      printArea.style.margin = "0";
 
-      const canvas = await html2canvas(printAreaRef.current, {
+      await new Promise((resolve) => window.setTimeout(resolve, 500));
+
+      const captureHeight = printArea.scrollHeight;
+
+      const canvas = await html2canvas(printArea, {
         scale: 2,
         useCORS: true,
         backgroundColor: "#ffffff",
-        windowWidth: printAreaRef.current.scrollWidth,
-        windowHeight: printAreaRef.current.scrollHeight,
+
+        width: PDF_CAPTURE_WIDTH,
+        height: captureHeight,
+
+        windowWidth: PDF_CAPTURE_WIDTH,
+        windowHeight: captureHeight,
+
+        scrollX: 0,
+        scrollY: 0,
       });
 
-      const resizedCanvas = resizeCanvas(canvas, 1800);
-      const imageData = resizedCanvas.toDataURL("image/jpeg", 0.92);
+      const resizedCanvas = resizeCanvas(canvas, 2200);
+      const imageData = resizedCanvas.toDataURL("image/jpeg", 0.95);
 
       const pdf = new jsPDF({
         orientation: "landscape",
@@ -308,6 +326,11 @@ export default function ShiftPrintPage() {
       console.error("PDF保存失敗:", error);
       setMessage("PDF保存に失敗しました");
     } finally {
+      printArea.style.width = originalWidth;
+      printArea.style.minWidth = originalMinWidth;
+      printArea.style.maxWidth = originalMaxWidth;
+      printArea.style.margin = originalMargin;
+
       document.body.classList.remove("pdf-capture-mode");
     }
   };

@@ -15,7 +15,7 @@
 .shift-timeline-day {
   display: grid;
   grid-template-columns: 96px 1fr;
-  grid-template-rows: 30px auto;
+  grid-template-rows: 24px auto;
 
   border: 3px solid #000000;
   border-bottom: none;
@@ -57,7 +57,7 @@
   grid-row: 1;
 
   position: relative;
-  min-height: 30px;
+  min-height: 24px;
 
   background: #111111 !important;
   color: #ffffff !important;
@@ -74,10 +74,10 @@
   justify-content: center;
 
   width: 24px;
-  min-height: 30px;
+  min-height: 24px;
 
   color: #ffffff !important;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 900;
   text-align: center;
 }
@@ -104,11 +104,11 @@
 
 .shift-bar {
   position: absolute;
-  height: var(--shift-bar-height, 28px);
+  height: var(--shift-bar-height, 34px);
   box-sizing: border-box;
 
   border: 2.5px solid #000000;
-  border-radius: 8px;
+  border-radius: 9px;
 
   background: #ffffff !important;
   color: #000000 !important;
@@ -121,7 +121,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 var(--shift-bar-padding-x, 8px);
+  padding: 0 var(--shift-bar-padding-x, 10px);
 }
 
 .shift-bar-normal-content {
@@ -134,7 +134,7 @@
   min-width: 0;
 
   color: #000000 !important;
-  font-size: var(--shift-name-font-size, 15px);
+  font-size: var(--shift-name-font-size, 17px);
   font-weight: 900;
   line-height: 1;
   letter-spacing: 0.03em;
@@ -169,7 +169,7 @@
 }
 
 .shift-timeline-print .shift-bar {
-  height: var(--shift-bar-height, 30px);
+  height: var(--shift-bar-height, 34px);
 
   display: flex;
   align-items: center;
@@ -178,7 +178,7 @@
   padding: 0 var(--shift-bar-padding-x, 10px);
 
   border: 1.8px solid #000000;
-  border-radius: 5px;
+  border-radius: 6px;
 }
 
 .shift-bar-print-name {
@@ -191,7 +191,7 @@
   text-overflow: ellipsis;
 
   color: #000000 !important;
-  font-size: var(--shift-name-font-size, 17px);
+  font-size: var(--shift-name-font-size, 18px);
   font-weight: 900;
   line-height: 1;
   letter-spacing: 0.03em;
@@ -256,7 +256,7 @@
 
   .shift-timeline-day {
     grid-template-columns: 62px 1fr !important;
-    grid-template-rows: 15px auto !important;
+    grid-template-rows: 12px auto !important;
 
     border-left: 1.6px solid #000000 !important;
     border-right: 1.6px solid #000000 !important;
@@ -291,7 +291,7 @@
   }
 
   .shift-timeline-hours {
-    min-height: 15px !important;
+    min-height: 12px !important;
 
     background: #111111 !important;
     color: #ffffff !important;
@@ -306,10 +306,10 @@
     transform: translateX(-50%) !important;
 
     width: 18px !important;
-    min-height: 15px !important;
+    min-height: 12px !important;
 
     color: #ffffff !important;
-    font-size: 7px !important;
+    font-size: 6px !important;
     font-weight: 900 !important;
     border-right: none !important;
   }
@@ -340,7 +340,7 @@
   }
 
   .shift-bar {
-    height: var(--shift-bar-height, 30px) !important;
+    height: var(--shift-bar-height, 34px) !important;
 
     display: flex !important;
     align-items: center !important;
@@ -349,7 +349,7 @@
     padding: 0 var(--shift-bar-padding-x, 10px) !important;
 
     border: 1.8px solid #000000 !important;
-    border-radius: 5px !important;
+    border-radius: 6px !important;
 
     background: #ffffff !important;
     color: #000000 !important;
@@ -365,7 +365,7 @@
     overflow: hidden !important;
     text-overflow: ellipsis !important;
 
-    font-size: var(--shift-name-font-size, 17px) !important;
+    font-size: var(--shift-name-font-size, 18px) !important;
     font-weight: 900 !important;
     line-height: 1 !important;
     letter-spacing: 0.03em !important;
@@ -412,15 +412,15 @@
 }
 
 .pdf-capture-mode .shift-timeline-hours {
-  min-height: 16px !important;
+  min-height: 12px !important;
   border-bottom: 2px solid #000000 !important;
   background: #111111 !important;
   color: #ffffff !important;
 }
 
 .pdf-capture-mode .shift-timeline-hour {
-  min-height: 16px !important;
-  font-size: 7.5px !important;
+  min-height: 12px !important;
+  font-size: 6px !important;
 }
 
 .pdf-capture-mode .shift-timeline-body {
@@ -440,7 +440,7 @@
 }
 
 .pdf-capture-mode .shift-bar {
-  height: var(--shift-bar-height, 30px) !important;
+  height: var(--shift-bar-height, 34px) !important;
   padding: 0 var(--shift-bar-padding-x, 10px) !important;
 
   border: 2px solid #000000 !important;
@@ -453,7 +453,7 @@
 .pdf-capture-mode .shift-bar-normal-content,
 .pdf-capture-mode .shift-bar-name {
   color: #000000 !important;
-  font-size: var(--shift-name-font-size, 17px) !important;
+  font-size: var(--shift-name-font-size, 18px) !important;
   font-weight: 900 !important;
   letter-spacing: 0.03em !important;
 
@@ -526,4 +526,24 @@
   .shift-context-menu {
     display: none !important;
   }
+}
+
+/* =========================
+   スマホPDF保存時の横幅固定
+========================= */
+
+.pdf-capture-mode .shift-timeline,
+.pdf-capture-mode .shift-timeline-print {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+}
+
+.pdf-capture-mode .shift-timeline-day {
+  width: 100% !important;
+}
+
+.pdf-capture-mode .shift-timeline-body {
+  width: 100% !important;
+  overflow: hidden !important;
 }
