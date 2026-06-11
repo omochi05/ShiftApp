@@ -64,6 +64,7 @@
   overflow: visible;
 }
 
+/* 黒い帯の高さはそのまま、時間の文字だけ大きく */
 .shift-timeline-hour {
   position: absolute;
   top: 0;
@@ -77,7 +78,7 @@
   min-height: 24px;
 
   color: #ffffff !important;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 900;
   text-align: center;
 }
@@ -300,6 +301,7 @@
     border-bottom: 1.6px solid #000000 !important;
   }
 
+  /* 印刷時も黒い帯の高さはそのまま、時間文字だけ大きく */
   .shift-timeline-hour {
     position: absolute !important;
     top: 0 !important;
@@ -309,7 +311,7 @@
     min-height: 12px !important;
 
     color: #ffffff !important;
-    font-size: 6px !important;
+    font-size: 8px !important;
     font-weight: 900 !important;
     border-right: none !important;
   }
@@ -392,6 +394,8 @@
 }
 
 .pdf-capture-mode .shift-timeline-day {
+  width: 100% !important;
+
   border: 2px solid #000000 !important;
   background: #ffffff !important;
 }
@@ -418,12 +422,15 @@
   color: #ffffff !important;
 }
 
+/* PDF保存時も黒い帯の高さはそのまま、時間文字だけ大きく */
 .pdf-capture-mode .shift-timeline-hour {
   min-height: 12px !important;
-  font-size: 6px !important;
+  font-size: 8px !important;
 }
 
 .pdf-capture-mode .shift-timeline-body {
+  width: 100% !important;
+  overflow: hidden !important;
   background: #ffffff !important;
 }
 
@@ -460,6 +467,14 @@
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   transform: none !important;
+}
+
+/* スマホPDF保存時の横幅固定 */
+.pdf-capture-mode .shift-timeline,
+.pdf-capture-mode .shift-timeline-print {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
 }
 
 /* =========================
@@ -526,24 +541,4 @@
   .shift-context-menu {
     display: none !important;
   }
-}
-
-/* =========================
-   スマホPDF保存時の横幅固定
-========================= */
-
-.pdf-capture-mode .shift-timeline,
-.pdf-capture-mode .shift-timeline-print {
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: none !important;
-}
-
-.pdf-capture-mode .shift-timeline-day {
-  width: 100% !important;
-}
-
-.pdf-capture-mode .shift-timeline-body {
-  width: 100% !important;
-  overflow: hidden !important;
 }
