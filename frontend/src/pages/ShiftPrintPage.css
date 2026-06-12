@@ -121,7 +121,7 @@
 
 .shift-print-navigation {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -352,9 +352,9 @@
   }
 
   .shift-print-navigation {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 6px;
-  }
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
 
   .shift-print-navigation button {
     min-height: 38px;

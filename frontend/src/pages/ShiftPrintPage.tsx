@@ -251,10 +251,6 @@ export default function ShiftPrintPage() {
     fetchData();
   }, []);
 
-  const goBack = () => {
-    window.location.hash = "/owner/timeline";
-  };
-
   const goPrevWeek = () => {
     const date = toDate(targetDate);
     date.setDate(date.getDate() - 7);
@@ -354,9 +350,6 @@ export default function ShiftPrintPage() {
 
       <section className="shift-print-control-panel print-hide">
         <div className="shift-print-navigation">
-          <button type="button" onClick={goBack}>
-            戻る
-          </button>
 
           <button type="button" onClick={goPrevWeek}>
             前の週
