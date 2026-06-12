@@ -78,11 +78,14 @@ export default function OwnerEmployeesPage() {
    * employee と manager を一覧に残す
    * owner は安全のため一覧には出さない
    */
-  const employeeUsers = useMemo(() => {
-    return users.filter(
-      (user) => user.role === "employee" || user.role === "manager"
-    );
-  }, [users]);
+    const employeeUsers = useMemo(() => {
+         return users.filter(
+            (user) =>
+            user.role === "employee" ||
+            user.role === "manager" ||
+            user.role === "owner"
+        );
+    }, [users]);
 
   const fetchUsers = async () => {
     try {
@@ -490,6 +493,7 @@ export default function OwnerEmployeesPage() {
                             >
                               <option value="employee">従業員</option>
                               <option value="manager">管理者</option>
+                              <option value="owner">オーナー</option>
                             </select>
                           ) : (
                             getRoleLabel(user.role)
@@ -546,13 +550,15 @@ export default function OwnerEmployeesPage() {
                                 編集
                               </button>
 
-                              <button
-                                type="button"
-                                className="owner-table-delete-button"
-                                onClick={() => handleDeleteUser(user.id)}
-                              >
-                                削除
-                              </button>
+                              {user.role !== "owner" && (
+                                <button
+                                    type="button"
+                                    className="owner-table-delete-button"
+                                    onClick={() => handleDeleteUser(user.id)}
+                                >
+                                    削除
+                                </button>
+                                )}
                             </div>
                           )}
                         </td>
