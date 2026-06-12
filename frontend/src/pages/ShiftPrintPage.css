@@ -656,3 +656,39 @@
     skew: none !important;
   }
 }
+
+/* =========================
+   スマホ：週の開始日ボックスの右ズレ修正
+========================= */
+
+@media screen and (max-width: 760px) {
+  .shift-print-control-panel,
+  .shift-print-week-control,
+  .shift-print-week-control label {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .shift-print-week-control {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    overflow: hidden !important;
+  }
+
+  .shift-print-week-control input {
+    display: block !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    box-sizing: border-box !important;
+  }
+
+  .shift-print-week-control button {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+}

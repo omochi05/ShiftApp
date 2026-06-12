@@ -467,3 +467,50 @@
     font-size: 28px;
   }
 }
+
+/* =========================
+   スマホ：対象週ボックスの右ズレ修正
+========================= */
+
+@media screen and (max-width: 520px) {
+  .owner-shift-control-panel,
+  .owner-shift-week-box,
+  .owner-shift-template-box,
+  .owner-shift-week-box label,
+  .owner-shift-template-save label,
+  .owner-shift-template-apply label {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .owner-shift-week-box {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    overflow: hidden !important;
+  }
+
+  .owner-shift-week-box input,
+  .owner-shift-template-save input,
+  .owner-shift-template-apply select {
+    display: block !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    box-sizing: border-box !important;
+  }
+
+  .owner-shift-week-buttons {
+    width: 100% !important;
+    max-width: 100% !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .owner-shift-week-buttons button {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+}
