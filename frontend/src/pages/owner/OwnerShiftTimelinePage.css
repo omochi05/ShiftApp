@@ -514,3 +514,37 @@
     min-width: 0 !important;
   }
 }
+
+/* =========================
+   スマホ：対象週を枠内に収める
+   太さ・高さは変えない
+========================= */
+
+@media screen and (max-width: 520px) {
+  .owner-shift-control-panel,
+  .owner-shift-week-box {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .owner-shift-week-box {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .owner-shift-week-box label {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .owner-shift-week-box input[type="date"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    box-sizing: border-box !important;
+    display: block !important;
+  }
+}
