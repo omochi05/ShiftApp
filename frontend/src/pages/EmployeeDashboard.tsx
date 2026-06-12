@@ -29,8 +29,8 @@ function getTodayDate() {
 function getWeekStart(dateString: string) {
   const date = new Date(`${dateString}T00:00:00`);
   const day = date.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
 
+  const diff = day === 0 ? -6 : 1 - day;
   date.setDate(date.getDate() + diff);
 
   return date.toISOString().slice(0, 10);
@@ -40,6 +40,14 @@ function addDays(dateString: string, days: number) {
   const date = new Date(`${dateString}T00:00:00`);
   date.setDate(date.getDate() + days);
   return date.toISOString().slice(0, 10);
+}
+
+function formatDateLabel(dateString: string) {
+  const date = new Date(`${dateString}T00:00:00`);
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+
+  return `${month}/${day}`;
 }
 
 function getShiftHours(shift: Shift) {
@@ -62,14 +70,6 @@ function getShiftHours(shift: Shift) {
   );
 
   return workMinutes / 60;
-}
-
-function formatDateLabel(dateString: string) {
-  const date = new Date(`${dateString}T00:00:00`);
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-
-  return `${month}/${day}`;
 }
 
 function formatApiError(error: any, fallbackMessage: string) {
@@ -116,6 +116,10 @@ export default function EmployeeDashboard() {
     return map;
   }, [users]);
 
+  /**
+   * オーナー・管理者が登録した /shifts/ の中から、
+   * ログイン中の従業員本人のシフトだけ表示する
+   */
   const weeklyMyShifts = useMemo(() => {
     return shifts
       .filter((shift) => {
@@ -127,7 +131,8 @@ export default function EmployeeDashboard() {
       })
       .map((shift) => ({
         ...shift,
-        user_name: shift.user_name || userNameMap.get(shift.user_id) || loginName,
+        user_name:
+          shift.user_name || userNameMap.get(shift.user_id) || loginName,
       }))
       .sort((a, b) => {
         if (a.work_date !== b.work_date) {
@@ -206,7 +211,8 @@ export default function EmployeeDashboard() {
           <p className="employee-label">EMPLOYEE DASHBOARD</p>
           <h1>従業員画面</h1>
           <span>
-            自分のシフト表を確認できます。編集・追加・削除はできません。
+            オーナー・管理者が作成したシフト表を確認できます。
+            従業員側から編集・追加・削除はできません。
           </span>
         </div>
 
@@ -252,7 +258,11 @@ export default function EmployeeDashboard() {
             パスワード変更
           </button>
 
-          <button type="button" className="employee-logout" onClick={handleLogout}>
+          <button
+            type="button"
+            className="employee-logout"
+            onClick={handleLogout}
+          >
             ログアウト
           </button>
         </div>
@@ -267,7 +277,7 @@ export default function EmployeeDashboard() {
         </div>
 
         <div className="employee-summary-card">
-          <span>シフト数</span>
+          <span>自分のシフト数</span>
           <strong>{weeklyShiftCount}件</strong>
         </div>
 
