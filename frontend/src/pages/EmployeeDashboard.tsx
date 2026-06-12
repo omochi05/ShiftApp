@@ -131,10 +131,13 @@ export default function EmployeeDashboard() {
   }, [users]);
 
   /**
-   * 従業員画面でも、オーナー・管理者と同じシフト表を表示する
-   * ただし、編集・追加・削除はできない
+   * 従業員画面でも、オーナー・管理者と同じシフト表を表示する。
+   * ただし、編集・追加・削除はできない。
+   * 同じシフトが重複して返ってきても、画面では1件にまとめる。
    */
   const weeklyShifts = useMemo(() => {
+    const seen = new Set<string>();
+
     return shifts
       .filter((shift) => {
         return shift.work_date >= weekStart && shift.work_date <= weekEnd;
@@ -146,19 +149,41 @@ export default function EmployeeDashboard() {
           userNameMap.get(shift.user_id) ||
           `ID:${shift.user_id}`,
       }))
+      .filter((shift) => {
+        const key = [
+          shift.user_id,
+          shift.work_date,
+          shift.start_time.slice(0, 5),
+          shift.end_time.slice(0, 5),
+          shift.break_minutes,
+        ].join("-");
+
+        if (seen.has(key)) {
+          return false;
+        }
+
+        seen.add(key);
+        return true;
+      })
       .sort((a, b) => {
         if (a.work_date !== b.work_date) {
           return a.work_date.localeCompare(b.work_date);
         }
 
-        return a.start_time.localeCompare(b.start_time);
+        if (a.start_time !== b.start_time) {
+          return a.start_time.localeCompare(b.start_time);
+        }
+
+        return a.user_id - b.user_id;
       });
   }, [shifts, weekStart, weekEnd, userNameMap]);
 
   const weeklyShiftCount = weeklyShifts.length;
 
   const weeklyTotalHours = useMemo(() => {
-    return weeklyShifts.reduce((sum, shift) => sum + getShiftHours(shift), 0);
+    return weeklyShifts.reduce((sum, shift) => {
+      return sum + getShiftHours(shift);
+    }, 0);
   }, [weeklyShifts]);
 
   const fetchData = async () => {
