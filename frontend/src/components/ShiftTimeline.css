@@ -764,3 +764,58 @@
   --shift-name-font-size: 11px !important;
   --shift-bar-padding-x: 4px !important;
 }
+
+/* =========================
+   印刷/PDF：少し拡大しつつバー間隔を自動で詰める
+========================= */
+
+@media print {
+  .shift-timeline-hours {
+    min-height: 9px !important;
+    height: 9px !important;
+    border-bottom-width: 1.1px !important;
+  }
+
+  .shift-timeline-hour {
+    min-height: 9px !important;
+    height: 9px !important;
+
+    font-size: 8.8px !important;
+    line-height: 1 !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .shift-timeline-day {
+    grid-template-rows: 9px auto !important;
+  }
+
+  .shift-bar {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+}
+
+.pdf-capture-mode .shift-timeline-hours {
+  min-height: 10px !important;
+  height: 10px !important;
+}
+
+.pdf-capture-mode .shift-timeline-hour {
+  min-height: 10px !important;
+  height: 10px !important;
+
+  font-size: 10px !important;
+  line-height: 1 !important;
+}
+
+.pdf-capture-mode .shift-timeline-day {
+  grid-template-rows: 10px auto !important;
+}
+
+.pdf-capture-mode .shift-bar {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}

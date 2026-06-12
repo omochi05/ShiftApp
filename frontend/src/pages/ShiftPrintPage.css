@@ -592,7 +592,7 @@
       下の余白を減らすため大きめに表示
       2ページになる場合だけ 1.04 → 1.00 に下げる
     */
-    zoom: 1.04 !important;
+    zoom: 1.08 !important;
   }
 
   .shift-print-title {

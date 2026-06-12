@@ -275,7 +275,7 @@ export default function ShiftPrintPage() {
     window.print();
   };
 
-  const handleSavePdf = async () => {
+    const handleSavePdf = async () => {
     if (!printAreaRef.current) {
       setMessage("PDF保存するシフト表が見つかりませんでした");
       return;
@@ -289,7 +289,7 @@ export default function ShiftPrintPage() {
       target.classList.add("pdf-capture-mode");
 
       const canvas = await html2canvas(target, {
-        scale: 1.25,
+        scale: 1.05,
         backgroundColor: "#ffffff",
         useCORS: true,
         logging: false,
@@ -299,11 +299,7 @@ export default function ShiftPrintPage() {
 
       target.classList.remove("pdf-capture-mode");
 
-      /*
-        PNGは綺麗だけどファイルサイズが大きい。
-        JPEGにすると10MB以下にしやすい。
-      */
-      const imgData = canvas.toDataURL("image/jpeg", 0.72);
+      const imgData = canvas.toDataURL("image/jpeg", 0.68);
 
       const pdf = new jsPDF({
         orientation: "landscape",
@@ -315,8 +311,11 @@ export default function ShiftPrintPage() {
       const pageWidth = 420;
       const pageHeight = 297;
 
-      const marginX = 4;
-      const marginY = 4;
+      /*
+        余白をさらに小さくして、PDF上で少しだけ拡大する
+      */
+      const marginX = 2;
+      const marginY = 2;
 
       const usableWidth = pageWidth - marginX * 2;
       const usableHeight = pageHeight - marginY * 2;
