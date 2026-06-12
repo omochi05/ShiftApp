@@ -819,3 +819,105 @@
   margin-top: 0 !important;
   margin-bottom: 0 !important;
 }
+
+/* =========================
+   印刷/PDF：斜めズレ防止 + 縦方向だけ広げる
+========================= */
+
+@media print {
+  .shift-timeline,
+  .shift-timeline *,
+  .shift-print-paper,
+  .shift-print-paper * {
+    transform: none !important;
+    rotate: 0deg !important;
+    skew: none !important;
+  }
+
+  .shift-timeline {
+    width: 100% !important;
+    min-width: 0 !important;
+
+    border-width: 1.25px !important;
+
+    --shift-lane-height: 30px !important;
+    --shift-bar-height: 25px !important;
+    --shift-bar-top-offset: 2px !important;
+    --shift-name-font-size: 12px !important;
+    --shift-bar-padding-x: 5px !important;
+  }
+
+  .shift-timeline-day {
+    grid-template-columns: 58px 1fr !important;
+    grid-template-rows: 10px auto !important;
+
+    border-width: 1.25px !important;
+  }
+
+  .shift-timeline-date {
+    border-right-width: 1.25px !important;
+    font-size: 12px !important;
+    line-height: 1.05 !important;
+  }
+
+  .shift-timeline-hours {
+    min-height: 10px !important;
+    height: 10px !important;
+    border-bottom-width: 1.25px !important;
+  }
+
+  .shift-timeline-hour {
+    min-height: 10px !important;
+    height: 10px !important;
+    width: 22px !important;
+
+    font-size: 8.8px !important;
+    line-height: 1 !important;
+  }
+
+  .shift-bar {
+    height: var(--shift-bar-height, 25px) !important;
+
+    border-width: 1.25px !important;
+    border-radius: 4px !important;
+
+    padding: 0 var(--shift-bar-padding-x, 5px) !important;
+  }
+
+  .shift-bar-print-name,
+  .shift-bar-normal-content,
+  .shift-bar-name {
+    font-size: var(--shift-name-font-size, 12px) !important;
+    line-height: 1 !important;
+  }
+}
+
+/* PDF保存時も斜めズレ防止 */
+.pdf-capture-mode,
+.pdf-capture-mode * {
+  transform: none !important;
+  rotate: 0deg !important;
+  skew: none !important;
+}
+
+.pdf-capture-mode .shift-timeline {
+  width: 100% !important;
+  min-width: 0 !important;
+
+  --shift-lane-height: 30px !important;
+  --shift-bar-height: 25px !important;
+  --shift-bar-top-offset: 2px !important;
+  --shift-name-font-size: 12px !important;
+  --shift-bar-padding-x: 5px !important;
+}
+
+.pdf-capture-mode .shift-timeline-hours {
+  min-height: 11px !important;
+  height: 11px !important;
+}
+
+.pdf-capture-mode .shift-timeline-hour {
+  min-height: 11px !important;
+  height: 11px !important;
+  font-size: 10px !important;
+}

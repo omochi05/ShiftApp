@@ -288,14 +288,16 @@ export default function ShiftPrintPage() {
 
       target.classList.add("pdf-capture-mode");
 
-      const canvas = await html2canvas(target, {
-        scale: 1.05,
+     const canvas = await html2canvas(target, {
+        scale: 1.0,
         backgroundColor: "#ffffff",
         useCORS: true,
         logging: false,
+        scrollX: 0,
+        scrollY: 0,
         windowWidth: target.scrollWidth,
         windowHeight: target.scrollHeight,
-      });
+    });
 
       target.classList.remove("pdf-capture-mode");
 

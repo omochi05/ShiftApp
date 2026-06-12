@@ -577,23 +577,21 @@
   }
 
   .shift-print-paper {
-    width: 100% !important;
-    min-width: 0 !important;
+  width: 100% !important;
+  min-width: 0 !important;
 
-    margin: 0 !important;
-    padding: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
 
-    background: #ffffff !important;
+  background: #ffffff !important;
 
-    border-radius: 0 !important;
-    box-shadow: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 
-    /*
-      下の余白を減らすため大きめに表示
-      2ページになる場合だけ 1.04 → 1.00 に下げる
-    */
-    zoom: 1.02 !important;
-  }
+  zoom: 1 !important;
+  transform: none !important;
+  rotate: 0deg !important;
+}
 
   .shift-print-title {
     display: block !important;
