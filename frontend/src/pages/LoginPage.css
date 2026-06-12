@@ -343,3 +343,93 @@
     font-size: 30px;
   }
 }
+
+.seven-password-toggle-button {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px 18px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 16px;
+
+  background: #ffffff;
+  color: #111827;
+
+  font-size: 15px;
+  font-weight: 900;
+
+  cursor: pointer;
+}
+
+.seven-password-toggle-button:hover {
+  background: #f9fafb;
+}
+
+.seven-password-change-form {
+  margin-top: 18px;
+  padding-top: 18px;
+
+  border-top: 1px solid #e5e7eb;
+
+  display: grid;
+  gap: 14px;
+}
+
+.seven-password-change-form h3 {
+  margin: 0;
+
+  color: #111827;
+
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.seven-password-change-form label {
+  display: grid;
+  gap: 8px;
+
+  color: #374151;
+
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.seven-password-change-form input {
+  width: 100%;
+  min-width: 0;
+
+  padding: 14px 16px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 16px;
+
+  background: #ffffff;
+  color: #111827;
+
+  font-size: 16px;
+  font-weight: 800;
+
+  box-sizing: border-box;
+}
+
+.seven-password-change-form button {
+  width: 100%;
+  padding: 15px 18px;
+
+  border: none;
+  border-radius: 18px;
+
+  background: #00a651;
+  color: #ffffff;
+
+  font-size: 16px;
+  font-weight: 900;
+
+  cursor: pointer;
+}
+
+.seven-password-change-form button:disabled,
+.seven-login-form button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
