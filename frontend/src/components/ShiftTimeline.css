@@ -585,7 +585,7 @@
 }
 
 /* =========================
-   印刷時：シフト表を1ページに収めやすくする
+   印刷時：A3横に合わせて表を広げる
 ========================= */
 
 @media print {
@@ -593,44 +593,40 @@
     width: 100% !important;
     min-width: 0 !important;
 
-    border-width: 1.2px !important;
+    border-width: 1.3px !important;
 
-    --shift-lane-height: 24px !important;
-    --shift-bar-height: 20px !important;
-    --shift-bar-top-offset: 2px !important;
-    --shift-name-font-size: 11px !important;
-    --shift-bar-padding-x: 4px !important;
+    --shift-lane-height: 28px !important;
+    --shift-bar-height: 23px !important;
+    --shift-bar-top-offset: 3px !important;
+    --shift-name-font-size: 12px !important;
+    --shift-bar-padding-x: 5px !important;
   }
 
   .shift-timeline-day {
-    grid-template-columns: 54px 1fr !important;
-    grid-template-rows: 11px auto !important;
+    grid-template-columns: 58px 1fr !important;
+    grid-template-rows: 12px auto !important;
 
-    border-width: 1.2px !important;
+    border-width: 1.3px !important;
   }
 
   .shift-timeline-date {
-    border-right-width: 1.2px !important;
+    border-right-width: 1.3px !important;
 
-    font-size: 11px !important;
+    font-size: 12px !important;
     line-height: 1.05 !important;
   }
 
   .shift-timeline-hours {
-    min-height: 11px !important;
-    border-bottom-width: 1.2px !important;
+    min-height: 12px !important;
+    border-bottom-width: 1.3px !important;
   }
 
   .shift-timeline-hour {
-    min-height: 11px !important;
-    width: 20px !important;
+    min-height: 12px !important;
+    width: 22px !important;
 
-    font-size: 8.5px !important;
+    font-size: 9px !important;
     line-height: 1 !important;
-  }
-
-  .shift-timeline-body {
-    overflow: hidden !important;
   }
 
   .shift-grid-line {
@@ -642,18 +638,18 @@
   }
 
   .shift-bar {
-    height: var(--shift-bar-height, 20px) !important;
+    height: var(--shift-bar-height, 23px) !important;
 
-    border-width: 1.2px !important;
+    border-width: 1.3px !important;
     border-radius: 4px !important;
 
-    padding: 0 var(--shift-bar-padding-x, 4px) !important;
+    padding: 0 var(--shift-bar-padding-x, 5px) !important;
   }
 
   .shift-bar-print-name,
   .shift-bar-normal-content,
   .shift-bar-name {
-    font-size: var(--shift-name-font-size, 11px) !important;
+    font-size: var(--shift-name-font-size, 12px) !important;
     line-height: 1 !important;
   }
 }

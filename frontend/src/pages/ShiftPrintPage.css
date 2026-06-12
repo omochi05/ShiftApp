@@ -520,50 +520,126 @@
 }
 
 /* =========================
-   印刷時
+   印刷時：A3横 余白を詰めて中央タイトルにする
 ========================= */
+
 @media print {
-  html,
-  body {
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #ffffff !important;
+  @page {
+    size: A3 landscape;
+    margin: 3mm;
   }
 
-  .shift-print-page {
-    width: 100% !important;
-    min-height: auto !important;
+  html,
+  body {
+    width: 420mm !important;
+    height: 297mm !important;
     margin: 0 !important;
     padding: 0 !important;
+
     background: #ffffff !important;
     overflow: hidden !important;
   }
 
-  .shift-print-sheet {
+  .shift-print-page {
     width: 100% !important;
-    max-width: none !important;
-    margin: 0 !important;
-    padding: 2mm 2mm 1mm !important;
-    box-sizing: border-box !important;
-    background: #ffffff !important;
-  }
+    height: 100% !important;
 
-  .shift-print-sheet h1 {
-    margin: 0 0 1mm 0 !important;
-    font-size: 16px !important;
-    line-height: 1.1 !important;
-    text-align: center !important;
-  }
-
-  .shift-print-sheet p {
-    margin: 0 0 1.5mm 0 !important;
-    font-size: 10px !important;
-    line-height: 1.1 !important;
-    text-align: center !important;
-  }
-
-  .shift-print-timeline-wrap {
     margin: 0 !important;
     padding: 0 !important;
+
+    background: #ffffff !important;
+    overflow: hidden !important;
+  }
+
+  .print-hide,
+  .shift-print-hero,
+  .shift-print-control-panel,
+  .shift-print-status-row,
+  .shift-print-message,
+  .shift-print-loading {
+    display: none !important;
+  }
+
+  .shift-print-preview-wrap {
+    width: 100% !important;
+    height: 100% !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    background: #ffffff !important;
+
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+
+    overflow: hidden !important;
+  }
+
+  .shift-print-paper {
+    width: 100% !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    background: #ffffff !important;
+
+    border-radius: 0 !important;
+    box-shadow: none !important;
+
+    /*
+      下の余白を減らすため、前より大きめに表示する
+      まだ下が余る → 0.96
+      2ページになる → 0.90
+    */
+    zoom: 0.94 !important;
+  }
+
+  .shift-print-title {
+    display: block !important;
+
+    width: 100% !important;
+
+    margin: 0 0 1.5mm !important;
+    padding: 0 !important;
+
+    text-align: center !important;
+  }
+
+  .shift-print-title div {
+    width: 100% !important;
+  }
+
+  .shift-print-title h1 {
+    margin: 0 0 0.5mm !important;
+
+    color: #111827 !important;
+
+    font-size: 15px !important;
+    font-weight: 900 !important;
+    line-height: 1.05 !important;
+
+    text-align: center !important;
+  }
+
+  .shift-print-title p {
+    margin: 0 !important;
+
+    color: #111827 !important;
+
+    font-size: 8.5px !important;
+    font-weight: 900 !important;
+    line-height: 1.05 !important;
+
+    text-align: center !important;
+  }
+
+  .shift-print-title strong {
+    display: none !important;
+  }
+
+  .shift-timeline {
+    margin: 0 auto !important;
   }
 }
