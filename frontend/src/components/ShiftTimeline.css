@@ -821,14 +821,12 @@
 }
 
 /* =========================
-   印刷/PDF：斜めズレ防止 + 縦方向だけ広げる
+   印刷/PDF：横はそのまま、縦だけ広げる
 ========================= */
 
 @media print {
   .shift-timeline,
-  .shift-timeline *,
-  .shift-print-paper,
-  .shift-print-paper * {
+  .shift-timeline * {
     transform: none !important;
     rotate: 0deg !important;
     skew: none !important;
@@ -838,10 +836,10 @@
     width: 100% !important;
     min-width: 0 !important;
 
-    border-width: 1.25px !important;
+    border-width: 1.3px !important;
 
-    --shift-lane-height: 30px !important;
-    --shift-bar-height: 25px !important;
+    --shift-lane-height: 32px !important;
+    --shift-bar-height: 27px !important;
     --shift-bar-top-offset: 2px !important;
     --shift-name-font-size: 12px !important;
     --shift-bar-padding-x: 5px !important;
@@ -849,34 +847,43 @@
 
   .shift-timeline-day {
     grid-template-columns: 58px 1fr !important;
-    grid-template-rows: 10px auto !important;
+    grid-template-rows: 11px auto !important;
 
-    border-width: 1.25px !important;
+    border-width: 1.3px !important;
   }
 
   .shift-timeline-date {
-    border-right-width: 1.25px !important;
+    border-right-width: 1.3px !important;
+
     font-size: 12px !important;
     line-height: 1.05 !important;
   }
 
   .shift-timeline-hours {
-    min-height: 10px !important;
-    height: 10px !important;
-    border-bottom-width: 1.25px !important;
+    min-height: 11px !important;
+    height: 11px !important;
+    border-bottom-width: 1.3px !important;
   }
 
   .shift-timeline-hour {
-    min-height: 10px !important;
-    height: 10px !important;
+    min-height: 11px !important;
+    height: 11px !important;
     width: 22px !important;
 
     font-size: 8.8px !important;
     line-height: 1 !important;
   }
 
+  .shift-grid-line {
+    width: 1px !important;
+  }
+
+  .shift-grid-line-major {
+    width: 1.8px !important;
+  }
+
   .shift-bar {
-    height: var(--shift-bar-height, 25px) !important;
+    height: var(--shift-bar-height, 27px) !important;
 
     border-width: 1.25px !important;
     border-radius: 4px !important;
@@ -892,7 +899,10 @@
   }
 }
 
-/* PDF保存時も斜めズレ防止 */
+/* =========================
+   PDF保存時：余白を減らすため縦に広げる
+========================= */
+
 .pdf-capture-mode,
 .pdf-capture-mode * {
   transform: none !important;
@@ -900,24 +910,65 @@
   skew: none !important;
 }
 
+.pdf-capture-mode {
+  width: 1600px !important;
+  min-width: 1600px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+.pdf-capture-mode .shift-print-title {
+  display: block !important;
+  text-align: center !important;
+  margin: 0 0 6px !important;
+}
+
+.pdf-capture-mode .shift-print-title h1 {
+  margin: 0 0 2px !important;
+
+  font-size: 24px !important;
+  line-height: 1.05 !important;
+  text-align: center !important;
+}
+
+.pdf-capture-mode .shift-print-title p {
+  margin: 0 !important;
+
+  font-size: 13px !important;
+  line-height: 1.05 !important;
+  text-align: center !important;
+}
+
+.pdf-capture-mode .shift-print-title strong {
+  display: none !important;
+}
+
 .pdf-capture-mode .shift-timeline {
   width: 100% !important;
   min-width: 0 !important;
 
-  --shift-lane-height: 30px !important;
-  --shift-bar-height: 25px !important;
+  --shift-lane-height: 34px !important;
+  --shift-bar-height: 28px !important;
   --shift-bar-top-offset: 2px !important;
   --shift-name-font-size: 12px !important;
   --shift-bar-padding-x: 5px !important;
 }
 
+.pdf-capture-mode .shift-timeline-day {
+  grid-template-rows: 12px auto !important;
+}
+
 .pdf-capture-mode .shift-timeline-hours {
-  min-height: 11px !important;
-  height: 11px !important;
+  min-height: 12px !important;
+  height: 12px !important;
 }
 
 .pdf-capture-mode .shift-timeline-hour {
-  min-height: 11px !important;
-  height: 11px !important;
+  min-height: 12px !important;
+  height: 12px !important;
+
   font-size: 10px !important;
 }

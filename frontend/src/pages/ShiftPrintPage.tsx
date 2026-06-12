@@ -276,90 +276,71 @@ export default function ShiftPrintPage() {
   };
 
     const handleSavePdf = async () => {
-    if (!printAreaRef.current) {
-      setMessage("PDF保存するシフト表が見つかりませんでした");
-      return;
-    }
+  if (!printAreaRef.current) {
+    setMessage("PDF保存するシフト表が見つかりませんでした");
+    return;
+  }
 
-    try {
-      setMessage("PDFを作成しています...");
+  try {
+    setMessage("PDFを作成しています...");
 
-      const target = printAreaRef.current;
+    const target = printAreaRef.current;
 
-      target.classList.add("pdf-capture-mode");
+    target.classList.add("pdf-capture-mode");
 
-     const canvas = await html2canvas(target, {
-        scale: 1.0,
-        backgroundColor: "#ffffff",
-        useCORS: true,
-        logging: false,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: target.scrollWidth,
-        windowHeight: target.scrollHeight,
+    const canvas = await html2canvas(target, {
+      scale: 1.05,
+      backgroundColor: "#ffffff",
+      useCORS: true,
+      logging: false,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: target.scrollWidth,
+      windowHeight: target.scrollHeight,
     });
 
-      target.classList.remove("pdf-capture-mode");
+    target.classList.remove("pdf-capture-mode");
 
-      const imgData = canvas.toDataURL("image/jpeg", 0.68);
+    const imgData = canvas.toDataURL("image/jpeg", 0.68);
 
-      const pdf = new jsPDF({
-        orientation: "landscape",
-        unit: "mm",
-        format: "a3",
-        compress: true,
-      });
+    const pdf = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a3",
+      compress: true,
+    });
 
-      const pageWidth = 420;
-      const pageHeight = 297;
+    /*
+      A3横：420mm × 297mm
+      画像を少し縦に伸ばして、上下余白を減らす
+      小数を減らして斜めっぽいズレを防ぐ
+    */
+    const x = 4;
+    const y = 4;
+    const imageWidth = 412;
+    const imageHeight = 289;
 
-      /*
-        余白をさらに小さくして、PDF上で少しだけ拡大する
-      */
-      const marginX = 5;
-      const marginY = 2;
+    pdf.addImage(
+      imgData,
+      "JPEG",
+      x,
+      y,
+      imageWidth,
+      imageHeight,
+      undefined,
+      "FAST"
+    );
 
-      const usableWidth = pageWidth - marginX * 2;
-      const usableHeight = pageHeight - marginY * 2;
+    pdf.save(`shift-${weekStart}-${weekEnd}.pdf`);
 
-      const imageRatio = canvas.width / canvas.height;
-      const pageRatio = usableWidth / usableHeight;
-
-      let imageWidth = usableWidth;
-      let imageHeight = usableHeight;
-
-      if (imageRatio > pageRatio) {
-        imageWidth = usableWidth;
-        imageHeight = usableWidth / imageRatio;
-      } else {
-        imageHeight = usableHeight;
-        imageWidth = usableHeight * imageRatio;
-      }
-
-      const x = (pageWidth - imageWidth) / 2;
-      const y = (pageHeight - imageHeight) / 2;
-
-      pdf.addImage(
-        imgData,
-        "JPEG",
-        x,
-        y,
-        imageWidth,
-        imageHeight,
-        undefined,
-        "FAST"
-      );
-
-      pdf.save(`shift-${weekStart}-${weekEnd}.pdf`);
-
-      setMessage("PDFを保存しました");
-    } catch (error) {
-      console.error("PDF保存失敗:", error);
-      setMessage("PDF保存に失敗しました");
-    } finally {
-      printAreaRef.current?.classList.remove("pdf-capture-mode");
-    }
-  };
+    setMessage("PDFを保存しました");
+  } catch (error) {
+    console.error("PDF保存失敗:", error);
+    setMessage("PDF保存に失敗しました");
+  } finally {
+    printAreaRef.current?.classList.remove("pdf-capture-mode");
+  }
+};
 
   return (
     <div className="shift-print-page">

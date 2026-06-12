@@ -520,13 +520,13 @@
 }
 
 /* =========================
-   印刷時：A3横 余白をかなり詰める
+   印刷時：斜め防止 + 余白最小化
 ========================= */
 
 @media print {
   @page {
     size: A3 landscape;
-    margin: 1.5mm;
+    margin: 2mm;
   }
 
   html,
@@ -549,6 +549,11 @@
 
     background: #ffffff !important;
     overflow: hidden !important;
+
+    transform: none !important;
+    rotate: 0deg !important;
+    skew: none !important;
+    zoom: 1 !important;
   }
 
   .print-hide,
@@ -574,24 +579,30 @@
     box-shadow: none !important;
 
     overflow: hidden !important;
+
+    transform: none !important;
+    rotate: 0deg !important;
+    skew: none !important;
   }
 
   .shift-print-paper {
-  width: 100% !important;
-  min-width: 0 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 100% !important;
 
-  margin: 0 !important;
-  padding: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
 
-  background: #ffffff !important;
+    background: #ffffff !important;
 
-  border-radius: 0 !important;
-  box-shadow: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
 
-  zoom: 1 !important;
-  transform: none !important;
-  rotate: 0deg !important;
-}
+    transform: none !important;
+    rotate: 0deg !important;
+    skew: none !important;
+    zoom: 1 !important;
+  }
 
   .shift-print-title {
     display: block !important;
@@ -602,6 +613,8 @@
     padding: 0 !important;
 
     text-align: center !important;
+
+    transform: none !important;
   }
 
   .shift-print-title div {
@@ -609,11 +622,11 @@
   }
 
   .shift-print-title h1 {
-    margin: 0 0 0.3mm !important;
+    margin: 0 0 0.4mm !important;
 
     color: #111827 !important;
 
-    font-size: 14px !important;
+    font-size: 15px !important;
     font-weight: 900 !important;
     line-height: 1 !important;
 
@@ -625,7 +638,7 @@
 
     color: #111827 !important;
 
-    font-size: 8px !important;
+    font-size: 8.5px !important;
     font-weight: 900 !important;
     line-height: 1 !important;
 
@@ -638,5 +651,8 @@
 
   .shift-timeline {
     margin: 0 auto !important;
+    transform: none !important;
+    rotate: 0deg !important;
+    skew: none !important;
   }
 }
