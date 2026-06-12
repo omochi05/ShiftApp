@@ -24,9 +24,25 @@ def create_user(
     user: UserCreate,
     db: Session = Depends(get_db)
 ):
+    clean_name = user.name.strip()
+    clean_email = user.email.strip()
+    clean_role = user.role.strip()
+
+    if not clean_email:
+        raise HTTPException(
+            status_code=400,
+            detail="従業員番号を入力してください"
+        )
+
+    if not clean_name:
+        raise HTTPException(
+            status_code=400,
+            detail="名前を入力してください"
+        )
+
     existing_email = (
         db.query(User)
-        .filter(User.email == user.email)
+        .filter(User.email == clean_email)
         .first()
     )
 
@@ -38,7 +54,7 @@ def create_user(
 
     existing_name = (
         db.query(User)
-        .filter(User.name == user.name)
+        .filter(User.name == clean_name)
         .first()
     )
 
@@ -49,10 +65,10 @@ def create_user(
         )
 
     new_user = User(
-        name=user.name,
-        email=user.email,
+        name=clean_name,
+        email=clean_email,
         password=user.password,
-        role=user.role,
+        role=clean_role,
         hourly_wage=user.hourly_wage,
     )
 
@@ -89,9 +105,25 @@ def update_user(
             detail="ユーザーが見つかりません"
         )
 
+    clean_name = user_data.name.strip()
+    clean_email = user_data.email.strip()
+    clean_role = user_data.role.strip()
+
+    if not clean_email:
+        raise HTTPException(
+            status_code=400,
+            detail="従業員番号を入力してください"
+        )
+
+    if not clean_name:
+        raise HTTPException(
+            status_code=400,
+            detail="名前を入力してください"
+        )
+
     duplicated_email = (
         db.query(User)
-        .filter(User.email == user_data.email)
+        .filter(User.email == clean_email)
         .filter(User.id != user_id)
         .first()
     )
@@ -104,7 +136,7 @@ def update_user(
 
     duplicated_name = (
         db.query(User)
-        .filter(User.name == user_data.name)
+        .filter(User.name == clean_name)
         .filter(User.id != user_id)
         .first()
     )
@@ -115,9 +147,9 @@ def update_user(
             detail="同じ名前の従業員はすでに登録されています"
         )
 
-    user.name = user_data.name
-    user.email = user_data.email
-    user.role = user_data.role
+    user.name = clean_name
+    user.email = clean_email
+    user.role = clean_role
     user.hourly_wage = user_data.hourly_wage
 
     try:
@@ -157,7 +189,6 @@ def delete_user(
         )
 
     try:
-        # 1. このユーザーに関係するシフトIDを取得
         target_shift_ids = [
             row[0]
             for row in db.execute(
@@ -171,7 +202,6 @@ def delete_user(
             ).fetchall()
         ]
 
-        # 2. シフトに紐づく通知を先に削除
         if target_shift_ids:
             db.execute(
                 text("""
@@ -181,7 +211,6 @@ def delete_user(
                 {"shift_ids": target_shift_ids}
             )
 
-        # 3. このユーザーに紐づくシフト申請を削除
         db.execute(
             text("""
                 DELETE FROM shift_requests
@@ -190,17 +219,14 @@ def delete_user(
             {"user_id": user_id}
         )
 
-        # 4. 勤務者として登録されているシフトを削除
         db.query(Shift).filter(Shift.user_id == user_id).delete(
             synchronize_session=False
         )
 
-        # 5. 作成者として紐づいているシフトも削除
         db.query(Shift).filter(Shift.created_by == user_id).delete(
             synchronize_session=False
         )
 
-        # 6. 最後にユーザーを削除
         db.delete(user)
         db.commit()
 
