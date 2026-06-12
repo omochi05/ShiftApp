@@ -797,3 +797,76 @@
     line-height: 1.8;
   }
 }
+
+/* =========================
+   スマホ：印刷ページ 週の開始日ボックス修正
+   太さは変えず、枠内に収める
+========================= */
+
+@media screen and (max-width: 760px) {
+  .shift-print-control-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .shift-print-week-control {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 10px !important;
+
+    overflow: hidden !important;
+  }
+
+  .shift-print-week-control label {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+
+    grid-column: auto !important;
+    text-align: center !important;
+  }
+
+  .shift-print-week-control input[type="date"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+    box-sizing: border-box !important;
+
+    display: block !important;
+
+    text-align: center !important;
+    text-align-last: center !important;
+  }
+
+  .shift-print-week-control button {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+}
+
+@media screen and (max-width: 760px) {
+  body {
+    overflow-x: hidden !important;
+  }
+
+  .owner-shift-timeline-page,
+  .shift-print-page {
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+}
