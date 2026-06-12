@@ -1,210 +1,141 @@
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "../api/client";
+import "./LoginPage.css";
 
-type User = {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  hourly_wage: number;
-};
+type UserRole = "owner" | "manager" | "employee";
 
 export default function LoginPage() {
   const navigate = useNavigate();
 
-  const [loginId, setLoginId] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("owner@example.com");
+  const [password, setPassword] = useState("password");
+  const [role, setRole] = useState<UserRole>("owner");
   const [message, setMessage] = useState("");
 
-  const handleLogin = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleLogin = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setMessage("");
 
-    if (!loginId.trim()) {
-      setMessage("ログインIDを入力してください");
+    if (!email.trim() || !password.trim()) {
+      setMessage("メールアドレスとパスワードを入力してください");
       return;
     }
 
-    try {
-      setLoading(true);
-      setMessage("");
+    localStorage.setItem("ownerName", "オーナー");
+    localStorage.setItem("loginRole", role);
 
-      const res = await api.get<User[]>("/users/");
-      const users = res.data;
-
-      const targetUser = users.find(
-        (user) =>
-          user.email.trim().toLowerCase() === loginId.trim().toLowerCase()
-      );
-
-      if (!targetUser) {
-        setMessage("ログインIDが見つかりません");
-        return;
-      }
-
-      if (targetUser.role === "owner") {
-        localStorage.setItem("ownerLogin", "true");
-        localStorage.setItem("ownerId", String(targetUser.id));
-        localStorage.setItem("ownerName", targetUser.name);
-        localStorage.setItem("ownerNumber", targetUser.email);
-
-        localStorage.removeItem("managerLogin");
-        localStorage.removeItem("managerId");
-        localStorage.removeItem("managerName");
-        localStorage.removeItem("managerNumber");
-
-        navigate("/owner");
-        return;
-      }
-
-      if (targetUser.role === "manager") {
-        localStorage.setItem("managerLogin", "true");
-        localStorage.setItem("managerId", String(targetUser.id));
-        localStorage.setItem("managerName", targetUser.name);
-        localStorage.setItem("managerNumber", targetUser.email);
-
-        localStorage.removeItem("ownerLogin");
-        localStorage.removeItem("ownerId");
-        localStorage.removeItem("ownerName");
-        localStorage.removeItem("ownerNumber");
-
-        navigate("/manager");
-        return;
-      }
-
-      setMessage("このユーザーは管理画面にログインできません");
-    } catch (error) {
-      console.error("ログイン失敗:", error);
-      setMessage("ログインに失敗しました。API接続を確認してください。");
-    } finally {
-      setLoading(false);
+    if (role === "owner") {
+      navigate("/owner");
+      return;
     }
+
+    if (role === "manager") {
+      navigate("/manager");
+      return;
+    }
+
+    setMessage("従業員画面は現在準備中です");
   };
 
   return (
-    <main style={styles.page}>
-      <section style={styles.card}>
-        <h1 style={styles.title}>ShiftApp</h1>
-        <p style={styles.subtitle}>オーナー・管理者ログイン</p>
+    <main className="seven-login-page">
+      <section className="seven-login-left">
+        <div className="seven-brand-card">
+          <div className="seven-color-lines">
+            <span className="seven-line-green" />
+            <span className="seven-line-orange" />
+            <span className="seven-line-red" />
+          </div>
 
-        <form onSubmit={handleLogin} style={styles.form}>
-          <label style={styles.label}>
-            ログインID
+          <p className="seven-brand-label">SHIFT MANAGEMENT SYSTEM</p>
+
+          <h1>
+            シフト管理を
+            <br />
+            もっと見やすく
+          </h1>
+
+          <p className="seven-brand-description">
+            勤務予定、印刷用シフト表、売上・人件費確認までまとめて管理できます。
+          </p>
+
+          <div className="seven-feature-list">
+            <div>
+              <strong>週シフト</strong>
+              <span>6:00〜翌6:00表示</span>
+            </div>
+
+            <div>
+              <strong>印刷対応</strong>
+              <span>A3横・PDF保存</span>
+            </div>
+
+            <div>
+              <strong>売上分析</strong>
+              <span>人件費率を確認</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="seven-login-right">
+        <form className="seven-login-card" onSubmit={handleLogin}>
+          <div className="seven-login-header">
+            <div className="seven-mini-mark">
+              <span />
+              <span />
+              <span />
+            </div>
+
+            <div>
+              <p>WELCOME BACK</p>
+              <h2>ログイン</h2>
+            </div>
+          </div>
+
+          <label className="seven-form-field">
+            メールアドレス
             <input
-              type="text"
-              value={loginId}
-              onChange={(e) => setLoginId(e.target.value)}
-              placeholder="例：OWNER001 / manager@example.com"
-              style={styles.input}
-              autoFocus
+              type="email"
+              value={email}
+              placeholder="owner@example.com"
+              onChange={(event) => setEmail(event.target.value)}
             />
           </label>
 
-          <button type="submit" style={styles.button} disabled={loading}>
-            {loading ? "ログイン中..." : "ログイン"}
+          <label className="seven-form-field">
+            パスワード
+            <input
+              type="password"
+              value={password}
+              placeholder="password"
+              onChange={(event) => setPassword(event.target.value)}
+            />
+          </label>
+
+          <label className="seven-form-field">
+            ロール
+            <select
+              value={role}
+              onChange={(event) => setRole(event.target.value as UserRole)}
+            >
+              <option value="owner">オーナー</option>
+              <option value="manager">管理者</option>
+              <option value="employee">従業員</option>
+            </select>
+          </label>
+
+          {message && <p className="seven-login-message">{message}</p>}
+
+          <button type="submit" className="seven-login-button">
+            ログイン
           </button>
+
+          <p className="seven-login-note">
+            テスト用：オーナーを選択してログインすると管理画面へ移動します。
+          </p>
         </form>
-
-        {message && <p style={styles.message}>{message}</p>}
-
-        <div style={styles.hintBox}>
-          <p style={styles.hintTitle}>ログイン例</p>
-          <p style={styles.hint}>オーナー：OWNER001</p>
-          <p style={styles.hint}>管理者：manager@example.com</p>
-        </div>
       </section>
     </main>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  page: {
-    minHeight: "100vh",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-    background: "#f4f7fb",
-  },
-  card: {
-    width: "min(100%, 460px)",
-    padding: 32,
-    borderRadius: 24,
-    background: "#ffffff",
-    boxShadow: "0 16px 40px rgba(15, 23, 42, 0.12)",
-    border: "1px solid #d1d5db",
-  },
-  title: {
-    margin: 0,
-    fontSize: 40,
-    fontWeight: 900,
-    color: "#111827",
-    textAlign: "center",
-  },
-  subtitle: {
-    margin: "10px 0 28px",
-    fontSize: 17,
-    fontWeight: 800,
-    color: "#64748b",
-    textAlign: "center",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 18,
-  },
-  label: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-    fontSize: 15,
-    fontWeight: 900,
-    color: "#111827",
-  },
-  input: {
-    width: "100%",
-    minHeight: 48,
-    padding: "12px 14px",
-    borderRadius: 14,
-    border: "1px solid #cbd5e1",
-    fontSize: 16,
-    fontWeight: 700,
-    outline: "none",
-  },
-  button: {
-    minHeight: 50,
-    border: "none",
-    borderRadius: 14,
-    background: "#2563eb",
-    color: "#ffffff",
-    fontSize: 17,
-    fontWeight: 900,
-    cursor: "pointer",
-  },
-  message: {
-    margin: "18px 0 0",
-    color: "#dc2626",
-    fontSize: 15,
-    fontWeight: 800,
-    textAlign: "center",
-  },
-  hintBox: {
-    marginTop: 24,
-    padding: 16,
-    borderRadius: 16,
-    background: "#f8fafc",
-    border: "1px solid #e5e7eb",
-  },
-  hintTitle: {
-    margin: "0 0 8px",
-    color: "#111827",
-    fontSize: 14,
-    fontWeight: 900,
-  },
-  hint: {
-    margin: "4px 0",
-    color: "#64748b",
-    fontSize: 14,
-    fontWeight: 800,
-  },
-};
