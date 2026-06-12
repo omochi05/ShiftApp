@@ -1007,3 +1007,33 @@
     font-weight: 900 !important;
   }
 }
+
+/* =========================
+   印刷ページ：週の開始日の文字サイズを他のUIと統一
+========================= */
+
+.shift-print-week-control input[type="date"] {
+  min-height: 44px !important;
+
+  padding: 10px 12px !important;
+
+  font-size: 16px !important;
+  font-weight: 900 !important;
+  line-height: 1.2 !important;
+
+  text-align: center !important;
+  text-align-last: center !important;
+}
+
+/* スマホでも大きくしすぎず、他のボタン・入力欄と統一 */
+@media screen and (max-width: 760px) {
+  .shift-print-week-control input[type="date"] {
+    min-height: 44px !important;
+
+    padding: 10px 12px !important;
+
+    font-size: 16px !important;
+    font-weight: 900 !important;
+    line-height: 1.2 !important;
+  }
+}
