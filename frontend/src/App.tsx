@@ -22,9 +22,10 @@ function AppLayout() {
         <Route path="timeline" element={<OwnerShiftTimelinePage />} />
         <Route path="sales" element={<OwnerSalesPage />} />
         <Route path="employees" element={<OwnerEmployeesPage />} />
-      </Route>
 
-      <Route path="/owner/print/shifts" element={<ShiftPrintPage />} />
+        {/* 印刷ページもオーナー画面レイアウトの中に入れる */}
+        <Route path="print/shifts" element={<ShiftPrintPage />} />
+      </Route>
 
       <Route path="/manager" element={<ManagerDashboard />} />
     </Routes>

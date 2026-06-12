@@ -1,21 +1,51 @@
 /* =========================
-   ShiftPrintPage.css
-   スマホで見やすい印刷ページ
+   印刷ページトップ
+   他ページと同じ形
 ========================= */
 
-.shift-print-page {
-  min-height: 100vh;
-  padding: 18px;
+.shift-print-hero {
+  width: 100%;
+  padding: 64px 36px;
 
-  background: #f3f4f6 !important;
-  color: #111827 !important;
+  background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%) !important;
+  color: #ffffff !important;
 
-  box-sizing: border-box;
-  overflow-x: hidden;
+  border-radius: 46px;
+  box-shadow: 0 20px 40px rgba(75, 85, 99, 0.2);
+
+  text-align: center;
 }
 
-.shift-print-page * {
-  box-sizing: border-box;
+.shift-print-hero p {
+  margin: 0 0 14px;
+
+  color: #ffffff !important;
+
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.shift-print-hero h1 {
+  margin: 0 0 24px;
+
+  color: #ffffff !important;
+
+  font-size: 58px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.shift-print-hero span {
+  display: block;
+  max-width: 980px;
+  margin: 0 auto;
+
+  color: #ffffff !important;
+
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1.9;
 }
 
 /* =========================
@@ -724,5 +754,46 @@
 
     box-sizing: border-box !important;
     display: block !important;
+  }
+}
+
+@media screen and (max-width: 900px) {
+  .shift-print-hero {
+    padding: 46px 24px;
+    border-radius: 36px;
+  }
+
+  .shift-print-hero p {
+    font-size: 18px;
+  }
+
+  .shift-print-hero h1 {
+    font-size: 42px;
+  }
+
+  .shift-print-hero span {
+    font-size: 18px;
+    line-height: 1.8;
+  }
+}
+
+@media screen and (max-width: 520px) {
+  .shift-print-hero {
+    padding: 36px 18px;
+    border-radius: 30px;
+  }
+
+  .shift-print-hero p {
+    font-size: 14px;
+    letter-spacing: 0.12em;
+  }
+
+  .shift-print-hero h1 {
+    font-size: 36px;
+  }
+
+  .shift-print-hero span {
+    font-size: 15px;
+    line-height: 1.8;
   }
 }
