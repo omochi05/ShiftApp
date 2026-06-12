@@ -1,0 +1,211 @@
+.manager-page {
+  min-height: 100vh;
+  padding: 32px;
+
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.manager-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 24px;
+  align-items: stretch;
+
+  padding: 44px;
+
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
+  color: #ffffff;
+
+  border-radius: 42px;
+  box-shadow: 0 20px 45px rgba(37, 99, 235, 0.22);
+}
+
+.manager-label {
+  margin: 0 0 12px;
+
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+.manager-header h1 {
+  margin: 0 0 16px;
+
+  font-size: 54px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.manager-header span {
+  display: block;
+  max-width: 760px;
+
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.8;
+}
+
+.manager-user-card {
+  padding: 24px;
+
+  display: grid;
+  align-content: center;
+  gap: 8px;
+
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 28px;
+  backdrop-filter: blur(12px);
+}
+
+.manager-user-card span {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.manager-user-card strong {
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.manager-user-card small {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.manager-menu-grid {
+  margin-top: 28px;
+
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.manager-menu-card {
+  min-height: 190px;
+  padding: 26px;
+
+  display: grid;
+  align-content: center;
+  gap: 10px;
+
+  border: none;
+  border-radius: 30px;
+
+  background: #ffffff;
+  color: #111827;
+
+  text-align: left;
+  box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
+
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.manager-menu-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.14);
+}
+
+.manager-menu-card span {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.manager-menu-card strong {
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.manager-menu-card small {
+  color: #4b5563;
+
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+.manager-green {
+  border-top: 8px solid #22c55e;
+}
+
+.manager-purple {
+  border-top: 8px solid #8b5cf6;
+}
+
+.manager-cyan {
+  border-top: 8px solid #06b6d4;
+}
+
+.manager-gray {
+  border-top: 8px solid #6b7280;
+}
+
+.manager-red {
+  border-top: 8px solid #ef4444;
+}
+
+.manager-dark {
+  border-top: 8px solid #111827;
+}
+
+@media screen and (max-width: 900px) {
+  .manager-page {
+    padding: 18px;
+  }
+
+  .manager-header {
+    grid-template-columns: 1fr;
+    padding: 34px 24px;
+    border-radius: 34px;
+  }
+
+  .manager-header h1 {
+    font-size: 42px;
+  }
+
+  .manager-header span {
+    font-size: 17px;
+  }
+
+  .manager-menu-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 560px) {
+  .manager-page {
+    padding: 12px;
+  }
+
+  .manager-header {
+    padding: 30px 20px;
+    border-radius: 30px;
+  }
+
+  .manager-header h1 {
+    font-size: 36px;
+  }
+
+  .manager-header span {
+    font-size: 15px;
+  }
+
+  .manager-menu-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .manager-menu-card {
+    min-height: 150px;
+    padding: 22px;
+    border-radius: 24px;
+  }
+
+  .manager-menu-card strong {
+    font-size: 24px;
+  }
+}
