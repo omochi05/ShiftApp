@@ -29,8 +29,8 @@ function getTodayDate() {
 function getWeekStart(dateString: string) {
   const date = new Date(`${dateString}T00:00:00`);
   const day = date.getDay();
-
   const diff = day === 0 ? -6 : 1 - day;
+
   date.setDate(date.getDate() + diff);
 
   return date.toISOString().slice(0, 10);
@@ -39,6 +39,7 @@ function getWeekStart(dateString: string) {
 function addDays(dateString: string, days: number) {
   const date = new Date(`${dateString}T00:00:00`);
   date.setDate(date.getDate() + days);
+
   return date.toISOString().slice(0, 10);
 }
 
@@ -116,10 +117,6 @@ export default function EmployeeDashboard() {
     return map;
   }, [users]);
 
-  /**
-   * オーナー・管理者が登録した /shifts/ の中から、
-   * ログイン中の従業員本人のシフトだけ表示する
-   */
   const weeklyMyShifts = useMemo(() => {
     return shifts
       .filter((shift) => {

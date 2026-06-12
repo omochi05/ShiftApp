@@ -43,9 +43,6 @@ export default function LoginPage() {
     localStorage.setItem("loginRole", user.role);
     localStorage.setItem("employeeNumber", user.employee_number);
 
-    /**
-     * 既存のオーナー画面で ownerName を使っている場合のために残す
-     */
     localStorage.setItem("ownerName", user.name);
   };
 
