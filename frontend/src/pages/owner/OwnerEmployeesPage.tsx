@@ -182,97 +182,121 @@ export default function OwnerEmployeesPage() {
     setMessage("");
   };
 
-  const handleUpdateEmployee = async (userId: number) => {
+const handleUpdateEmployee = async (userId: number) => {
     const form = editingEmployees[userId];
 
     if (!form) {
-      setMessage("編集データが見つかりません");
-      return;
+        setMessage("編集データが見つかりません");
+        return;
     }
 
     if (!form.employee_number.trim()) {
-      setMessage("従業員番号を入力してください");
-      return;
+        setMessage("従業員番号を入力してください");
+        return;
     }
 
     if (!form.name.trim()) {
-      setMessage("名前を入力してください");
-      return;
+        setMessage("名前を入力してください");
+        return;
     }
 
-    try {
-      setSavingUserId(userId);
-      setMessage("");
-
-      await api.put(`/users/${userId}`, {
+    const updatedEmployee = {
         name: form.name.trim(),
         email: form.employee_number.trim(),
         role: "employee",
         hourly_wage: Number(form.hourly_wage || 0),
-      });
-
-      setMessage("従業員情報を更新しました");
-
-      setEditingEmployeeId(null);
-
-      setEditingEmployees((prev) => {
-        const next = { ...prev };
-        delete next[userId];
-        return next;
-      });
-
-      await fetchUsers();
-    } catch (error: any) {
-      console.error("従業員更新失敗:", error);
-      console.error("レスポンス:", error.response?.data);
-
-      setMessage(formatApiError(error, "従業員情報の更新に失敗しました"));
-    } finally {
-      setSavingUserId(null);
-    }
-  };
-
-  const handleDeleteUser = async (userId: number) => {
-    const targetUser = users.find((user) => user.id === userId);
-
-    if (!targetUser) {
-      setMessage("削除対象の従業員が見つかりません");
-      return;
-    }
-
-    const ok = window.confirm(
-      `${targetUser.name}（${targetUser.email}）を削除しますか？\nこの従業員のシフトや関連データも削除される可能性があります。`
-    );
-
-    if (!ok) {
-      return;
-    }
+    };
 
     try {
-      setMessage("");
+        setSavingUserId(userId);
+        setMessage("");
 
-      await api.delete(`/users/${userId}`);
+        await api.put(`/users/${userId}`, updatedEmployee);
 
-      setMessage("従業員を削除しました");
+        /**
+         * 保存成功後、画面上の一覧もすぐ更新する
+         */
+        setUsers((prev) =>
+        prev.map((user) =>
+            user.id === userId
+            ? {
+                ...user,
+                name: updatedEmployee.name,
+                email: updatedEmployee.email,
+                role: updatedEmployee.role,
+                hourly_wage: updatedEmployee.hourly_wage,
+                }
+            : user
+        )
+        );
 
-      if (editingEmployeeId === userId) {
+        /**
+         * 編集モードを解除する
+         */
         setEditingEmployeeId(null);
-      }
 
-      setEditingEmployees((prev) => {
+        setEditingEmployees((prev) => {
         const next = { ...prev };
         delete next[userId];
         return next;
-      });
+        });
 
-      await fetchUsers();
+        setMessage("従業員情報を更新しました");
+
+        /**
+         * DBの最新状態も取り直す
+         */
+        await fetchUsers();
     } catch (error: any) {
-      console.error("従業員削除失敗:", error);
-      console.error("レスポンス:", error.response?.data);
+        console.error("従業員更新失敗:", error);
+        console.error("レスポンス:", error.response?.data);
 
-      setMessage(formatApiError(error, "従業員の削除に失敗しました"));
+        setMessage(formatApiError(error, "従業員情報の更新に失敗しました"));
+    } finally {
+        setSavingUserId(null);
     }
-  };
+    };
+    const handleDeleteUser = async (userId: number) => {
+        const targetUser = users.find((user) => user.id === userId);
+
+        if (!targetUser) {
+        setMessage("削除対象の従業員が見つかりません");
+        return;
+        }
+
+        const ok = window.confirm(
+        `${targetUser.name}（${targetUser.email}）を削除しますか？\nこの従業員のシフトや関連データも削除される可能性があります。`
+        );
+
+        if (!ok) {
+        return;
+        }
+
+        try {
+        setMessage("");
+
+        await api.delete(`/users/${userId}`);
+
+        setMessage("従業員を削除しました");
+
+        if (editingEmployeeId === userId) {
+            setEditingEmployeeId(null);
+        }
+
+        setEditingEmployees((prev) => {
+            const next = { ...prev };
+            delete next[userId];
+            return next;
+        });
+
+        await fetchUsers();
+        } catch (error: any) {
+        console.error("従業員削除失敗:", error);
+        console.error("レスポンス:", error.response?.data);
+
+        setMessage(formatApiError(error, "従業員の削除に失敗しました"));
+        }
+    };
 
   return (
     <div className="owner-employees-page">
