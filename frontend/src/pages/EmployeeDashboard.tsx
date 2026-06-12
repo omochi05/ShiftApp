@@ -22,29 +22,42 @@ type Shift = {
   break_minutes: number;
 };
 
+function formatLocalDate(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 function getTodayDate() {
-  return new Date().toISOString().slice(0, 10);
+  return formatLocalDate(new Date());
+}
+
+function parseLocalDate(dateString: string) {
+  const [year, month, day] = dateString.split("-").map(Number);
+  return new Date(year, month - 1, day);
 }
 
 function getWeekStart(dateString: string) {
-  const date = new Date(`${dateString}T00:00:00`);
+  const date = parseLocalDate(dateString);
   const day = date.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
 
+  const diff = day === 0 ? -6 : 1 - day;
   date.setDate(date.getDate() + diff);
 
-  return date.toISOString().slice(0, 10);
+  return formatLocalDate(date);
 }
 
 function addDays(dateString: string, days: number) {
-  const date = new Date(`${dateString}T00:00:00`);
+  const date = parseLocalDate(dateString);
   date.setDate(date.getDate() + days);
 
-  return date.toISOString().slice(0, 10);
+  return formatLocalDate(date);
 }
 
 function formatDateLabel(dateString: string) {
-  const date = new Date(`${dateString}T00:00:00`);
+  const date = parseLocalDate(dateString);
   const month = date.getMonth() + 1;
   const day = date.getDate();
 
@@ -117,19 +130,21 @@ export default function EmployeeDashboard() {
     return map;
   }, [users]);
 
-  const weeklyMyShifts = useMemo(() => {
+  /**
+   * 従業員画面でも、オーナー・管理者と同じシフト表を表示する
+   * ただし、編集・追加・削除はできない
+   */
+  const weeklyShifts = useMemo(() => {
     return shifts
       .filter((shift) => {
-        return (
-          shift.user_id === loginUserId &&
-          shift.work_date >= weekStart &&
-          shift.work_date <= weekEnd
-        );
+        return shift.work_date >= weekStart && shift.work_date <= weekEnd;
       })
       .map((shift) => ({
         ...shift,
         user_name:
-          shift.user_name || userNameMap.get(shift.user_id) || loginName,
+          shift.user_name ||
+          userNameMap.get(shift.user_id) ||
+          `ID:${shift.user_id}`,
       }))
       .sort((a, b) => {
         if (a.work_date !== b.work_date) {
@@ -138,13 +153,13 @@ export default function EmployeeDashboard() {
 
         return a.start_time.localeCompare(b.start_time);
       });
-  }, [shifts, loginUserId, weekStart, weekEnd, userNameMap, loginName]);
+  }, [shifts, weekStart, weekEnd, userNameMap]);
 
-  const weeklyShiftCount = weeklyMyShifts.length;
+  const weeklyShiftCount = weeklyShifts.length;
 
   const weeklyTotalHours = useMemo(() => {
-    return weeklyMyShifts.reduce((sum, shift) => sum + getShiftHours(shift), 0);
-  }, [weeklyMyShifts]);
+    return weeklyShifts.reduce((sum, shift) => sum + getShiftHours(shift), 0);
+  }, [weeklyShifts]);
 
   const fetchData = async () => {
     try {
@@ -176,7 +191,10 @@ export default function EmployeeDashboard() {
   }, []);
 
   const handlePrevWeek = () => {
-    setTargetDate(addDays(weekStart, -7));
+    setTargetDate((current) => {
+      const currentWeekStart = getWeekStart(current);
+      return addDays(currentWeekStart, -7);
+    });
   };
 
   const handleThisWeek = () => {
@@ -184,7 +202,10 @@ export default function EmployeeDashboard() {
   };
 
   const handleNextWeek = () => {
-    setTargetDate(addDays(weekStart, 7));
+    setTargetDate((current) => {
+      const currentWeekStart = getWeekStart(current);
+      return addDays(currentWeekStart, 7);
+    });
   };
 
   const handleLogout = () => {
@@ -274,7 +295,7 @@ export default function EmployeeDashboard() {
         </div>
 
         <div className="employee-summary-card">
-          <span>自分のシフト数</span>
+          <span>シフト数</span>
           <strong>{weeklyShiftCount}件</strong>
         </div>
 
@@ -289,7 +310,7 @@ export default function EmployeeDashboard() {
       <section className="employee-shift-section">
         <div className="employee-section-title">
           <div>
-            <h2>自分のシフト表</h2>
+            <h2>シフト表</h2>
             <p>
               {weekStart} 〜 {weekEnd}
             </p>
@@ -298,13 +319,13 @@ export default function EmployeeDashboard() {
 
         {loading ? (
           <div className="employee-loading">読み込み中...</div>
-        ) : weeklyMyShifts.length === 0 ? (
+        ) : weeklyShifts.length === 0 ? (
           <div className="employee-empty">
             この週に登録されているシフトはありません。
           </div>
         ) : (
           <div className="employee-timeline-wrap">
-            <ShiftTimeline shifts={weeklyMyShifts} printMode />
+            <ShiftTimeline shifts={weeklyShifts} printMode />
           </div>
         )}
       </section>
