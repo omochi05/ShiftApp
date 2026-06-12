@@ -630,3 +630,90 @@
     overflow-x: hidden !important;
   }
 }
+
+/* =========================
+   最終上書き：シフト表ページの対象週ボックス修正
+========================= */
+
+@media screen and (max-width: 760px) {
+  .owner-shift-timeline-page {
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  .owner-shift-control-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding: 12px !important;
+    overflow: hidden !important;
+  }
+
+  .owner-shift-week-box {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+
+    padding: 12px !important;
+    margin: 0 !important;
+
+    overflow: hidden !important;
+  }
+
+  .owner-shift-week-box label {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    text-align: center !important;
+  }
+
+  .owner-shift-week-box input,
+  .owner-shift-week-box input[type="date"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+    padding: 10px 12px !important;
+
+    box-sizing: border-box !important;
+    display: block !important;
+
+    text-align: center !important;
+    text-align-last: center !important;
+
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .owner-shift-week-buttons {
+    width: 100% !important;
+    max-width: 100% !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .owner-shift-week-buttons button {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+}
