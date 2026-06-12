@@ -20,6 +20,7 @@ type NewEmployee = {
 type EditEmployeeForm = {
   employee_number: string;
   name: string;
+  role: string;
   hourly_wage: string;
 };
 
@@ -41,6 +42,18 @@ function formatApiError(error: any, fallbackMessage: string) {
   return `${fallbackMessage}：APIに接続できませんでした`;
 }
 
+function getRoleLabel(role: string) {
+  if (role === "manager") {
+    return "管理者";
+  }
+
+  if (role === "owner") {
+    return "オーナー";
+  }
+
+  return "従業員";
+}
+
 export default function OwnerEmployeesPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,24 +66,22 @@ export default function OwnerEmployeesPage() {
     hourly_wage: "",
   });
 
-  /**
-   * 編集中の従業員ID
-   * null のときは誰も編集中ではない
-   */
   const [editingEmployeeId, setEditingEmployeeId] = useState<number | null>(
     null
   );
 
-  /**
-   * 従業員IDごとに編集内容を保持する
-   * これで2番目以降の保存も正しくその人の内容を使える
-   */
   const [editingEmployees, setEditingEmployees] = useState<
     Record<number, EditEmployeeForm>
   >({});
 
+  /**
+   * employee と manager を一覧に残す
+   * owner は安全のため一覧には出さない
+   */
   const employeeUsers = useMemo(() => {
-    return users.filter((user) => user.role === "employee");
+    return users.filter(
+      (user) => user.role === "employee" || user.role === "manager"
+    );
   }, [users]);
 
   const fetchUsers = async () => {
@@ -141,6 +152,7 @@ export default function OwnerEmployeesPage() {
       [user.id]: {
         employee_number: user.email ?? "",
         name: user.name ?? "",
+        role: user.role ?? "employee",
         hourly_wage: String(user.hourly_wage ?? 0),
       },
     }));
@@ -157,6 +169,7 @@ export default function OwnerEmployeesPage() {
       const current = prev[userId] ?? {
         employee_number: "",
         name: "",
+        role: "employee",
         hourly_wage: "",
       };
 
@@ -182,121 +195,119 @@ export default function OwnerEmployeesPage() {
     setMessage("");
   };
 
-const handleUpdateEmployee = async (userId: number) => {
+  const handleUpdateEmployee = async (userId: number) => {
     const form = editingEmployees[userId];
 
     if (!form) {
-        setMessage("編集データが見つかりません");
-        return;
+      setMessage("編集データが見つかりません");
+      return;
     }
 
     if (!form.employee_number.trim()) {
-        setMessage("従業員番号を入力してください");
-        return;
+      setMessage("従業員番号を入力してください");
+      return;
     }
 
     if (!form.name.trim()) {
-        setMessage("名前を入力してください");
-        return;
+      setMessage("名前を入力してください");
+      return;
     }
 
     const updatedEmployee = {
-        name: form.name.trim(),
-        email: form.employee_number.trim(),
-        role: "employee",
-        hourly_wage: Number(form.hourly_wage || 0),
+      name: form.name.trim(),
+      email: form.employee_number.trim(),
+      role: form.role,
+      hourly_wage: Number(form.hourly_wage || 0),
     };
 
     try {
-        setSavingUserId(userId);
-        setMessage("");
+      setSavingUserId(userId);
+      setMessage("");
 
-        await api.put(`/users/${userId}`, updatedEmployee);
+      await api.put(`/users/${userId}`, updatedEmployee);
 
-        /**
-         * 保存成功後、画面上の一覧もすぐ更新する
-         */
-        setUsers((prev) =>
+      /**
+       * 保存成功後、画面上の一覧もすぐ更新する
+       */
+      setUsers((prev) =>
         prev.map((user) =>
-            user.id === userId
+          user.id === userId
             ? {
                 ...user,
                 name: updatedEmployee.name,
                 email: updatedEmployee.email,
                 role: updatedEmployee.role,
                 hourly_wage: updatedEmployee.hourly_wage,
-                }
+              }
             : user
         )
-        );
+      );
 
-        /**
-         * 編集モードを解除する
-         */
-        setEditingEmployeeId(null);
+      /**
+       * 保存成功後、編集モードを解除して通常表示へ戻す
+       */
+      setEditingEmployeeId(null);
 
-        setEditingEmployees((prev) => {
+      setEditingEmployees((prev) => {
         const next = { ...prev };
         delete next[userId];
         return next;
-        });
+      });
 
-        setMessage("従業員情報を更新しました");
+      setMessage("従業員情報を更新しました");
 
-        /**
-         * DBの最新状態も取り直す
-         */
-        await fetchUsers();
+      await fetchUsers();
     } catch (error: any) {
-        console.error("従業員更新失敗:", error);
-        console.error("レスポンス:", error.response?.data);
+      console.error("従業員更新失敗:", error);
+      console.error("レスポンス:", error.response?.data);
 
-        setMessage(formatApiError(error, "従業員情報の更新に失敗しました"));
+      setMessage(formatApiError(error, "従業員情報の更新に失敗しました"));
     } finally {
-        setSavingUserId(null);
+      setSavingUserId(null);
     }
-    };
-    const handleDeleteUser = async (userId: number) => {
-        const targetUser = users.find((user) => user.id === userId);
+  };
 
-        if (!targetUser) {
-        setMessage("削除対象の従業員が見つかりません");
-        return;
-        }
+  const handleDeleteUser = async (userId: number) => {
+    const targetUser = users.find((user) => user.id === userId);
 
-        const ok = window.confirm(
-        `${targetUser.name}（${targetUser.email}）を削除しますか？\nこの従業員のシフトや関連データも削除される可能性があります。`
-        );
+    if (!targetUser) {
+      setMessage("削除対象の従業員が見つかりません");
+      return;
+    }
 
-        if (!ok) {
-        return;
-        }
+    const ok = window.confirm(
+      `${targetUser.name}（${targetUser.email}）を削除しますか？\nこの従業員のシフトや関連データも削除される可能性があります。`
+    );
 
-        try {
-        setMessage("");
+    if (!ok) {
+      return;
+    }
 
-        await api.delete(`/users/${userId}`);
+    try {
+      setMessage("");
 
-        setMessage("従業員を削除しました");
+      await api.delete(`/users/${userId}`);
 
-        if (editingEmployeeId === userId) {
-            setEditingEmployeeId(null);
-        }
+      setMessage("従業員を削除しました");
 
-        setEditingEmployees((prev) => {
-            const next = { ...prev };
-            delete next[userId];
-            return next;
-        });
+      if (editingEmployeeId === userId) {
+        setEditingEmployeeId(null);
+      }
 
-        await fetchUsers();
-        } catch (error: any) {
-        console.error("従業員削除失敗:", error);
-        console.error("レスポンス:", error.response?.data);
+      setEditingEmployees((prev) => {
+        const next = { ...prev };
+        delete next[userId];
+        return next;
+      });
 
-        setMessage(formatApiError(error, "従業員の削除に失敗しました"));
-        }
-    };
+      await fetchUsers();
+    } catch (error: any) {
+      console.error("従業員削除失敗:", error);
+      console.error("レスポンス:", error.response?.data);
+
+      setMessage(formatApiError(error, "従業員の削除に失敗しました"));
+    }
+  };
 
   return (
     <div className="owner-employees-page">
@@ -311,7 +322,7 @@ const handleUpdateEmployee = async (userId: number) => {
         </div>
 
         <div className="owner-employees-count-card">
-          <span>登録従業員</span>
+          <span>登録スタッフ</span>
           <strong>{employeeUsers.length}人</strong>
         </div>
       </section>
@@ -384,7 +395,7 @@ const handleUpdateEmployee = async (userId: number) => {
         <div className="owner-section-title-row">
           <div>
             <h3>従業員一覧</h3>
-            <p>登録済みの従業員を確認できます。</p>
+            <p>登録済みの従業員・管理者を確認できます。</p>
           </div>
 
           <button
@@ -405,6 +416,7 @@ const handleUpdateEmployee = async (userId: number) => {
                 <tr>
                   <th>従業員番号</th>
                   <th>名前</th>
+                  <th>権限</th>
                   <th>時給</th>
                   <th>操作</th>
                 </tr>
@@ -413,7 +425,7 @@ const handleUpdateEmployee = async (userId: number) => {
               <tbody>
                 {employeeUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={4}>従業員がまだ登録されていません</td>
+                    <td colSpan={5}>従業員がまだ登録されていません</td>
                   </tr>
                 ) : (
                   employeeUsers.map((user) => {
@@ -422,6 +434,7 @@ const handleUpdateEmployee = async (userId: number) => {
                     const editForm = editingEmployees[user.id] ?? {
                       employee_number: user.email ?? "",
                       name: user.name ?? "",
+                      role: user.role ?? "employee",
                       hourly_wage: String(user.hourly_wage ?? 0),
                     };
 
@@ -460,6 +473,26 @@ const handleUpdateEmployee = async (userId: number) => {
                             />
                           ) : (
                             user.name
+                          )}
+                        </td>
+
+                        <td>
+                          {isEditing ? (
+                            <select
+                              value={editForm.role}
+                              onChange={(e) =>
+                                handleChangeEditEmployee(
+                                  user.id,
+                                  "role",
+                                  e.target.value
+                                )
+                              }
+                            >
+                              <option value="employee">従業員</option>
+                              <option value="manager">管理者</option>
+                            </select>
+                          ) : (
+                            getRoleLabel(user.role)
                           )}
                         </td>
 
