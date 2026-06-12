@@ -218,69 +218,69 @@ function positionShifts(shifts: ShiftForTimeline[]) {
 function getAutoPrintSize(maxLaneCount: number): AutoPrintSize {
   if (maxLaneCount <= 1) {
     return {
-      laneHeight: 42,
-      barHeight: 36,
-      barTopOffset: 3,
-      nameFontSize: 18,
+      laneHeight: 50,
+      barHeight: 42,
+      barTopOffset: 4,
+      nameFontSize: 20,
       barPaddingX: 10,
     };
   }
 
   if (maxLaneCount === 2) {
     return {
-      laneHeight: 36,
-      barHeight: 31,
-      barTopOffset: 3,
-      nameFontSize: 17,
+      laneHeight: 44,
+      barHeight: 37,
+      barTopOffset: 4,
+      nameFontSize: 18,
       barPaddingX: 9,
     };
   }
 
   if (maxLaneCount === 3) {
     return {
-      laneHeight: 31,
-      barHeight: 26,
-      barTopOffset: 2,
-      nameFontSize: 15,
+      laneHeight: 38,
+      barHeight: 32,
+      barTopOffset: 3,
+      nameFontSize: 16,
       barPaddingX: 8,
     };
   }
 
   if (maxLaneCount === 4) {
     return {
-      laneHeight: 27,
-      barHeight: 23,
-      barTopOffset: 2,
-      nameFontSize: 13,
+      laneHeight: 33,
+      barHeight: 28,
+      barTopOffset: 3,
+      nameFontSize: 14,
       barPaddingX: 7,
     };
   }
 
   if (maxLaneCount === 5) {
     return {
-      laneHeight: 24,
-      barHeight: 20,
+      laneHeight: 29,
+      barHeight: 24,
       barTopOffset: 2,
-      nameFontSize: 12,
+      nameFontSize: 13,
       barPaddingX: 6,
     };
   }
 
   if (maxLaneCount === 6) {
     return {
-      laneHeight: 21,
-      barHeight: 18,
-      barTopOffset: 1,
-      nameFontSize: 11,
+      laneHeight: 25,
+      barHeight: 21,
+      barTopOffset: 2,
+      nameFontSize: 12,
       barPaddingX: 5,
     };
   }
 
   return {
-    laneHeight: 18,
-    barHeight: 16,
-    barTopOffset: 1,
-    nameFontSize: 10,
+    laneHeight: 22,
+    barHeight: 18,
+    barTopOffset: 2,
+    nameFontSize: 11,
     barPaddingX: 4,
   };
 }

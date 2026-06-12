@@ -766,19 +766,19 @@
 }
 
 /* =========================
-   印刷/PDF：少し拡大しつつバー間隔を自動で詰める
+   印刷/PDF：横幅はそのまま、縦方向に広げる
 ========================= */
 
 @media print {
   .shift-timeline-hours {
-    min-height: 9px !important;
-    height: 9px !important;
+    min-height: 10px !important;
+    height: 10px !important;
     border-bottom-width: 1.1px !important;
   }
 
   .shift-timeline-hour {
-    min-height: 9px !important;
-    height: 9px !important;
+    min-height: 10px !important;
+    height: 10px !important;
 
     font-size: 8.8px !important;
     line-height: 1 !important;
@@ -789,7 +789,7 @@
   }
 
   .shift-timeline-day {
-    grid-template-rows: 9px auto !important;
+    grid-template-rows: 10px auto !important;
   }
 
   .shift-bar {
@@ -799,20 +799,20 @@
 }
 
 .pdf-capture-mode .shift-timeline-hours {
-  min-height: 10px !important;
-  height: 10px !important;
+  min-height: 12px !important;
+  height: 12px !important;
 }
 
 .pdf-capture-mode .shift-timeline-hour {
-  min-height: 10px !important;
-  height: 10px !important;
+  min-height: 12px !important;
+  height: 12px !important;
 
   font-size: 10px !important;
   line-height: 1 !important;
 }
 
 .pdf-capture-mode .shift-timeline-day {
-  grid-template-rows: 10px auto !important;
+  grid-template-rows: 12px auto !important;
 }
 
 .pdf-capture-mode .shift-bar {

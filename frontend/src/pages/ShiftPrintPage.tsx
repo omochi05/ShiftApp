@@ -314,7 +314,7 @@ export default function ShiftPrintPage() {
       /*
         余白をさらに小さくして、PDF上で少しだけ拡大する
       */
-      const marginX = 2;
+      const marginX = 5;
       const marginY = 2;
 
       const usableWidth = pageWidth - marginX * 2;
