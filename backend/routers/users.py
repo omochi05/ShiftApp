@@ -5,7 +5,13 @@ from sqlalchemy import text
 
 from database import get_db
 from models import User, Shift
-from schemas import UserCreate, UserResponse, UserUpdate
+from schemas import (
+    UserCreate,
+    UserResponse,
+    UserUpdate,
+    LoginRequest,
+    PasswordChangeRequest,
+)
 
 router = APIRouter(
     prefix="/users",
@@ -17,6 +23,106 @@ router = APIRouter(
 def get_users(db: Session = Depends(get_db)):
     users = db.query(User).order_by(User.id).all()
     return users
+
+@router.post("/login")
+def login_user(
+    login_data: LoginRequest,
+    db: Session = Depends(get_db)
+):
+    employee_number = login_data.employee_number.strip()
+    password = login_data.password.strip()
+
+    if not employee_number:
+        raise HTTPException(
+            status_code=400,
+            detail="従業員番号を入力してください"
+        )
+
+    if not password:
+        raise HTTPException(
+            status_code=400,
+            detail="パスワードを入力してください"
+        )
+
+    if len(password) != 4 or not password.isdigit():
+        raise HTTPException(
+            status_code=400,
+            detail="パスワードは4桁の数字で入力してください"
+        )
+
+    user = (
+        db.query(User)
+        .filter(User.email == employee_number)
+        .first()
+    )
+
+    if user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="従業員番号またはパスワードが違います"
+        )
+
+    if user.password != password:
+        raise HTTPException(
+            status_code=401,
+            detail="従業員番号またはパスワードが違います"
+        )
+
+    return {
+        "id": user.id,
+        "name": user.name,
+        "employee_number": user.email,
+        "role": user.role,
+        "hourly_wage": user.hourly_wage,
+    }
+
+
+@router.put("/change-password")
+def change_password(
+    password_data: PasswordChangeRequest,
+    db: Session = Depends(get_db)
+):
+    current_password = password_data.current_password.strip()
+    new_password = password_data.new_password.strip()
+
+    if len(current_password) != 4 or not current_password.isdigit():
+        raise HTTPException(
+            status_code=400,
+            detail="現在のパスワードは4桁の数字で入力してください"
+        )
+
+    if len(new_password) != 4 or not new_password.isdigit():
+        raise HTTPException(
+            status_code=400,
+            detail="新しいパスワードは4桁の数字で入力してください"
+        )
+
+    user = (
+        db.query(User)
+        .filter(User.id == password_data.user_id)
+        .first()
+    )
+
+    if user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="ユーザーが見つかりません"
+        )
+
+    if user.password != current_password:
+        raise HTTPException(
+            status_code=400,
+            detail="現在のパスワードが違います"
+        )
+
+    user.password = new_password
+
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "message": "パスワードを変更しました"
+    }
 
 
 @router.post("/", response_model=UserResponse)

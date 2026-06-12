@@ -192,3 +192,13 @@ class ApplyShiftTemplateRequest(BaseModel):
 class CreateTemplateFromWeekRequest(BaseModel):
     week_start_date: date
     created_by: int | None = None
+
+class LoginRequest(BaseModel):
+    employee_number: str
+    password: str
+
+
+class PasswordChangeRequest(BaseModel):
+    user_id: int
+    current_password: str
+    new_password: str
