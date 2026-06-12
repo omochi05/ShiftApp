@@ -161,11 +161,6 @@ export default function LoginPage() {
               {loading ? "ログイン中..." : "ログイン"}
             </button>
           </form>
-
-          <p className="seven-login-help">
-            初期パスワードは <strong>1234</strong> です。
-            パスワード変更はログイン後の管理画面から行えます。
-          </p>
         </section>
       </main>
     </div>
