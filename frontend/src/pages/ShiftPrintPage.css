@@ -949,3 +949,14 @@
     box-sizing: border-box !important;
   }
 }
+
+/* =========================
+   印刷ページ：週の開始日 input 文字サイズ調整
+========================= */
+
+.shift-print-week-control input[type="date"] {
+  font-size: 20px !important;
+  font-weight: 900 !important;
+  text-align: center !important;
+  text-align-last: center !important;
+}
