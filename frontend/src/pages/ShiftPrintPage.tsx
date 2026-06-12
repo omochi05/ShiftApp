@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import { api } from "../api/client";
 import ShiftTimeline from "../components/ShiftTimeline";
 import "./ShiftPrintPage.css";
-
 type User = {
   id: number;
   name: string;
@@ -274,9 +275,72 @@ export default function ShiftPrintPage() {
     window.print();
   };
 
-  const handleSavePdf = () => {
-    window.print();
-  };
+  const handleSavePdf = async () => {
+  if (!printAreaRef.current) {
+    setMessage("PDF保存するシフト表が見つかりませんでした");
+    return;
+  }
+
+  try {
+    setMessage("");
+
+    const target = printAreaRef.current;
+
+    target.classList.add("pdf-capture-mode");
+
+    const canvas = await html2canvas(target, {
+      scale: 2,
+      backgroundColor: "#ffffff",
+      useCORS: true,
+      logging: false,
+      windowWidth: target.scrollWidth,
+      windowHeight: target.scrollHeight,
+    });
+
+    target.classList.remove("pdf-capture-mode");
+
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a3",
+    });
+
+    const pageWidth = 420;
+    const pageHeight = 297;
+
+    const marginX = 5;
+    const marginY = 5;
+
+    const usableWidth = pageWidth - marginX * 2;
+    const usableHeight = pageHeight - marginY * 2;
+
+    const imageRatio = canvas.width / canvas.height;
+    const pageRatio = usableWidth / usableHeight;
+
+    let imageWidth = usableWidth;
+    let imageHeight = usableHeight;
+
+    if (imageRatio > pageRatio) {
+      imageWidth = usableWidth;
+      imageHeight = usableWidth / imageRatio;
+    } else {
+      imageHeight = usableHeight;
+      imageWidth = usableHeight * imageRatio;
+    }
+
+    const x = (pageWidth - imageWidth) / 2;
+    const y = 4;
+
+    pdf.addImage(imgData, "PNG", x, y, imageWidth, imageHeight);
+
+    pdf.save(`shift-${weekStart}-${weekEnd}.pdf`);
+  } catch (error) {
+    console.error("PDF保存失敗:", error);
+    setMessage("PDF保存に失敗しました");
+  }
+};
 
   return (
     <div className="shift-print-page">

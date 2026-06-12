@@ -520,13 +520,13 @@
 }
 
 /* =========================
-   印刷時：A3横 余白を詰めて中央タイトルにする
+   印刷時：A3横 余白をかなり詰める
 ========================= */
 
 @media print {
   @page {
     size: A3 landscape;
-    margin: 3mm;
+    margin: 1.5mm;
   }
 
   html,
@@ -589,11 +589,10 @@
     box-shadow: none !important;
 
     /*
-      下の余白を減らすため、前より大きめに表示する
-      まだ下が余る → 0.96
-      2ページになる → 0.90
+      下の余白を減らすため大きめに表示
+      2ページになる場合だけ 1.04 → 1.00 に下げる
     */
-    zoom: 0.94 !important;
+    zoom: 1.04 !important;
   }
 
   .shift-print-title {
@@ -601,7 +600,7 @@
 
     width: 100% !important;
 
-    margin: 0 0 1.5mm !important;
+    margin: 0 0 1mm !important;
     padding: 0 !important;
 
     text-align: center !important;
@@ -612,13 +611,13 @@
   }
 
   .shift-print-title h1 {
-    margin: 0 0 0.5mm !important;
+    margin: 0 0 0.3mm !important;
 
     color: #111827 !important;
 
-    font-size: 15px !important;
+    font-size: 14px !important;
     font-weight: 900 !important;
-    line-height: 1.05 !important;
+    line-height: 1 !important;
 
     text-align: center !important;
   }
@@ -628,9 +627,9 @@
 
     color: #111827 !important;
 
-    font-size: 8.5px !important;
+    font-size: 8px !important;
     font-weight: 900 !important;
-    line-height: 1.05 !important;
+    line-height: 1 !important;
 
     text-align: center !important;
   }
