@@ -276,71 +276,89 @@ export default function ShiftPrintPage() {
   };
 
   const handleSavePdf = async () => {
-  if (!printAreaRef.current) {
-    setMessage("PDF保存するシフト表が見つかりませんでした");
-    return;
-  }
-
-  try {
-    setMessage("");
-
-    const target = printAreaRef.current;
-
-    target.classList.add("pdf-capture-mode");
-
-    const canvas = await html2canvas(target, {
-      scale: 2,
-      backgroundColor: "#ffffff",
-      useCORS: true,
-      logging: false,
-      windowWidth: target.scrollWidth,
-      windowHeight: target.scrollHeight,
-    });
-
-    target.classList.remove("pdf-capture-mode");
-
-    const imgData = canvas.toDataURL("image/png");
-
-    const pdf = new jsPDF({
-      orientation: "landscape",
-      unit: "mm",
-      format: "a3",
-    });
-
-    const pageWidth = 420;
-    const pageHeight = 297;
-
-    const marginX = 5;
-    const marginY = 5;
-
-    const usableWidth = pageWidth - marginX * 2;
-    const usableHeight = pageHeight - marginY * 2;
-
-    const imageRatio = canvas.width / canvas.height;
-    const pageRatio = usableWidth / usableHeight;
-
-    let imageWidth = usableWidth;
-    let imageHeight = usableHeight;
-
-    if (imageRatio > pageRatio) {
-      imageWidth = usableWidth;
-      imageHeight = usableWidth / imageRatio;
-    } else {
-      imageHeight = usableHeight;
-      imageWidth = usableHeight * imageRatio;
+    if (!printAreaRef.current) {
+      setMessage("PDF保存するシフト表が見つかりませんでした");
+      return;
     }
 
-    const x = (pageWidth - imageWidth) / 2;
-    const y = 4;
+    try {
+      setMessage("PDFを作成しています...");
 
-    pdf.addImage(imgData, "PNG", x, y, imageWidth, imageHeight);
+      const target = printAreaRef.current;
 
-    pdf.save(`shift-${weekStart}-${weekEnd}.pdf`);
-  } catch (error) {
-    console.error("PDF保存失敗:", error);
-    setMessage("PDF保存に失敗しました");
-  }
-};
+      target.classList.add("pdf-capture-mode");
+
+      const canvas = await html2canvas(target, {
+        scale: 1.25,
+        backgroundColor: "#ffffff",
+        useCORS: true,
+        logging: false,
+        windowWidth: target.scrollWidth,
+        windowHeight: target.scrollHeight,
+      });
+
+      target.classList.remove("pdf-capture-mode");
+
+      /*
+        PNGは綺麗だけどファイルサイズが大きい。
+        JPEGにすると10MB以下にしやすい。
+      */
+      const imgData = canvas.toDataURL("image/jpeg", 0.72);
+
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a3",
+        compress: true,
+      });
+
+      const pageWidth = 420;
+      const pageHeight = 297;
+
+      const marginX = 4;
+      const marginY = 4;
+
+      const usableWidth = pageWidth - marginX * 2;
+      const usableHeight = pageHeight - marginY * 2;
+
+      const imageRatio = canvas.width / canvas.height;
+      const pageRatio = usableWidth / usableHeight;
+
+      let imageWidth = usableWidth;
+      let imageHeight = usableHeight;
+
+      if (imageRatio > pageRatio) {
+        imageWidth = usableWidth;
+        imageHeight = usableWidth / imageRatio;
+      } else {
+        imageHeight = usableHeight;
+        imageWidth = usableHeight * imageRatio;
+      }
+
+      const x = (pageWidth - imageWidth) / 2;
+      const y = (pageHeight - imageHeight) / 2;
+
+      pdf.addImage(
+        imgData,
+        "JPEG",
+        x,
+        y,
+        imageWidth,
+        imageHeight,
+        undefined,
+        "FAST"
+      );
+
+      pdf.save(`shift-${weekStart}-${weekEnd}.pdf`);
+
+      setMessage("PDFを保存しました");
+    } catch (error) {
+      console.error("PDF保存失敗:", error);
+      setMessage("PDF保存に失敗しました");
+    } finally {
+      printAreaRef.current?.classList.remove("pdf-capture-mode");
+    }
+  };
 
   return (
     <div className="shift-print-page">

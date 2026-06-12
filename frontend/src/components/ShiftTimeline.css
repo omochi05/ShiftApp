@@ -700,3 +700,67 @@
   width: 100% !important;
   min-width: 0 !important;
 }
+
+/* =========================
+   印刷/PDF：時間文字はそのまま、黒い時間バーだけ細くする
+========================= */
+
+@media print {
+  .shift-timeline-hours {
+    min-height: 8px !important;
+    height: 8px !important;
+    border-bottom-width: 1.1px !important;
+  }
+
+  .shift-timeline-hour {
+    min-height: 8px !important;
+    height: 8px !important;
+
+    /* 文字サイズは下げない */
+    font-size: 8.8px !important;
+    line-height: 1 !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .shift-timeline-day {
+    grid-template-rows: 8px auto !important;
+  }
+
+  .shift-timeline {
+    --shift-lane-height: 22px !important;
+    --shift-bar-height: 19px !important;
+    --shift-bar-top-offset: 1.5px !important;
+    --shift-name-font-size: 11px !important;
+    --shift-bar-padding-x: 4px !important;
+  }
+}
+
+/* PDF保存時も同じ見た目にする */
+.pdf-capture-mode .shift-timeline-hours {
+  min-height: 10px !important;
+  height: 10px !important;
+}
+
+.pdf-capture-mode .shift-timeline-hour {
+  min-height: 10px !important;
+  height: 10px !important;
+
+  /* PDFでは少しだけ読みやすく */
+  font-size: 10px !important;
+  line-height: 1 !important;
+}
+
+.pdf-capture-mode .shift-timeline-day {
+  grid-template-rows: 10px auto !important;
+}
+
+.pdf-capture-mode .shift-timeline {
+  --shift-lane-height: 23px !important;
+  --shift-bar-height: 20px !important;
+  --shift-bar-top-offset: 1.5px !important;
+  --shift-name-font-size: 11px !important;
+  --shift-bar-padding-x: 4px !important;
+}
