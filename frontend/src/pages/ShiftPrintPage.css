@@ -960,3 +960,50 @@
   text-align: center !important;
   text-align-last: center !important;
 }
+
+/* =========================
+   印刷ページ：週の開始日を他ページと統一
+========================= */
+
+.shift-print-week-control label {
+  text-align: center !important;
+
+  color: #374151 !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+}
+
+.shift-print-week-control input[type="date"] {
+  width: 100% !important;
+  min-height: 56px !important;
+
+  padding: 10px 14px !important;
+
+  background: #ffffff !important;
+  color: #111827 !important;
+
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 14px !important;
+
+  font-size: 24px !important;
+  font-weight: 900 !important;
+  line-height: 1.2 !important;
+
+  text-align: center !important;
+  text-align-last: center !important;
+
+  box-sizing: border-box !important;
+}
+
+/* スマホでも他ページと同じ大きさ・中央寄せ */
+@media screen and (max-width: 760px) {
+  .shift-print-week-control label {
+    font-size: 15px !important;
+  }
+
+  .shift-print-week-control input[type="date"] {
+    min-height: 56px !important;
+    font-size: 24px !important;
+    font-weight: 900 !important;
+  }
+}
