@@ -131,8 +131,8 @@ export default function EmployeeDashboard() {
   }, [users]);
 
   /**
-   * 従業員画面でも、オーナー・管理者と同じシフト表を表示する。
-   * ただし、編集・追加・削除はできない。
+   * シフト表本体は、オーナー・管理者と同じ全員分のシフトを表示する。
+   * ただし、従業員画面では編集・追加・削除はできない。
    * 同じシフトが重複して返ってきても、画面では1件にまとめる。
    */
   const weeklyShifts = useMemo(() => {
@@ -178,13 +178,20 @@ export default function EmployeeDashboard() {
       });
   }, [shifts, weekStart, weekEnd, userNameMap]);
 
-  const weeklyShiftCount = weeklyShifts.length;
+  /**
+   * 集計カードだけは、ログイン中の本人のシフトだけで計算する。
+   */
+  const myWeeklyShifts = useMemo(() => {
+    return weeklyShifts.filter((shift) => shift.user_id === loginUserId);
+  }, [weeklyShifts, loginUserId]);
+
+  const weeklyShiftCount = myWeeklyShifts.length;
 
   const weeklyTotalHours = useMemo(() => {
-    return weeklyShifts.reduce((sum, shift) => {
+    return myWeeklyShifts.reduce((sum, shift) => {
       return sum + getShiftHours(shift);
     }, 0);
-  }, [weeklyShifts]);
+  }, [myWeeklyShifts]);
 
   const fetchData = async () => {
     try {
@@ -320,12 +327,12 @@ export default function EmployeeDashboard() {
         </div>
 
         <div className="employee-summary-card">
-          <span>シフト数</span>
+          <span>自分のシフト数</span>
           <strong>{weeklyShiftCount}件</strong>
         </div>
 
         <div className="employee-summary-card">
-          <span>予定勤務時間</span>
+          <span>自分の予定勤務時間</span>
           <strong>{weeklyTotalHours.toFixed(1)}時間</strong>
         </div>
       </section>
