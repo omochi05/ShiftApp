@@ -28,7 +28,8 @@ export default function ManagerDashboard() {
           <p className="manager-label">MANAGER DASHBOARD</p>
           <h1>管理者画面</h1>
           <span>
-            シフト確認・従業員確認・印刷など、現場管理に必要な機能を使えます。
+            管理者はシフト管理・シフト表・従業員確認を行えます。
+            売上管理はオーナー専用です。
           </span>
         </div>
 
@@ -47,7 +48,7 @@ export default function ManagerDashboard() {
         >
           <span>SHIFT</span>
           <strong>シフト管理</strong>
-          <small>シフトの作成・編集を行います</small>
+          <small>オーナーと同じシフトデータを作成・編集できます</small>
         </button>
 
         <button
@@ -57,7 +58,7 @@ export default function ManagerDashboard() {
         >
           <span>TABLE</span>
           <strong>シフト表</strong>
-          <small>週ごとのシフトを確認します</small>
+          <small>オーナーと同じ週シフト表を確認できます</small>
         </button>
 
         <button
@@ -67,7 +68,7 @@ export default function ManagerDashboard() {
         >
           <span>STAFF</span>
           <strong>従業員一覧</strong>
-          <small>従業員・管理者を確認します</small>
+          <small>従業員・管理者の情報を確認できます</small>
         </button>
 
         <button
@@ -77,7 +78,7 @@ export default function ManagerDashboard() {
         >
           <span>PRINT</span>
           <strong>印刷ページ</strong>
-          <small>シフト表を印刷・PDF保存します</small>
+          <small>シフト表を印刷・PDF保存できます</small>
         </button>
 
         <button
@@ -87,7 +88,7 @@ export default function ManagerDashboard() {
         >
           <span>SECURITY</span>
           <strong>パスワード変更</strong>
-          <small>4桁パスワードを変更します</small>
+          <small>4桁パスワードを変更できます</small>
         </button>
 
         <button

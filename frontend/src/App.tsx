@@ -17,31 +17,38 @@ import OwnerShiftTimelinePage from "./pages/owner/OwnerShiftTimelinePage";
 function AppLayout() {
   return (
     <Routes>
+      {/* ログイン */}
       <Route path="/" element={<LoginPage />} />
 
+      {/* オーナー・管理者 共通エリア */}
       <Route
-          path="/owner"
-          element={
-            <RequireRole allowedRoles={["owner", "manager"]}>
-              <OwnerLayout />
-            </RequireRole>
-          }
-        >
+        path="/owner"
+        element={
+          <RequireRole allowedRoles={["owner", "manager"]}>
+            <OwnerLayout />
+          </RequireRole>
+        }
+      >
         <Route index element={<OwnerDashboardHome />} />
+
+        {/* オーナー・管理者で連携するページ */}
         <Route path="shifts" element={<OwnerShiftsPage />} />
         <Route path="timeline" element={<OwnerShiftTimelinePage />} />
-        <Route
-            path="sales"
-            element={
-              <RequireRole allowedRoles={["owner"]}>
-                <OwnerSalesPage />
-              </RequireRole>
-            }
-          />
         <Route path="employees" element={<OwnerEmployeesPage />} />
         <Route path="print/shifts" element={<ShiftPrintPage />} />
+
+        {/* 売上管理はオーナーだけ */}
+        <Route
+          path="sales"
+          element={
+            <RequireRole allowedRoles={["owner"]}>
+              <OwnerSalesPage />
+            </RequireRole>
+          }
+        />
       </Route>
 
+      {/* 管理者専用トップ画面 */}
       <Route
         path="/manager"
         element={
@@ -51,6 +58,7 @@ function AppLayout() {
         }
       />
 
+      {/* ログイン後のパスワード変更 */}
       <Route
         path="/change-password"
         element={

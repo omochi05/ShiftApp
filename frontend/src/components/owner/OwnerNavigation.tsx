@@ -11,6 +11,7 @@ type OwnerLink = {
   description: string;
   color: string;
   end?: boolean;
+  ownerOnly?: boolean;
 };
 
 const ownerLinks: OwnerLink[] = [
@@ -38,6 +39,7 @@ const ownerLinks: OwnerLink[] = [
     label: "売上管理",
     description: "売上・人件費率",
     color: "orange",
+    ownerOnly: true,
   },
   {
     to: "/owner/employees",
@@ -61,6 +63,15 @@ const ownerLinks: OwnerLink[] = [
 
 export default function OwnerNavigation({ onCloseMenu }: OwnerNavigationProps) {
   const navigate = useNavigate();
+  const loginRole = localStorage.getItem("loginRole");
+
+  const visibleLinks = ownerLinks.filter((link) => {
+    if (link.ownerOnly && loginRole !== "owner") {
+      return false;
+    }
+
+    return true;
+  });
 
   const handleLogout = () => {
     localStorage.removeItem("loginUserId");
@@ -84,11 +95,13 @@ export default function OwnerNavigation({ onCloseMenu }: OwnerNavigationProps) {
     <nav className="owner-navigation">
       <div className="owner-navigation-title">
         <strong>ShiftApp</strong>
-        <span>オーナー管理</span>
+        <span>
+          {loginRole === "manager" ? "管理者メニュー" : "オーナー管理"}
+        </span>
       </div>
 
       <div className="owner-navigation-links">
-        {ownerLinks.map((link) => (
+        {visibleLinks.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}
