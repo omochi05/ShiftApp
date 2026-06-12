@@ -20,17 +20,24 @@ function AppLayout() {
       <Route path="/" element={<LoginPage />} />
 
       <Route
-        path="/owner"
-        element={
-          <RequireRole allowedRoles={["owner"]}>
-            <OwnerLayout />
-          </RequireRole>
-        }
-      >
+          path="/owner"
+          element={
+            <RequireRole allowedRoles={["owner", "manager"]}>
+              <OwnerLayout />
+            </RequireRole>
+          }
+        >
         <Route index element={<OwnerDashboardHome />} />
         <Route path="shifts" element={<OwnerShiftsPage />} />
         <Route path="timeline" element={<OwnerShiftTimelinePage />} />
-        <Route path="sales" element={<OwnerSalesPage />} />
+        <Route
+            path="sales"
+            element={
+              <RequireRole allowedRoles={["owner"]}>
+                <OwnerSalesPage />
+              </RequireRole>
+            }
+          />
         <Route path="employees" element={<OwnerEmployeesPage />} />
         <Route path="print/shifts" element={<ShiftPrintPage />} />
       </Route>
