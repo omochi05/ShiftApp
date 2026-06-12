@@ -5,7 +5,15 @@ type OwnerNavigationProps = {
   onCloseMenu?: () => void;
 };
 
-const ownerLinks = [
+type OwnerLink = {
+  to: string;
+  label: string;
+  description: string;
+  color: string;
+  end?: boolean;
+};
+
+const ownerLinks: OwnerLink[] = [
   {
     to: "/owner",
     label: "ダッシュボード",
@@ -43,16 +51,31 @@ const ownerLinks = [
     description: "PDF・印刷",
     color: "gray",
   },
+  {
+    to: "/change-password",
+    label: "パスワード変更",
+    description: "4桁パスワード",
+    color: "red",
+  },
 ];
 
 export default function OwnerNavigation({ onCloseMenu }: OwnerNavigationProps) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    localStorage.removeItem("loginUserId");
+    localStorage.removeItem("loginName");
+    localStorage.removeItem("loginRole");
+    localStorage.removeItem("employeeNumber");
+
     localStorage.removeItem("ownerLogin");
     localStorage.removeItem("ownerId");
     localStorage.removeItem("ownerName");
     localStorage.removeItem("ownerNumber");
+
+    if (onCloseMenu) {
+      onCloseMenu();
+    }
 
     navigate("/");
   };

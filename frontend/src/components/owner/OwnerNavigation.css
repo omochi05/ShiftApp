@@ -311,3 +311,13 @@
     min-height: 78px;
   }
 }
+
+.owner-nav-red .owner-nav-dot {
+  background: #ef4444;
+}
+
+.owner-nav-red.active,
+.owner-nav-red:hover {
+  background: #fee2e2;
+  color: #991b1b;
+}
