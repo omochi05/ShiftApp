@@ -1,7 +1,6 @@
-const CACHE_NAME = "shift-app-cache-v1";
+const CACHE_NAME = "shift-app-cache-v2";
 
 const STATIC_ASSETS = [
-  "/",
   "/manifest.webmanifest"
 ];
 
