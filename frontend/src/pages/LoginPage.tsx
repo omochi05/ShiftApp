@@ -18,16 +18,8 @@ export default function LoginPage() {
   const [employeeNumber, setEmployeeNumber] = useState("");
   const [password, setPassword] = useState("");
 
-  const [showPasswordChange, setShowPasswordChange] = useState(false);
-  const [changeEmployeeNumber, setChangeEmployeeNumber] = useState("");
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-
   const [message, setMessage] = useState("");
-  const [passwordMessage, setPasswordMessage] = useState("");
-
   const [loading, setLoading] = useState(false);
-  const [changingPassword, setChangingPassword] = useState(false);
 
   const normalizeFourDigitPassword = (value: string) => {
     return value.replace(/\D/g, "").slice(0, 4);
@@ -65,6 +57,9 @@ export default function LoginPage() {
       localStorage.setItem("loginRole", user.role);
       localStorage.setItem("employeeNumber", user.employee_number);
 
+      /**
+       * 既存のオーナー画面で ownerName を使っている場合のために残す
+       */
       localStorage.setItem("ownerName", user.name);
 
       if (user.role === "owner") {
@@ -83,71 +78,6 @@ export default function LoginPage() {
       setMessage(error.response?.data?.detail || "ログインに失敗しました");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleChangePassword = async (e: FormEvent) => {
-    e.preventDefault();
-
-    const cleanEmployeeNumber = changeEmployeeNumber.trim();
-    const cleanCurrentPassword = currentPassword.trim();
-    const cleanNewPassword = newPassword.trim();
-
-    if (!cleanEmployeeNumber) {
-      setPasswordMessage("従業員番号を入力してください");
-      return;
-    }
-
-    if (!/^\d{4}$/.test(cleanCurrentPassword)) {
-      setPasswordMessage("現在のパスワードは4桁の数字で入力してください");
-      return;
-    }
-
-    if (!/^\d{4}$/.test(cleanNewPassword)) {
-      setPasswordMessage("新しいパスワードは4桁の数字で入力してください");
-      return;
-    }
-
-    if (cleanCurrentPassword === cleanNewPassword) {
-      setPasswordMessage("現在と違うパスワードを入力してください");
-      return;
-    }
-
-    try {
-      setChangingPassword(true);
-      setPasswordMessage("");
-
-      const loginRes = await api.post<LoginUser>("/users/login", {
-        employee_number: cleanEmployeeNumber,
-        password: cleanCurrentPassword,
-      });
-
-      const user = loginRes.data;
-
-      await api.put("/users/change-password", {
-        user_id: user.id,
-        current_password: cleanCurrentPassword,
-        new_password: cleanNewPassword,
-      });
-
-      setPasswordMessage("パスワードを変更しました");
-
-      setEmployeeNumber(cleanEmployeeNumber);
-      setPassword("");
-
-      setChangeEmployeeNumber("");
-      setCurrentPassword("");
-      setNewPassword("");
-
-      setShowPasswordChange(false);
-      setMessage("新しいパスワードでログインしてください");
-    } catch (error: any) {
-      console.error("パスワード変更失敗:", error);
-      setPasswordMessage(
-        error.response?.data?.detail || "パスワード変更に失敗しました"
-      );
-    } finally {
-      setChangingPassword(false);
     }
   };
 
@@ -232,81 +162,9 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <button
-            type="button"
-            className="seven-password-toggle-button"
-            onClick={() => {
-              setShowPasswordChange((prev) => !prev);
-              setPasswordMessage("");
-            }}
-          >
-            {showPasswordChange
-              ? "パスワード変更を閉じる"
-              : "パスワードを変更する"}
-          </button>
-
-          {showPasswordChange && (
-            <form
-              className="seven-password-change-form"
-              onSubmit={handleChangePassword}
-            >
-              <h3>パスワード変更</h3>
-
-              <label>
-                従業員番号
-                <input
-                  type="text"
-                  value={changeEmployeeNumber}
-                  onChange={(e) => setChangeEmployeeNumber(e.target.value)}
-                  placeholder="例：001"
-                  autoComplete="username"
-                />
-              </label>
-
-              <label>
-                現在の4桁パスワード
-                <input
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) =>
-                    setCurrentPassword(
-                      normalizeFourDigitPassword(e.target.value)
-                    )
-                  }
-                  placeholder="例：1234"
-                  inputMode="numeric"
-                  maxLength={4}
-                  autoComplete="current-password"
-                />
-              </label>
-
-              <label>
-                新しい4桁パスワード
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) =>
-                    setNewPassword(normalizeFourDigitPassword(e.target.value))
-                  }
-                  placeholder="例：5678"
-                  inputMode="numeric"
-                  maxLength={4}
-                  autoComplete="new-password"
-                />
-              </label>
-
-              {passwordMessage && (
-                <p className="seven-login-message">{passwordMessage}</p>
-              )}
-
-              <button type="submit" disabled={changingPassword}>
-                {changingPassword ? "変更中..." : "パスワードを変更"}
-              </button>
-            </form>
-          )}
-
           <p className="seven-login-help">
             初期パスワードは <strong>1234</strong> です。
+            パスワード変更はログイン後の管理画面から行えます。
           </p>
         </section>
       </main>
