@@ -339,3 +339,71 @@
     font-size: 24px;
   }
 }
+
+/* =========================
+   従業員画面：スマホの対象週ボックス右はみ出し修正
+========================= */
+
+@media screen and (max-width: 560px) {
+  .employee-control-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  .employee-week-control {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    overflow: hidden !important;
+  }
+
+  .employee-week-control label {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    box-sizing: border-box !important;
+  }
+
+  .employee-week-control input[type="date"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+    box-sizing: border-box !important;
+
+    display: block !important;
+
+    text-align: center !important;
+    text-align-last: center !important;
+  }
+
+  .employee-week-buttons {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    box-sizing: border-box !important;
+  }
+
+  .employee-week-buttons button,
+  .employee-actions button {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    box-sizing: border-box !important;
+  }
+}
