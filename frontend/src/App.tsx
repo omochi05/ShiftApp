@@ -2,6 +2,7 @@ import { HashRouter, Routes, Route } from "react-router-dom";
 
 import LoginPage from "./pages/LoginPage";
 import ManagerDashboard from "./pages/ManagerDashboard";
+import EmployeeDashboard from "./pages/EmployeeDashboard";
 import ShiftPrintPage from "./pages/ShiftPrintPage";
 import PasswordChangePage from "./pages/PasswordChangePage";
 
@@ -17,10 +18,8 @@ import OwnerShiftTimelinePage from "./pages/owner/OwnerShiftTimelinePage";
 function AppLayout() {
   return (
     <Routes>
-      {/* ログイン */}
       <Route path="/" element={<LoginPage />} />
 
-      {/* オーナー・管理者 共通エリア */}
       <Route
         path="/owner"
         element={
@@ -31,13 +30,11 @@ function AppLayout() {
       >
         <Route index element={<OwnerDashboardHome />} />
 
-        {/* オーナー・管理者で連携するページ */}
         <Route path="shifts" element={<OwnerShiftsPage />} />
         <Route path="timeline" element={<OwnerShiftTimelinePage />} />
         <Route path="employees" element={<OwnerEmployeesPage />} />
         <Route path="print/shifts" element={<ShiftPrintPage />} />
 
-        {/* 売上管理はオーナーだけ */}
         <Route
           path="sales"
           element={
@@ -48,7 +45,6 @@ function AppLayout() {
         />
       </Route>
 
-      {/* 管理者専用トップ画面 */}
       <Route
         path="/manager"
         element={
@@ -58,7 +54,15 @@ function AppLayout() {
         }
       />
 
-      {/* ログイン後のパスワード変更 */}
+      <Route
+        path="/employee"
+        element={
+          <RequireRole allowedRoles={["employee"]}>
+            <EmployeeDashboard />
+          </RequireRole>
+        }
+      />
+
       <Route
         path="/change-password"
         element={

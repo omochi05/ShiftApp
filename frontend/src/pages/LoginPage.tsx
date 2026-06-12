@@ -25,6 +25,30 @@ export default function LoginPage() {
     return value.replace(/\D/g, "").slice(0, 4);
   };
 
+  const clearOldLoginStorage = () => {
+    localStorage.removeItem("loginUserId");
+    localStorage.removeItem("loginName");
+    localStorage.removeItem("loginRole");
+    localStorage.removeItem("employeeNumber");
+
+    localStorage.removeItem("ownerLogin");
+    localStorage.removeItem("ownerId");
+    localStorage.removeItem("ownerName");
+    localStorage.removeItem("ownerNumber");
+  };
+
+  const saveLoginStorage = (user: LoginUser) => {
+    localStorage.setItem("loginUserId", String(user.id));
+    localStorage.setItem("loginName", user.name);
+    localStorage.setItem("loginRole", user.role);
+    localStorage.setItem("employeeNumber", user.employee_number);
+
+    /**
+     * 既存のオーナー画面で ownerName を使っている場合のために残す
+     */
+    localStorage.setItem("ownerName", user.name);
+  };
+
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -52,15 +76,8 @@ export default function LoginPage() {
 
       const user = res.data;
 
-      localStorage.setItem("loginUserId", String(user.id));
-      localStorage.setItem("loginName", user.name);
-      localStorage.setItem("loginRole", user.role);
-      localStorage.setItem("employeeNumber", user.employee_number);
-
-      /**
-       * 既存のオーナー画面で ownerName を使っている場合のために残す
-       */
-      localStorage.setItem("ownerName", user.name);
+      clearOldLoginStorage();
+      saveLoginStorage(user);
 
       if (user.role === "owner") {
         navigate("/owner");
@@ -72,7 +89,12 @@ export default function LoginPage() {
         return;
       }
 
-      setMessage("ログインしました。従業員画面は現在準備中です。");
+      if (user.role === "employee") {
+        navigate("/employee");
+        return;
+      }
+
+      setMessage("ログインしましたが、対応する画面が見つかりません。");
     } catch (error: any) {
       console.error("ログイン失敗:", error);
       setMessage(error.response?.data?.detail || "ログインに失敗しました");
