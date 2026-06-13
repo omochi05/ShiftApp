@@ -22,7 +22,7 @@ type Shift = {
   break_minutes: number;
 };
 
-type Notification = {
+type NotificationItem = {
   id: number;
   user_id: number;
   title: string;
@@ -140,7 +140,7 @@ export default function EmployeeDashboard() {
 
   const [users, setUsers] = useState<User[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   const [targetDate, setTargetDate] = useState(getTodayDate());
   const [loading, setLoading] = useState(true);
@@ -227,7 +227,7 @@ export default function EmployeeDashboard() {
     try {
       setNotificationLoading(true);
 
-      const res = await api.get<Notification[]>(
+      const res = await api.get<NotificationItem[]>(
         `/notifications/user/${loginUserId}`
       );
 
@@ -259,7 +259,7 @@ export default function EmployeeDashboard() {
     }
   };
 
-  const reloadPageData = async () => {
+  const reloadAllData = async () => {
     await Promise.all([fetchData(), fetchNotifications()]);
   };
 
@@ -269,7 +269,7 @@ export default function EmployeeDashboard() {
       return;
     }
 
-    reloadPageData();
+    reloadAllData();
   }, []);
 
   const handlePrevWeek = () => {
@@ -370,7 +370,7 @@ export default function EmployeeDashboard() {
               次の週
             </button>
 
-            <button type="button" onClick={reloadPageData}>
+            <button type="button" onClick={reloadAllData}>
               再読み込み
             </button>
           </div>
@@ -403,23 +403,35 @@ export default function EmployeeDashboard() {
         </div>
       </section>
 
-      {notificationLoading && (
-        <p className="employee-notification-loading">通知を確認中...</p>
-      )}
-
-      {unreadNotifications.length > 0 && (
-        <section className="employee-notification-section">
-          <div className="employee-notification-title">
-            <div>
-              <h2>通知</h2>
-              <p>自分のシフトに関するお知らせです。</p>
-            </div>
-
-            <button type="button" onClick={handleReadAllNotifications}>
-              すべて既読
-            </button>
+      <section className="employee-notification-section">
+        <div className="employee-notification-title">
+          <div>
+            <h2>通知</h2>
+            <p>自分のシフトが作成・変更されたときに通知が表示されます。</p>
           </div>
 
+          <div className="employee-notification-actions">
+            <button type="button" onClick={fetchNotifications}>
+              通知を更新
+            </button>
+
+            {unreadNotifications.length > 0 && (
+              <button type="button" onClick={handleReadAllNotifications}>
+                すべて既読
+              </button>
+            )}
+          </div>
+        </div>
+
+        {notificationLoading ? (
+          <div className="employee-notification-empty">
+            通知を読み込み中...
+          </div>
+        ) : unreadNotifications.length === 0 ? (
+          <div className="employee-notification-empty">
+            現在、新しい通知はありません。
+          </div>
+        ) : (
           <div className="employee-notification-list">
             {unreadNotifications.map((notification) => (
               <article
@@ -441,8 +453,8 @@ export default function EmployeeDashboard() {
               </article>
             ))}
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
       <section className="employee-summary-row">
         <div className="employee-summary-card">
