@@ -580,3 +580,159 @@
     box-sizing: border-box !important;
   }
 }
+
+/* =========================
+   従業員画面：通知
+========================= */
+
+.employee-notification-loading {
+  margin: 16px 0 0;
+  padding: 12px 16px;
+
+  border-radius: 16px;
+
+  background: #eff6ff;
+  color: #1d4ed8;
+
+  font-size: 14px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.employee-notification-section {
+  margin-top: 20px;
+  padding: 24px;
+
+  background: #ffffff;
+  border-radius: 28px;
+  box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
+}
+
+.employee-notification-title {
+  margin-bottom: 18px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.employee-notification-title h2 {
+  margin: 0 0 6px;
+
+  color: #111827;
+
+  font-size: 24px;
+  font-weight: 1000;
+}
+
+.employee-notification-title p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.employee-notification-title button {
+  padding: 11px 16px;
+
+  border: none;
+  border-radius: 14px;
+
+  background: #008044;
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 900;
+
+  cursor: pointer;
+}
+
+.employee-notification-list {
+  display: grid;
+  gap: 12px;
+}
+
+.employee-notification-card {
+  padding: 16px;
+
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+
+  background: #f8fafc;
+  border: 2px solid #dcfce7;
+  border-radius: 20px;
+}
+
+.employee-notification-card strong {
+  display: block;
+  margin-bottom: 6px;
+
+  color: #111827;
+
+  font-size: 15px;
+  font-weight: 1000;
+}
+
+.employee-notification-card p {
+  margin: 0 0 8px;
+
+  color: #374151;
+
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.employee-notification-card span {
+  color: #94a3b8;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.employee-notification-card button {
+  flex: 0 0 auto;
+
+  padding: 10px 14px;
+
+  border: none;
+  border-radius: 12px;
+
+  background: #e5e7eb;
+  color: #111827;
+
+  font-size: 13px;
+  font-weight: 900;
+
+  cursor: pointer;
+}
+
+@media screen and (max-width: 560px) {
+  .employee-notification-section {
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .employee-notification-title {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .employee-notification-title button {
+    width: 100%;
+  }
+
+  .employee-notification-card {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .employee-notification-card button {
+    width: 100%;
+  }
+}

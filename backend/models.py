@@ -1,7 +1,6 @@
 from sqlalchemy import Column, Integer, String, Date, Time, TIMESTAMP, ForeignKey, Numeric
 from sqlalchemy.sql import func
-from sqlalchemy import Column, Integer, String, Date, Time, DateTime, ForeignKey, func
-
+from sqlalchemy import Column, Integer, String, Date, Time, DateTime, ForeignKey, Boolean, Text
 from database import Base
 
 
@@ -72,3 +71,15 @@ class ShiftTemplate(Base):
     created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String(255), nullable=False)
+    message = Column(Text, nullable=False)
+    notification_type = Column(String(50), nullable=False, default="shift")
+    related_shift_id = Column(Integer, nullable=True)
+    is_read = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())

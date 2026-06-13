@@ -22,6 +22,17 @@ type Shift = {
   break_minutes: number;
 };
 
+type Notification = {
+  id: number;
+  user_id: number;
+  title: string;
+  message: string;
+  notification_type: string;
+  related_shift_id: number | null;
+  is_read: boolean;
+  created_at: string;
+};
+
 function formatLocalDate(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -104,6 +115,20 @@ function formatApiError(error: any, fallbackMessage: string) {
   return `${fallbackMessage}：APIに接続できませんでした`;
 }
 
+function formatNotificationDate(value: string) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString("ja-JP");
+}
+
 export default function EmployeeDashboard() {
   const navigate = useNavigate();
 
@@ -115,8 +140,11 @@ export default function EmployeeDashboard() {
 
   const [users, setUsers] = useState<User[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
   const [targetDate, setTargetDate] = useState(getTodayDate());
   const [loading, setLoading] = useState(true);
+  const [notificationLoading, setNotificationLoading] = useState(false);
   const [message, setMessage] = useState("");
 
   const weekStart = useMemo(() => getWeekStart(targetDate), [targetDate]);
@@ -187,6 +215,30 @@ export default function EmployeeDashboard() {
     }, 0);
   }, [myWeeklyShifts]);
 
+  const unreadNotifications = useMemo(() => {
+    return notifications.filter((notification) => !notification.is_read);
+  }, [notifications]);
+
+  const fetchNotifications = async () => {
+    if (!loginUserId) {
+      return;
+    }
+
+    try {
+      setNotificationLoading(true);
+
+      const res = await api.get<Notification[]>(
+        `/notifications/user/${loginUserId}`
+      );
+
+      setNotifications(res.data);
+    } catch (error) {
+      console.error("通知取得失敗:", error);
+    } finally {
+      setNotificationLoading(false);
+    }
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -207,13 +259,17 @@ export default function EmployeeDashboard() {
     }
   };
 
+  const reloadPageData = async () => {
+    await Promise.all([fetchData(), fetchNotifications()]);
+  };
+
   useEffect(() => {
     if (!loginUserId) {
       navigate("/");
       return;
     }
 
-    fetchData();
+    reloadPageData();
   }, []);
 
   const handlePrevWeek = () => {
@@ -232,6 +288,24 @@ export default function EmployeeDashboard() {
       const currentWeekStart = getWeekStart(current);
       return addDays(currentWeekStart, 7);
     });
+  };
+
+  const handleReadNotification = async (notificationId: number) => {
+    try {
+      await api.put(`/notifications/${notificationId}/read`);
+      await fetchNotifications();
+    } catch (error) {
+      console.error("通知既読失敗:", error);
+    }
+  };
+
+  const handleReadAllNotifications = async () => {
+    try {
+      await api.put(`/notifications/user/${loginUserId}/read-all`);
+      await fetchNotifications();
+    } catch (error) {
+      console.error("通知一括既読失敗:", error);
+    }
   };
 
   const handleLogout = () => {
@@ -296,7 +370,7 @@ export default function EmployeeDashboard() {
               次の週
             </button>
 
-            <button type="button" onClick={fetchData}>
+            <button type="button" onClick={reloadPageData}>
               再読み込み
             </button>
           </div>
@@ -328,6 +402,47 @@ export default function EmployeeDashboard() {
           </button>
         </div>
       </section>
+
+      {notificationLoading && (
+        <p className="employee-notification-loading">通知を確認中...</p>
+      )}
+
+      {unreadNotifications.length > 0 && (
+        <section className="employee-notification-section">
+          <div className="employee-notification-title">
+            <div>
+              <h2>通知</h2>
+              <p>自分のシフトに関するお知らせです。</p>
+            </div>
+
+            <button type="button" onClick={handleReadAllNotifications}>
+              すべて既読
+            </button>
+          </div>
+
+          <div className="employee-notification-list">
+            {unreadNotifications.map((notification) => (
+              <article
+                key={notification.id}
+                className="employee-notification-card"
+              >
+                <div>
+                  <strong>{notification.title}</strong>
+                  <p>{notification.message}</p>
+                  <span>{formatNotificationDate(notification.created_at)}</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleReadNotification(notification.id)}
+                >
+                  既読
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="employee-summary-row">
         <div className="employee-summary-card">
