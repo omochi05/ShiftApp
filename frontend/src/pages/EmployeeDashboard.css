@@ -481,3 +481,102 @@
     box-sizing: border-box !important;
   }
 }
+
+/* =========================
+   従業員画面：対象週 input はみ出し最終修正
+   ボックスを小さめ中央寄せにする
+========================= */
+
+@media screen and (max-width: 560px) {
+  .employee-control-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    padding: 18px !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  .employee-week-control {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    display: grid !important;
+    gap: 14px !important;
+
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  .employee-week-control label {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 10px !important;
+
+    box-sizing: border-box !important;
+    text-align: center !important;
+  }
+
+  .employee-week-control input[type="date"] {
+    width: 100% !important;
+    max-width: 320px !important;
+    min-width: 0 !important;
+
+    height: 54px !important;
+    margin: 0 auto !important;
+    padding: 10px 12px !important;
+
+    display: block !important;
+    box-sizing: border-box !important;
+
+    background: #ffffff !important;
+    color: #111827 !important;
+
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 16px !important;
+
+    font-size: 18px !important;
+    font-weight: 900 !important;
+
+    text-align: center !important;
+    text-align-last: center !important;
+
+    appearance: none !important;
+    -webkit-appearance: none !important;
+  }
+
+  .employee-week-buttons {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+
+    box-sizing: border-box !important;
+  }
+
+  .employee-week-buttons button,
+  .employee-actions button {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    box-sizing: border-box !important;
+  }
+
+  .employee-page {
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+}
