@@ -56,7 +56,7 @@ function getCurrentMonth() {
 }
 
 function timeToMinutes(time: string) {
-  const [hour, minute] = time.split(":").map(Number);
+  const [hour, minute] = time.slice(0, 5).split(":").map(Number);
   return hour * 60 + minute;
 }
 
@@ -84,6 +84,18 @@ function formatDuration(minutes: number) {
   }
 
   return `${hours}時間${mins}分`;
+}
+
+function getRoleLabel(role: string) {
+  if (role === "owner") {
+    return "オーナー";
+  }
+
+  if (role === "manager") {
+    return "管理者";
+  }
+
+  return "従業員";
 }
 
 function formatApiError(error: any, fallbackMessage: string) {
@@ -127,8 +139,35 @@ export default function OwnerShiftsPage() {
     work_date: getTodayDate(),
   });
 
-  const employeeUsers = useMemo(() => {
-    return users.filter((user) => user.role === "employee");
+  /**
+   * シフト登録対象。
+   * 管理者画面から入った場合でも、
+   * オーナー・管理者・従業員を全員シフトに登録できる。
+   */
+  const shiftUsers = useMemo(() => {
+    return users
+      .filter(
+        (user) =>
+          user.role === "owner" ||
+          user.role === "manager" ||
+          user.role === "employee"
+      )
+      .sort((a, b) => {
+        const roleOrder: Record<string, number> = {
+          owner: 1,
+          manager: 2,
+          employee: 3,
+        };
+
+        const roleA = roleOrder[a.role] ?? 99;
+        const roleB = roleOrder[b.role] ?? 99;
+
+        if (roleA !== roleB) {
+          return roleA - roleB;
+        }
+
+        return a.id - b.id;
+      });
   }, [users]);
 
   const monthlyShifts = useMemo(() => {
@@ -136,19 +175,38 @@ export default function OwnerShiftsPage() {
   }, [shifts, targetMonth]);
 
   const sortedMonthlyShifts = useMemo(() => {
-    return [...monthlyShifts].sort((a, b) => {
-      if (a.work_date < b.work_date) return -1;
-      if (a.work_date > b.work_date) return 1;
+    const seen = new Set<string>();
 
-      if (a.start_time < b.start_time) return -1;
-      if (a.start_time > b.start_time) return 1;
+    return [...monthlyShifts]
+      .filter((shift) => {
+        const key = [
+          shift.user_id,
+          shift.work_date,
+          shift.start_time.slice(0, 5),
+          shift.end_time.slice(0, 5),
+          shift.break_minutes,
+        ].join("-");
 
-      return a.id - b.id;
-    });
+        if (seen.has(key)) {
+          return false;
+        }
+
+        seen.add(key);
+        return true;
+      })
+      .sort((a, b) => {
+        if (a.work_date < b.work_date) return -1;
+        if (a.work_date > b.work_date) return 1;
+
+        if (a.start_time < b.start_time) return -1;
+        if (a.start_time > b.start_time) return 1;
+
+        return a.id - b.id;
+      });
   }, [monthlyShifts]);
 
   const employeeMonthlySummaries = useMemo<EmployeeMonthlySummary[]>(() => {
-    return employeeUsers.map((user) => {
+    return shiftUsers.map((user) => {
       const userShifts = sortedMonthlyShifts.filter(
         (shift) => shift.user_id === user.id
       );
@@ -163,7 +221,7 @@ export default function OwnerShiftsPage() {
         totalMinutes,
       };
     });
-  }, [employeeUsers, sortedMonthlyShifts]);
+  }, [shiftUsers, sortedMonthlyShifts]);
 
   const totalMonthlyMinutes = useMemo(() => {
     return employeeMonthlySummaries.reduce((sum, item) => {
@@ -172,8 +230,8 @@ export default function OwnerShiftsPage() {
   }, [employeeMonthlySummaries]);
 
   const monthlyShiftIds = useMemo(() => {
-    return monthlyShifts.map((shift) => shift.id);
-  }, [monthlyShifts]);
+    return sortedMonthlyShifts.map((shift) => shift.id);
+  }, [sortedMonthlyShifts]);
 
   const selectedMonthlyShiftIds = useMemo(() => {
     return selectedShiftIds.filter((id) => monthlyShiftIds.includes(id));
@@ -219,7 +277,7 @@ export default function OwnerShiftsPage() {
   };
 
   const openAllLogs = () => {
-    setOpenedEmployeeIds(employeeUsers.map((user) => user.id));
+    setOpenedEmployeeIds(shiftUsers.map((user) => user.id));
   };
 
   const closeAllLogs = () => {
@@ -251,7 +309,7 @@ export default function OwnerShiftsPage() {
 
   const validateShiftForm = (form: ShiftForm) => {
     if (!form.user_id) {
-      return "従業員を選択してください";
+      return "勤務者を選択してください";
     }
 
     if (!form.work_date) {
@@ -320,8 +378,8 @@ export default function OwnerShiftsPage() {
     setEditShiftForm({
       user_id: String(shift.user_id),
       work_date: shift.work_date,
-      start_time: shift.start_time,
-      end_time: shift.end_time,
+      start_time: shift.start_time.slice(0, 5),
+      end_time: shift.end_time.slice(0, 5),
       break_minutes: String(shift.break_minutes || 0),
     });
 
@@ -457,8 +515,8 @@ export default function OwnerShiftsPage() {
           <p className="owner-shifts-label">Shift Management</p>
           <h2>シフト管理</h2>
           <p>
-            従業員ごとの月間労働時間とシフト登録ログを確認できます。
-            登録したシフトは売上分析や人件費計算にも反映されます。
+            オーナー・管理者・従業員をシフトに登録できます。
+            登録したシフトはシフト表、人件費計算、従業員画面にも反映されます。
           </p>
         </div>
       </section>
@@ -490,7 +548,7 @@ export default function OwnerShiftsPage() {
       <section className="owner-shifts-summary-grid">
         <div className="owner-shifts-summary-card">
           <span>対象月のシフト数</span>
-          <strong>{monthlyShifts.length}件</strong>
+          <strong>{sortedMonthlyShifts.length}件</strong>
         </div>
 
         <div className="owner-shifts-summary-card">
@@ -499,8 +557,8 @@ export default function OwnerShiftsPage() {
         </div>
 
         <div className="owner-shifts-summary-card">
-          <span>登録従業員数</span>
-          <strong>{employeeUsers.length}人</strong>
+          <span>登録スタッフ数</span>
+          <strong>{shiftUsers.length}人</strong>
         </div>
       </section>
 
@@ -508,13 +566,13 @@ export default function OwnerShiftsPage() {
         <div className="owner-shifts-section-title">
           <div>
             <h3>シフト作成</h3>
-            <p>従業員・勤務日・勤務時間を入力してください。</p>
+            <p>勤務者・勤務日・勤務時間を入力してください。</p>
           </div>
         </div>
 
         <form className="owner-shifts-form" onSubmit={handleCreateShift}>
           <label>
-            従業員
+            勤務者
             <select
               value={shiftForm.user_id}
               onChange={(e) =>
@@ -526,9 +584,9 @@ export default function OwnerShiftsPage() {
               required
             >
               <option value="">選択してください</option>
-              {employeeUsers.map((user) => (
+              {shiftUsers.map((user) => (
                 <option key={user.id} value={user.id}>
-                  {user.name}（{user.email}）
+                  {user.name}（{getRoleLabel(user.role)} / {user.email}）
                 </option>
               ))}
             </select>
@@ -611,7 +669,7 @@ export default function OwnerShiftsPage() {
       <section className="owner-shifts-section">
         <div className="owner-shifts-section-title owner-shifts-log-title">
           <div>
-            <h3>従業員別シフト一覧</h3>
+            <h3>スタッフ別シフト一覧</h3>
             <p>
               チェックしたシフトは一括削除できます。削除後も画面位置はそのままです。
             </p>
@@ -638,7 +696,7 @@ export default function OwnerShiftsPage() {
               type="button"
               className="owner-shifts-select-button"
               onClick={selectAllMonthlyShifts}
-              disabled={deleting || monthlyShifts.length === 0}
+              disabled={deleting || sortedMonthlyShifts.length === 0}
             >
               対象月を全選択
             </button>
@@ -667,7 +725,7 @@ export default function OwnerShiftsPage() {
           <div className="owner-shifts-loading">読み込み中...</div>
         ) : employeeMonthlySummaries.length === 0 ? (
           <div className="owner-shifts-empty">
-            従業員がまだ登録されていません。
+            スタッフがまだ登録されていません。
           </div>
         ) : (
           <div className="owner-employee-shift-list">
@@ -683,7 +741,9 @@ export default function OwnerShiftsPage() {
                 >
                   <div className="owner-employee-shift-header">
                     <div>
-                      <span>{summary.user.email}</span>
+                      <span>
+                        {summary.user.email} / {getRoleLabel(summary.user.role)}
+                      </span>
                       <h4>{summary.user.name}</h4>
                     </div>
 
@@ -738,7 +798,7 @@ export default function OwnerShiftsPage() {
                                   <>
                                     <div className="owner-shift-card-edit-grid">
                                       <label>
-                                        従業員
+                                        勤務者
                                         <select
                                           value={editShiftForm.user_id}
                                           onChange={(e) =>
@@ -751,12 +811,14 @@ export default function OwnerShiftsPage() {
                                           <option value="">
                                             選択してください
                                           </option>
-                                          {employeeUsers.map((user) => (
+                                          {shiftUsers.map((user) => (
                                             <option
                                               key={user.id}
                                               value={user.id}
                                             >
-                                              {user.name}（{user.email}）
+                                              {user.name}（
+                                              {getRoleLabel(user.role)} /{" "}
+                                              {user.email}）
                                             </option>
                                           ))}
                                         </select>
@@ -868,8 +930,8 @@ export default function OwnerShiftsPage() {
                                       <div>
                                         <span>{shift.work_date}</span>
                                         <strong>
-                                          {shift.start_time} 〜{" "}
-                                          {shift.end_time}
+                                          {shift.start_time.slice(0, 5)} 〜{" "}
+                                          {shift.end_time.slice(0, 5)}
                                         </strong>
                                       </div>
 
@@ -911,9 +973,7 @@ export default function OwnerShiftsPage() {
                                       <button
                                         type="button"
                                         className="owner-shift-delete-button"
-                                        onClick={() =>
-                                          handleDeleteShift(shift)
-                                        }
+                                        onClick={() => handleDeleteShift(shift)}
                                         disabled={deleting}
                                       >
                                         削除
