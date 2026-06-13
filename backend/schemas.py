@@ -35,10 +35,46 @@ class UserResponse(BaseModel):
 
 
 # =========================
+# Auth
+# =========================
+
+class LoginRequest(BaseModel):
+    employee_number: str
+    password: str
+
+
+class PasswordChangeRequest(BaseModel):
+    user_id: int
+    current_password: str
+    new_password: str
+
+
+class OwnerLoginRequest(BaseModel):
+    employee_number: str
+    password: str
+
+
+class OwnerLoginResponse(BaseModel):
+    id: int
+    name: str
+    employee_number: str
+    role: str
+
+
+# =========================
 # Shifts
 # =========================
 
 class ShiftCreate(BaseModel):
+    user_id: int
+    work_date: date
+    start_time: time
+    end_time: time
+    break_minutes: int = 0
+    created_by: int | None = None
+
+
+class ShiftUpdate(BaseModel):
     user_id: int
     work_date: date
     start_time: time
@@ -57,6 +93,24 @@ class ShiftResponse(BaseModel):
     created_by: int | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+
+# =========================
+# Notifications
+# =========================
+
+class NotificationResponse(BaseModel):
+    id: int
+    user_id: int
+    title: str
+    message: str
+    notification_type: str
+    related_shift_id: int | None = None
+    is_read: bool
+    created_at: datetime | None = None
 
     class Config:
         from_attributes = True
@@ -132,22 +186,6 @@ class OwnerDashboardWeekdayResponse(BaseModel):
 
 
 # =========================
-# Auth
-# =========================
-
-class OwnerLoginRequest(BaseModel):
-    employee_number: str
-    password: str
-
-
-class OwnerLoginResponse(BaseModel):
-    id: int
-    name: str
-    employee_number: str
-    role: str
-
-
-# =========================
 # Shift Templates
 # =========================
 
@@ -192,13 +230,3 @@ class ApplyShiftTemplateRequest(BaseModel):
 class CreateTemplateFromWeekRequest(BaseModel):
     week_start_date: date
     created_by: int | None = None
-
-class LoginRequest(BaseModel):
-    employee_number: str
-    password: str
-
-
-class PasswordChangeRequest(BaseModel):
-    user_id: int
-    current_password: str
-    new_password: str
