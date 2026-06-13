@@ -37,8 +37,7 @@ export default function LoginPage() {
   };
 
   const saveLoginStorage = (user: LoginUser) => {
-    const storedRole =
-      user.employee_number === "9999" ? "employee" : user.role;
+    const storedRole = user.employee_number === "9999" ? "employee" : user.role;
 
     localStorage.setItem("loginUserId", String(user.id));
     localStorage.setItem("loginName", user.name);
@@ -108,45 +107,26 @@ export default function LoginPage() {
 
   return (
     <div className="seven-login-page">
-      <main className="seven-login-shell">
-        <section className="seven-brand-card">
+      <main className="seven-login-shell simple-login-shell">
+        <section className="seven-login-card simple-login-card">
           <div className="seven-color-lines">
             <span className="seven-line-green" />
             <span className="seven-line-orange" />
             <span className="seven-line-red" />
           </div>
 
-          <p className="seven-brand-label">SHIFT MANAGEMENT</p>
-
-          <h1>
-            ShiftApp
-            <span>シフト管理システム</span>
-          </h1>
-
-          <p className="seven-brand-text">
-            従業員番号と4桁パスワードでログインできます。
-            オーナー・管理者・従業員ごとに画面を切り替えます。
-          </p>
-
-          <div className="seven-feature-list">
-            <div>
-              <strong>シフト管理</strong>
-              <span>週ごとの勤務表を確認・編集</span>
+          <div className="seven-app-mark">
+            <div className="seven-app-icon">
+              <span>7</span>
             </div>
+
             <div>
-              <strong>人件費管理</strong>
-              <span>時給・勤務時間から自動計算</span>
-            </div>
-            <div>
-              <strong>印刷対応</strong>
-              <span>A3サイズのシフト表を作成</span>
+              <p>STORE SHIFT SYSTEM</p>
+              <h1>SevenShift Manager</h1>
             </div>
           </div>
-        </section>
 
-        <section className="seven-login-card">
           <div className="seven-login-card-header">
-            <p>LOGIN</p>
             <h2>ログイン</h2>
             <span>従業員番号と4桁パスワードを入力してください。</span>
           </div>
@@ -184,6 +164,10 @@ export default function LoginPage() {
               {loading ? "ログイン中..." : "ログイン"}
             </button>
           </form>
+
+          <p className="seven-login-footer">
+            Staff scheduling / attendance management
+          </p>
         </section>
       </main>
     </div>

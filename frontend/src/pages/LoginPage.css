@@ -433,3 +433,254 @@
   opacity: 0.65;
   cursor: not-allowed;
 }
+
+/* =========================
+   SevenShift Manager ログイン画面
+========================= */
+
+.seven-login-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(0, 128, 68, 0.16), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(239, 68, 68, 0.14), transparent 36%),
+    linear-gradient(135deg, #f8fafc 0%, #ffffff 45%, #f1f5f9 100%);
+}
+
+.simple-login-shell {
+  min-height: 100vh;
+  padding: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.simple-login-card {
+  width: min(460px, 100%);
+  padding: 34px;
+
+  border-radius: 34px;
+  background: rgba(255, 255, 255, 0.96);
+
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow:
+    0 26px 70px rgba(15, 23, 42, 0.16),
+    0 0 0 8px rgba(255, 255, 255, 0.45);
+
+  position: relative;
+  overflow: hidden;
+}
+
+.simple-login-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+
+  height: 10px;
+
+  background: linear-gradient(
+    90deg,
+    #008044 0%,
+    #008044 33%,
+    #f58220 33%,
+    #f58220 66%,
+    #ef3340 66%,
+    #ef3340 100%
+  );
+}
+
+.simple-login-card .seven-color-lines {
+  display: none;
+}
+
+.seven-app-mark {
+  margin-bottom: 28px;
+
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.seven-app-icon {
+  width: 68px;
+  height: 68px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 22px;
+
+  background:
+    linear-gradient(#ffffff, #ffffff) padding-box,
+    linear-gradient(135deg, #008044, #f58220, #ef3340) border-box;
+
+  border: 4px solid transparent;
+
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
+}
+
+.seven-app-icon span {
+  color: #008044;
+
+  font-size: 34px;
+  font-weight: 1000;
+  line-height: 1;
+}
+
+.seven-app-mark p {
+  margin: 0 0 5px;
+
+  color: #f58220;
+
+  font-size: 12px;
+  font-weight: 1000;
+  letter-spacing: 0.16em;
+}
+
+.seven-app-mark h1 {
+  margin: 0;
+
+  color: #111827;
+
+  font-size: 30px;
+  font-weight: 1000;
+  letter-spacing: -0.04em;
+}
+
+.simple-login-card .seven-login-card-header {
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.simple-login-card .seven-login-card-header p {
+  display: none;
+}
+
+.simple-login-card .seven-login-card-header h2 {
+  margin: 0 0 8px;
+
+  color: #111827;
+
+  font-size: 26px;
+  font-weight: 1000;
+}
+
+.simple-login-card .seven-login-card-header span {
+  color: #64748b;
+
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+.simple-login-card .seven-login-form label {
+  color: #111827;
+
+  font-size: 14px;
+  font-weight: 1000;
+}
+
+.simple-login-card .seven-login-form input {
+  height: 54px;
+  margin-top: 8px;
+  padding: 0 16px;
+
+  border: 2px solid #e2e8f0;
+  border-radius: 18px;
+
+  background: #f8fafc;
+  color: #111827;
+
+  font-size: 17px;
+  font-weight: 900;
+
+  outline: none;
+  box-sizing: border-box;
+}
+
+.simple-login-card .seven-login-form input:focus {
+  border-color: #008044;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(0, 128, 68, 0.12);
+}
+
+.simple-login-card .seven-login-form button {
+  height: 56px;
+
+  border: none;
+  border-radius: 18px;
+
+  background: linear-gradient(135deg, #008044, #00a35a);
+  color: #ffffff;
+
+  font-size: 17px;
+  font-weight: 1000;
+
+  cursor: pointer;
+  box-shadow: 0 14px 28px rgba(0, 128, 68, 0.24);
+}
+
+.simple-login-card .seven-login-form button:hover {
+  transform: translateY(-1px);
+}
+
+.simple-login-card .seven-login-form button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.seven-login-message {
+  padding: 12px 14px;
+
+  border-radius: 14px;
+
+  background: #fef2f2;
+  color: #b91c1c;
+
+  font-size: 14px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.seven-login-footer {
+  margin: 22px 0 0;
+
+  color: #94a3b8;
+
+  font-size: 12px;
+  font-weight: 900;
+  text-align: center;
+  letter-spacing: 0.08em;
+}
+
+@media screen and (max-width: 560px) {
+  .simple-login-shell {
+    padding: 18px;
+  }
+
+  .simple-login-card {
+    width: 100%;
+    padding: 28px 22px;
+    border-radius: 28px;
+  }
+
+  .seven-app-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 20px;
+  }
+
+  .seven-app-icon span {
+    font-size: 30px;
+  }
+
+  .seven-app-mark h1 {
+    font-size: 25px;
+  }
+
+  .simple-login-card .seven-login-card-header h2 {
+    font-size: 23px;
+  }
+}
