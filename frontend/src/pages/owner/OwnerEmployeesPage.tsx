@@ -25,12 +25,20 @@ const initialEmployeeForm: EmployeeForm = {
   hourly_wage: "",
 };
 
-function getRoleLabel(role: string) {
-  if (role === "owner") {
+function isMaintenanceUser(user: User) {
+  return user.email === "9999";
+}
+
+function getRoleLabel(user: User) {
+  if (isMaintenanceUser(user)) {
+    return "メンテナンス";
+  }
+
+  if (user.role === "owner") {
     return "オーナー";
   }
 
-  if (role === "manager") {
+  if (user.role === "manager") {
     return "管理者";
   }
 
@@ -71,24 +79,30 @@ export default function OwnerEmployeesPage() {
     useState<EmployeeForm>(initialEmployeeForm);
 
   const visibleUsers = useMemo(() => {
-    return users
-      .filter((user) => user.email !== "9999")
-      .sort((a, b) => {
-        const roleOrder: Record<string, number> = {
-          owner: 1,
-          manager: 2,
-          employee: 3,
-        };
+    return [...users].sort((a, b) => {
+      if (a.email === "9999") {
+        return -1;
+      }
 
-        const roleA = roleOrder[a.role] ?? 99;
-        const roleB = roleOrder[b.role] ?? 99;
+      if (b.email === "9999") {
+        return 1;
+      }
 
-        if (roleA !== roleB) {
-          return roleA - roleB;
-        }
+      const roleOrder: Record<string, number> = {
+        owner: 1,
+        manager: 2,
+        employee: 3,
+      };
 
-        return a.id - b.id;
-      });
+      const roleA = roleOrder[a.role] ?? 99;
+      const roleB = roleOrder[b.role] ?? 99;
+
+      if (roleA !== roleB) {
+        return roleA - roleB;
+      }
+
+      return a.id - b.id;
+    });
   }, [users]);
 
   const fetchUsers = async () => {
@@ -124,7 +138,7 @@ export default function OwnerEmployeesPage() {
     }
 
     if (newEmployee.employee_number.trim() === "9999") {
-      setMessage("9999はメンテナンス用のため使用できません");
+      setMessage("9999はメンテナンス用のため追加画面では作成できません");
       return;
     }
 
@@ -170,7 +184,7 @@ export default function OwnerEmployeesPage() {
     setEditEmployee(initialEmployeeForm);
   };
 
-  const handleUpdateEmployee = async (userId: number) => {
+  const handleUpdateEmployee = async (user: User) => {
     if (!editEmployee.employee_number.trim()) {
       setMessage("従業員番号を入力してください");
       return;
@@ -181,7 +195,12 @@ export default function OwnerEmployeesPage() {
       return;
     }
 
-    if (editEmployee.employee_number.trim() === "9999") {
+    if (isMaintenanceUser(user) && editEmployee.employee_number !== "9999") {
+      setMessage("メンテナンス用アカウントの従業員番号は変更できません");
+      return;
+    }
+
+    if (!isMaintenanceUser(user) && editEmployee.employee_number === "9999") {
       setMessage("9999はメンテナンス用のため使用できません");
       return;
     }
@@ -189,10 +208,12 @@ export default function OwnerEmployeesPage() {
     try {
       setMessage("");
 
-      await api.put(`/users/${userId}`, {
+      await api.put(`/users/${user.id}`, {
         name: editEmployee.name.trim(),
-        email: editEmployee.employee_number.trim(),
-        role: editEmployee.role,
+        email: isMaintenanceUser(user)
+          ? "9999"
+          : editEmployee.employee_number.trim(),
+        role: isMaintenanceUser(user) ? "owner" : editEmployee.role,
         hourly_wage: Number(editEmployee.hourly_wage || 0),
       });
 
@@ -208,26 +229,19 @@ export default function OwnerEmployeesPage() {
     }
   };
 
-  const handleDeleteUser = async (userId: number) => {
-    const targetUser = users.find((user) => user.id === userId);
-
-    if (!targetUser) {
-      setMessage("削除対象のユーザーが見つかりません");
-      return;
-    }
-
-    if (targetUser.email === "9999") {
+  const handleDeleteUser = async (user: User) => {
+    if (isMaintenanceUser(user)) {
       setMessage("メンテナンス用アカウントは削除できません");
       return;
     }
 
-    if (targetUser.role === "owner") {
+    if (user.role === "owner") {
       setMessage("オーナーは画面から削除できません");
       return;
     }
 
     const ok = window.confirm(
-      `${targetUser.name}（${targetUser.email}）を削除しますか？\nこのユーザーのシフトや関連データも削除される可能性があります。`
+      `${user.name}（${user.email}）を削除しますか？\nこのユーザーのシフトや関連データも削除される可能性があります。`
     );
 
     if (!ok) {
@@ -237,7 +251,7 @@ export default function OwnerEmployeesPage() {
     try {
       setMessage("");
 
-      await api.delete(`/users/${userId}`);
+      await api.delete(`/users/${user.id}`);
 
       setMessage("ユーザーを削除しました");
 
@@ -258,7 +272,7 @@ export default function OwnerEmployeesPage() {
           <h2>従業員管理</h2>
           <p>
             従業員・管理者・オーナーの確認、時給や権限の変更を行います。
-            メンテナンス用アカウントはここには表示されません。
+            メンテナンス用アカウントも確認できます。
           </p>
         </div>
 
@@ -388,11 +402,12 @@ export default function OwnerEmployeesPage() {
                 ) : (
                   visibleUsers.map((user) => {
                     const isEditing = editingEmployeeId === user.id;
+                    const isMaintenance = isMaintenanceUser(user);
 
                     return (
                       <tr key={user.id}>
                         <td>
-                          {isEditing ? (
+                          {isEditing && !isMaintenance ? (
                             <input
                               type="text"
                               value={editEmployee.employee_number}
@@ -426,7 +441,7 @@ export default function OwnerEmployeesPage() {
                         </td>
 
                         <td>
-                          {isEditing ? (
+                          {isEditing && !isMaintenance ? (
                             <select
                               value={editEmployee.role}
                               onChange={(e) =>
@@ -441,7 +456,7 @@ export default function OwnerEmployeesPage() {
                               <option value="owner">オーナー</option>
                             </select>
                           ) : (
-                            getRoleLabel(user.role)
+                            getRoleLabel(user)
                           )}
                         </td>
 
@@ -469,7 +484,7 @@ export default function OwnerEmployeesPage() {
                               <button
                                 type="button"
                                 className="owner-table-save-button"
-                                onClick={() => handleUpdateEmployee(user.id)}
+                                onClick={() => handleUpdateEmployee(user)}
                               >
                                 保存
                               </button>
@@ -492,11 +507,11 @@ export default function OwnerEmployeesPage() {
                                 編集
                               </button>
 
-                              {user.role !== "owner" && (
+                              {!isMaintenance && user.role !== "owner" && (
                                 <button
                                   type="button"
                                   className="owner-table-delete-button"
-                                  onClick={() => handleDeleteUser(user.id)}
+                                  onClick={() => handleDeleteUser(user)}
                                 >
                                   削除
                                 </button>

@@ -21,9 +21,8 @@ export default function LoginPage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const normalizeFourDigitPassword = (value: string) => {
-    return value.replace(/\D/g, "").slice(0, 4);
-  };
+  const normalizeFourDigitPassword = (value: string) =>
+    value.replace(/\D/g, "").slice(0, 4);
 
   const clearOldLoginStorage = () => {
     localStorage.removeItem("loginUserId");
@@ -38,11 +37,13 @@ export default function LoginPage() {
   };
 
   const saveLoginStorage = (user: LoginUser) => {
+    const storedRole =
+      user.employee_number === "9999" ? "employee" : user.role;
+
     localStorage.setItem("loginUserId", String(user.id));
     localStorage.setItem("loginName", user.name);
-    localStorage.setItem("loginRole", user.role);
+    localStorage.setItem("loginRole", storedRole);
     localStorage.setItem("employeeNumber", user.employee_number);
-
     localStorage.setItem("ownerName", user.name);
   };
 
@@ -75,6 +76,11 @@ export default function LoginPage() {
 
       clearOldLoginStorage();
       saveLoginStorage(user);
+
+      if (user.employee_number === "9999") {
+        navigate("/employee");
+        return;
+      }
 
       if (user.role === "owner") {
         navigate("/owner");
@@ -127,12 +133,10 @@ export default function LoginPage() {
               <strong>シフト管理</strong>
               <span>週ごとの勤務表を確認・編集</span>
             </div>
-
             <div>
               <strong>人件費管理</strong>
               <span>時給・勤務時間から自動計算</span>
             </div>
-
             <div>
               <strong>印刷対応</strong>
               <span>A3サイズのシフト表を作成</span>
