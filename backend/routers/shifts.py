@@ -31,16 +31,26 @@ def create_shift_notification(
     message: str,
     notification_type: str,
 ):
-    notification = Notification(
-        user_id=user_id,
-        title=title,
-        message=message,
-        notification_type=notification_type,
-        related_shift_id=shift_id,
-        is_read=False,
-    )
+    """
+    通知作成用。
+    通知作成に失敗しても、シフト作成・更新自体は成功扱いにする。
+    """
+    try:
+        notification = Notification(
+            user_id=user_id,
+            title=title,
+            message=message,
+            notification_type=notification_type,
+            related_shift_id=shift_id,
+            is_read=False,
+        )
 
-    db.add(notification)
+        db.add(notification)
+        db.commit()
+
+    except Exception as error:
+        db.rollback()
+        print("通知作成に失敗しました:", error)
 
 
 @router.get("/", response_model=List[ShiftResponse])
@@ -62,6 +72,7 @@ def create_shift(shift: ShiftCreate, db: Session = Depends(get_db)):
         start_time=shift.start_time,
         end_time=shift.end_time,
         break_minutes=shift.break_minutes,
+        created_by=shift.created_by,
     )
 
     db.add(db_shift)
@@ -80,9 +91,6 @@ def create_shift(shift: ShiftCreate, db: Session = Depends(get_db)):
         ),
         notification_type="shift_created",
     )
-
-    db.commit()
-    db.refresh(db_shift)
 
     return db_shift
 
@@ -111,6 +119,7 @@ def update_shift(
     db_shift.start_time = shift.start_time
     db_shift.end_time = shift.end_time
     db_shift.break_minutes = shift.break_minutes
+    db_shift.created_by = shift.created_by
 
     db.commit()
     db.refresh(db_shift)
@@ -142,9 +151,6 @@ def update_shift(
             notification_type="shift_removed",
         )
 
-    db.commit()
-    db.refresh(db_shift)
-
     return db_shift
 
 
@@ -161,12 +167,21 @@ def delete_shift(
             detail="シフトが見つかりません",
         )
 
-    db.query(Notification).filter(
-        Notification.related_shift_id == shift_id
-    ).delete()
+    try:
+        db.query(Notification).filter(
+            Notification.related_shift_id == shift_id
+        ).delete()
 
-    db.delete(shift)
-    db.commit()
+        db.delete(shift)
+        db.commit()
+
+    except Exception as error:
+        db.rollback()
+        print("シフト削除に失敗しました:", error)
+        raise HTTPException(
+            status_code=500,
+            detail="シフト削除に失敗しました",
+        )
 
     return {
         "message": "シフトを削除しました",

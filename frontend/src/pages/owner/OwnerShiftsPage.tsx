@@ -332,60 +332,68 @@ export default function OwnerShiftsPage() {
     return "";
   };
 
-  const handleCreateShift = async (e: FormEvent) => {
+const handleCreateShift = async (e: FormEvent) => {
     e.preventDefault();
 
     const errorMessage = validateShiftForm(shiftForm);
     if (errorMessage) {
-      setMessage(errorMessage);
-      return;
+        setMessage(errorMessage);
+        return;
     }
 
     try {
-      setMessage("");
+        setMessage("");
 
-      await api.post("/shifts/", {
+        await api.post("/shifts/", {
         user_id: Number(shiftForm.user_id),
         work_date: shiftForm.work_date,
         start_time: shiftForm.start_time,
         end_time: shiftForm.end_time,
         break_minutes: Number(shiftForm.break_minutes || 0),
-      });
+        created_by: Number(localStorage.getItem("loginUserId") || 0) || null,
+        });
 
-      setMessage("シフトを作成しました");
+        setMessage("シフトを作成しました");
 
-      setShiftForm({
+        setShiftForm({
         ...initialShiftForm,
         work_date: shiftForm.work_date,
-      });
+        });
 
-      const createdUserId = Number(shiftForm.user_id);
-      setOpenedEmployeeIds((prev) =>
+        const createdUserId = Number(shiftForm.user_id);
+        setOpenedEmployeeIds((prev) =>
         prev.includes(createdUserId) ? prev : [...prev, createdUserId]
-      );
+        );
 
-      await fetchData({ showLoading: false });
+        try {
+        await fetchData({ showLoading: false });
+        } catch (reloadError) {
+        console.error("シフト作成後の再読み込み失敗:", reloadError);
+        setMessage(
+            "シフトは作成しましたが、再読み込みに失敗しました。画面を更新してください。"
+        );
+        }
     } catch (error: any) {
-      console.error("シフト作成失敗:", error);
-      console.error("レスポンス:", error.response?.data);
+        console.error("シフト作成失敗:", error);
+        console.error("レスポンス:", error.response?.data);
 
-      setMessage(formatApiError(error, "シフト作成に失敗しました"));
+        setMessage(formatApiError(error, "シフト作成に失敗しました"));
     }
-  };
+};
 
-  const handleStartEditShift = (shift: Shift) => {
-    setEditingShiftId(shift.id);
+    const handleStartEditShift = (shift: Shift) => {
+        setEditingShiftId(shift.id);
 
-    setEditShiftForm({
-      user_id: String(shift.user_id),
-      work_date: shift.work_date,
-      start_time: shift.start_time.slice(0, 5),
-      end_time: shift.end_time.slice(0, 5),
-      break_minutes: String(shift.break_minutes || 0),
-    });
+        setEditShiftForm({
+        user_id: String(shift.user_id),
+        work_date: shift.work_date,
+        start_time: shift.start_time.slice(0, 5),
+        end_time: shift.end_time.slice(0, 5),
+        break_minutes: String(shift.break_minutes || 0),
+        });
 
-    setMessage("");
-  };
+        setMessage("");
+    };
 
   const handleCancelEditShift = () => {
     setEditingShiftId(null);
@@ -397,34 +405,43 @@ export default function OwnerShiftsPage() {
   };
 
   const handleUpdateShift = async (shiftId: number) => {
-    const errorMessage = validateShiftForm(editShiftForm);
-    if (errorMessage) {
-      setMessage(errorMessage);
-      return;
-    }
+  const errorMessage = validateShiftForm(editShiftForm);
+  if (errorMessage) {
+    setMessage(errorMessage);
+    return;
+  }
+
+  try {
+    setMessage("");
+
+    await api.put(`/shifts/${shiftId}`, {
+      user_id: Number(editShiftForm.user_id),
+      work_date: editShiftForm.work_date,
+      start_time: editShiftForm.start_time,
+      end_time: editShiftForm.end_time,
+      break_minutes: Number(editShiftForm.break_minutes || 0),
+      created_by: Number(localStorage.getItem("loginUserId") || 0) || null,
+    });
+
+    setMessage("シフトを更新しました");
+
+    handleCancelEditShift();
 
     try {
-      setMessage("");
-
-      await api.put(`/shifts/${shiftId}`, {
-        user_id: Number(editShiftForm.user_id),
-        work_date: editShiftForm.work_date,
-        start_time: editShiftForm.start_time,
-        end_time: editShiftForm.end_time,
-        break_minutes: Number(editShiftForm.break_minutes || 0),
-      });
-
-      setMessage("シフトを更新しました");
-
-      handleCancelEditShift();
       await fetchData({ showLoading: false });
-    } catch (error: any) {
-      console.error("シフト更新失敗:", error);
-      console.error("レスポンス:", error.response?.data);
-
-      setMessage(formatApiError(error, "シフト更新に失敗しました"));
+    } catch (reloadError) {
+      console.error("シフト更新後の再読み込み失敗:", reloadError);
+      setMessage(
+        "シフトは更新しましたが、再読み込みに失敗しました。画面を更新してください。"
+      );
     }
-  };
+  } catch (error: any) {
+    console.error("シフト更新失敗:", error);
+    console.error("レスポンス:", error.response?.data);
+
+    setMessage(formatApiError(error, "シフト更新に失敗しました"));
+  }
+};
 
   const deleteShiftById = async (shiftId: number) => {
     try {
