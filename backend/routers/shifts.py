@@ -17,82 +17,86 @@ router = APIRouter(
 
 
 def format_time(value):
-    """
-    time型でも文字列でも HH:MM 表示にそろえる
-    """
     return str(value)[:5]
 
 
-def create_shift_notification(
+def create_notification(
     db: Session,
     user_id: int,
-    shift_id: int,
     title: str,
     message: str,
     notification_type: str,
+    related_shift_id: int | None = None,
+    created_by: int | None = None,
 ):
-    """
-    通知作成用。
-    通知作成に失敗しても、シフト作成・更新自体は成功扱いにする。
-    """
-    try:
-        notification = Notification(
-            user_id=user_id,
-            title=title,
-            message=message,
-            notification_type=notification_type,
-            related_shift_id=shift_id,
-            is_read=False,
-        )
+    notification = Notification(
+        user_id=user_id,
+        title=title,
+        message=message,
+        notification_type=notification_type,
+        related_shift_id=related_shift_id,
+        is_read=False,
+    )
 
-        db.add(notification)
-        db.commit()
+    if hasattr(notification, "created_by"):
+        notification.created_by = created_by
 
-    except Exception as error:
-        db.rollback()
-        print("通知作成に失敗しました:", error)
+    db.add(notification)
 
 
 @router.get("/", response_model=List[ShiftResponse])
 def get_shifts(db: Session = Depends(get_db)):
-    shifts = (
+    return (
         db.query(Shift)
         .order_by(Shift.work_date, Shift.start_time, Shift.user_id)
         .all()
     )
 
-    return shifts
-
 
 @router.post("/", response_model=ShiftResponse)
-def create_shift(shift: ShiftCreate, db: Session = Depends(get_db)):
-    db_shift = Shift(
-        user_id=shift.user_id,
-        work_date=shift.work_date,
-        start_time=shift.start_time,
-        end_time=shift.end_time,
-        break_minutes=shift.break_minutes,
-        created_by=shift.created_by,
-    )
+def create_shift(
+    shift: ShiftCreate,
+    db: Session = Depends(get_db),
+):
+    try:
+        db_shift = Shift(
+            user_id=shift.user_id,
+            work_date=shift.work_date,
+            start_time=shift.start_time,
+            end_time=shift.end_time,
+            break_minutes=shift.break_minutes,
+            created_by=shift.created_by,
+        )
 
-    db.add(db_shift)
-    db.commit()
-    db.refresh(db_shift)
+        db.add(db_shift)
+        db.flush()
 
-    create_shift_notification(
-        db=db,
-        user_id=db_shift.user_id,
-        shift_id=db_shift.id,
-        title="新しいシフトが登録されました",
-        message=(
-            f"{db_shift.work_date} "
-            f"{format_time(db_shift.start_time)}〜{format_time(db_shift.end_time)} "
-            "のシフトが登録されました。"
-        ),
-        notification_type="shift_created",
-    )
+        create_notification(
+            db=db,
+            user_id=db_shift.user_id,
+            title="新しいシフトが登録されました",
+            message=(
+                f"{db_shift.work_date} "
+                f"{format_time(db_shift.start_time)}〜{format_time(db_shift.end_time)} "
+                "のシフトが登録されました。"
+            ),
+            notification_type="shift_confirmed",
+            related_shift_id=db_shift.id,
+            created_by=shift.created_by,
+        )
 
-    return db_shift
+        db.commit()
+        db.refresh(db_shift)
+
+        return db_shift
+
+    except Exception as error:
+        db.rollback()
+        print("シフト作成または通知作成に失敗しました:", error)
+        raise HTTPException(
+            status_code=500,
+            detail=f"シフト作成に失敗しました: {error}",
+        )
 
 
 @router.put("/{shift_id}", response_model=ShiftResponse)
@@ -114,44 +118,57 @@ def update_shift(
     old_start_time = db_shift.start_time
     old_end_time = db_shift.end_time
 
-    db_shift.user_id = shift.user_id
-    db_shift.work_date = shift.work_date
-    db_shift.start_time = shift.start_time
-    db_shift.end_time = shift.end_time
-    db_shift.break_minutes = shift.break_minutes
-    db_shift.created_by = shift.created_by
+    try:
+        db_shift.user_id = shift.user_id
+        db_shift.work_date = shift.work_date
+        db_shift.start_time = shift.start_time
+        db_shift.end_time = shift.end_time
+        db_shift.break_minutes = shift.break_minutes
+        db_shift.created_by = shift.created_by
 
-    db.commit()
-    db.refresh(db_shift)
+        db.flush()
 
-    create_shift_notification(
-        db=db,
-        user_id=db_shift.user_id,
-        shift_id=db_shift.id,
-        title="シフトが変更されました",
-        message=(
-            f"{db_shift.work_date} "
-            f"{format_time(db_shift.start_time)}〜{format_time(db_shift.end_time)} "
-            "のシフトに変更されました。"
-        ),
-        notification_type="shift_updated",
-    )
-
-    if old_user_id != db_shift.user_id:
-        create_shift_notification(
+        create_notification(
             db=db,
-            user_id=old_user_id,
-            shift_id=db_shift.id,
-            title="シフト担当が変更されました",
+            user_id=db_shift.user_id,
+            title="シフトが変更されました",
             message=(
-                f"{old_work_date} "
-                f"{format_time(old_start_time)}〜{format_time(old_end_time)} "
-                "のシフト担当から外れました。"
+                f"{db_shift.work_date} "
+                f"{format_time(db_shift.start_time)}〜{format_time(db_shift.end_time)} "
+                "のシフトに変更されました。"
             ),
-            notification_type="shift_removed",
+            notification_type="shift_changed",
+            related_shift_id=db_shift.id,
+            created_by=shift.created_by,
         )
 
-    return db_shift
+        if old_user_id != db_shift.user_id:
+            create_notification(
+                db=db,
+                user_id=old_user_id,
+                title="シフト担当が変更されました",
+                message=(
+                    f"{old_work_date} "
+                    f"{format_time(old_start_time)}〜{format_time(old_end_time)} "
+                    "のシフト担当から外れました。"
+                ),
+                notification_type="shift_changed",
+                related_shift_id=db_shift.id,
+                created_by=shift.created_by,
+            )
+
+        db.commit()
+        db.refresh(db_shift)
+
+        return db_shift
+
+    except Exception as error:
+        db.rollback()
+        print("シフト更新または通知作成に失敗しました:", error)
+        raise HTTPException(
+            status_code=500,
+            detail=f"シフト更新に失敗しました: {error}",
+        )
 
 
 @router.delete("/{shift_id}")
@@ -159,34 +176,44 @@ def delete_shift(
     shift_id: int,
     db: Session = Depends(get_db),
 ):
-    shift = db.query(Shift).filter(Shift.id == shift_id).first()
+    db_shift = db.query(Shift).filter(Shift.id == shift_id).first()
 
-    if shift is None:
+    if db_shift is None:
         raise HTTPException(
             status_code=404,
             detail="シフトが見つかりません",
         )
 
     try:
-        db.query(Notification).filter(
-            Notification.related_shift_id == shift_id
-        ).delete()
+        create_notification(
+            db=db,
+            user_id=db_shift.user_id,
+            title="シフトが削除されました",
+            message=(
+                f"{db_shift.work_date} "
+                f"{format_time(db_shift.start_time)}〜{format_time(db_shift.end_time)} "
+                "のシフトが削除されました。"
+            ),
+            notification_type="shift_deleted",
+            related_shift_id=None,
+            created_by=db_shift.created_by,
+        )
 
-        db.delete(shift)
+        db.delete(db_shift)
         db.commit()
+
+        return {
+            "message": "シフトを削除しました",
+            "shift_id": shift_id,
+        }
 
     except Exception as error:
         db.rollback()
-        print("シフト削除に失敗しました:", error)
+        print("シフト削除または通知作成に失敗しました:", error)
         raise HTTPException(
             status_code=500,
-            detail="シフト削除に失敗しました",
+            detail=f"シフト削除に失敗しました: {error}",
         )
-
-    return {
-        "message": "シフトを削除しました",
-        "shift_id": shift_id,
-    }
 
 
 @router.get("/user/{user_id}", response_model=List[ShiftResponse])
@@ -194,14 +221,12 @@ def get_shifts_by_user(
     user_id: int,
     db: Session = Depends(get_db),
 ):
-    shifts = (
+    return (
         db.query(Shift)
         .filter(Shift.user_id == user_id)
         .order_by(Shift.work_date, Shift.start_time)
         .all()
     )
-
-    return shifts
 
 
 @router.get("/user/{user_id}/month", response_model=List[ShiftResponse])
@@ -216,7 +241,7 @@ def get_shifts_by_user_and_month(
     start_date = date(year, month, 1)
     end_date = date(year, month, last_day)
 
-    shifts = (
+    return (
         db.query(Shift)
         .filter(Shift.user_id == user_id)
         .filter(Shift.work_date >= start_date)
@@ -224,5 +249,3 @@ def get_shifts_by_user_and_month(
         .order_by(Shift.work_date, Shift.start_time)
         .all()
     )
-
-    return shifts
