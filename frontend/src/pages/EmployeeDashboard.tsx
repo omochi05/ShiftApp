@@ -71,7 +71,7 @@ function getShiftHours(shift: Shift) {
   const [startHour, startMinute] = start.split(":").map(Number);
   const [endHour, endMinute] = end.split(":").map(Number);
 
-  let startTotal = startHour * 60 + startMinute;
+  const startTotal = startHour * 60 + startMinute;
   let endTotal = endHour * 60 + endMinute;
 
   if (endTotal <= startTotal) {
@@ -111,6 +111,8 @@ export default function EmployeeDashboard() {
   const loginName = localStorage.getItem("loginName") || "従業員";
   const employeeNumber = localStorage.getItem("employeeNumber") || "-";
 
+  const isMaintenance = employeeNumber === "9999";
+
   const [users, setUsers] = useState<User[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [targetDate, setTargetDate] = useState(getTodayDate());
@@ -130,11 +132,6 @@ export default function EmployeeDashboard() {
     return map;
   }, [users]);
 
-  /**
-   * シフト表本体は、オーナー・管理者と同じ全員分のシフトを表示する。
-   * ただし、従業員画面では編集・追加・削除はできない。
-   * 同じシフトが重複して返ってきても、画面では1件にまとめる。
-   */
   const weeklyShifts = useMemo(() => {
     const seen = new Set<string>();
 
@@ -178,9 +175,6 @@ export default function EmployeeDashboard() {
       });
   }, [shifts, weekStart, weekEnd, userNameMap]);
 
-  /**
-   * 集計カードだけは、ログイン中の本人のシフトだけで計算する。
-   */
   const myWeeklyShifts = useMemo(() => {
     return weeklyShifts.filter((shift) => shift.user_id === loginUserId);
   }, [weeklyShifts, loginUserId]);
@@ -258,11 +252,16 @@ export default function EmployeeDashboard() {
     <div className="employee-page">
       <header className="employee-hero">
         <div>
-          <p className="employee-label">EMPLOYEE DASHBOARD</p>
-          <h1>従業員画面</h1>
+          <p className="employee-label">
+            {isMaintenance ? "MAINTENANCE DASHBOARD" : "EMPLOYEE DASHBOARD"}
+          </p>
+
+          <h1>{isMaintenance ? "メンテナンス画面" : "従業員画面"}</h1>
+
           <span>
-            オーナー・管理者が作成したシフト表を確認できます。
-            従業員側から編集・追加・削除はできません。
+            {isMaintenance
+              ? "メンテナンス用アカウントです。従業員画面から各管理画面へ切り替えできます。"
+              : "オーナー・管理者が作成したシフト表を確認できます。従業員側から編集・追加・削除はできません。"}
           </span>
         </div>
 
@@ -304,6 +303,18 @@ export default function EmployeeDashboard() {
         </div>
 
         <div className="employee-actions">
+          {isMaintenance && (
+            <>
+              <button type="button" onClick={() => navigate("/owner")}>
+                オーナー画面へ
+              </button>
+
+              <button type="button" onClick={() => navigate("/manager")}>
+                管理者画面へ
+              </button>
+            </>
+          )}
+
           <button type="button" onClick={() => navigate("/change-password")}>
             パスワード変更
           </button>
