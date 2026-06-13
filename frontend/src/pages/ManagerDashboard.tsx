@@ -107,7 +107,9 @@ export default function ManagerDashboard() {
         >
           <span>SHIFT</span>
           <strong>シフト管理</strong>
-          <small>オーナーと同じシフトデータを作成・編集できます</small>
+          <small>
+            オーナー・管理者・従業員をシフトに登録できます
+          </small>
         </button>
 
         <button
