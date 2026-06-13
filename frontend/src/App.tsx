@@ -20,7 +20,6 @@ function AppLayout() {
     <Routes>
       <Route path="/" element={<LoginPage />} />
 
-      {/* オーナー・管理者 共通エリア */}
       <Route
         path="/owner"
         element={
@@ -30,14 +29,11 @@ function AppLayout() {
         }
       >
         <Route index element={<OwnerDashboardHome />} />
-
-        {/* オーナー・管理者で連携 */}
         <Route path="shifts" element={<OwnerShiftsPage />} />
         <Route path="timeline" element={<OwnerShiftTimelinePage />} />
         <Route path="employees" element={<OwnerEmployeesPage />} />
         <Route path="print/shifts" element={<ShiftPrintPage />} />
 
-        {/* 売上管理はオーナーだけ */}
         <Route
           path="sales"
           element={
@@ -48,7 +44,6 @@ function AppLayout() {
         />
       </Route>
 
-      {/* 管理者トップ */}
       <Route
         path="/manager"
         element={
@@ -58,7 +53,6 @@ function AppLayout() {
         }
       />
 
-      {/* 従業員トップ */}
       <Route
         path="/employee"
         element={
@@ -68,7 +62,6 @@ function AppLayout() {
         }
       />
 
-      {/* ログイン後のパスワード変更 */}
       <Route
         path="/change-password"
         element={

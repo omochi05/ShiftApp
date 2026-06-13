@@ -35,7 +35,11 @@ export default function ManagerDashboard() {
 
   const roleUsers = useMemo(() => {
     return users
-      .filter((user) => user.role === "owner" || user.role === "manager")
+      .filter(
+        (user) =>
+          user.email !== "9999" &&
+          (user.role === "owner" || user.role === "manager")
+      )
       .sort((a, b) => {
         if (a.role !== b.role) {
           return a.role === "owner" ? -1 : 1;
@@ -107,9 +111,7 @@ export default function ManagerDashboard() {
         >
           <span>SHIFT</span>
           <strong>シフト管理</strong>
-          <small>
-            オーナー・管理者・従業員をシフトに登録できます
-          </small>
+          <small>オーナー・管理者・従業員をシフトに登録できます</small>
         </button>
 
         <button

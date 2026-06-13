@@ -12,6 +12,7 @@ type OwnerLink = {
   color: string;
   end?: boolean;
   ownerOnly?: boolean;
+  maintenanceOnly?: boolean;
 };
 
 const ownerLinks: OwnerLink[] = [
@@ -54,6 +55,20 @@ const ownerLinks: OwnerLink[] = [
     color: "gray",
   },
   {
+    to: "/manager",
+    label: "管理者画面",
+    description: "メンテナンス確認",
+    color: "blue",
+    maintenanceOnly: true,
+  },
+  {
+    to: "/employee",
+    label: "従業員画面",
+    description: "メンテナンス確認",
+    color: "green",
+    maintenanceOnly: true,
+  },
+  {
     to: "/change-password",
     label: "パスワード変更",
     description: "4桁パスワード",
@@ -63,10 +78,17 @@ const ownerLinks: OwnerLink[] = [
 
 export default function OwnerNavigation({ onCloseMenu }: OwnerNavigationProps) {
   const navigate = useNavigate();
+
   const loginRole = localStorage.getItem("loginRole");
+  const employeeNumber = localStorage.getItem("employeeNumber");
+  const isMaintenance = employeeNumber === "9999";
 
   const visibleLinks = ownerLinks.filter((link) => {
-    if (link.ownerOnly && loginRole !== "owner") {
+    if (link.maintenanceOnly && !isMaintenance) {
+      return false;
+    }
+
+    if (link.ownerOnly && loginRole !== "owner" && !isMaintenance) {
       return false;
     }
 
@@ -96,7 +118,11 @@ export default function OwnerNavigation({ onCloseMenu }: OwnerNavigationProps) {
       <div className="owner-navigation-title">
         <strong>ShiftApp</strong>
         <span>
-          {loginRole === "manager" ? "管理者メニュー" : "オーナー管理"}
+          {isMaintenance
+            ? "メンテナンス"
+            : loginRole === "manager"
+            ? "管理者メニュー"
+            : "オーナー管理"}
         </span>
       </div>
 
@@ -114,7 +140,6 @@ export default function OwnerNavigation({ onCloseMenu }: OwnerNavigationProps) {
             onClick={onCloseMenu}
           >
             <span className="owner-nav-dot" />
-
             <span className="owner-nav-text">
               <strong>{link.label}</strong>
               <small>{link.description}</small>
@@ -123,11 +148,7 @@ export default function OwnerNavigation({ onCloseMenu }: OwnerNavigationProps) {
         ))}
       </div>
 
-      <button
-        type="button"
-        className="owner-nav-logout"
-        onClick={handleLogout}
-      >
+      <button type="button" className="owner-nav-logout" onClick={handleLogout}>
         ログアウト
       </button>
     </nav>

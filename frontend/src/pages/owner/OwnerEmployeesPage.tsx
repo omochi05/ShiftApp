@@ -11,18 +11,31 @@ type User = {
   hourly_wage: number;
 };
 
-type NewEmployee = {
-  employee_number: string;
-  name: string;
-  hourly_wage: string;
-};
-
-type EditEmployeeForm = {
+type EmployeeForm = {
   employee_number: string;
   name: string;
   role: string;
   hourly_wage: string;
 };
+
+const initialEmployeeForm: EmployeeForm = {
+  employee_number: "",
+  name: "",
+  role: "employee",
+  hourly_wage: "",
+};
+
+function getRoleLabel(role: string) {
+  if (role === "owner") {
+    return "オーナー";
+  }
+
+  if (role === "manager") {
+    return "管理者";
+  }
+
+  return "従業員";
+}
 
 function formatApiError(error: any, fallbackMessage: string) {
   const detail = error.response?.data?.detail;
@@ -42,50 +55,41 @@ function formatApiError(error: any, fallbackMessage: string) {
   return `${fallbackMessage}：APIに接続できませんでした`;
 }
 
-function getRoleLabel(role: string) {
-  if (role === "manager") {
-    return "管理者";
-  }
-
-  if (role === "owner") {
-    return "オーナー";
-  }
-
-  return "従業員";
-}
-
 export default function OwnerEmployeesPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [savingUserId, setSavingUserId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
 
-  const [newEmployee, setNewEmployee] = useState<NewEmployee>({
-    employee_number: "",
-    name: "",
-    hourly_wage: "",
-  });
+  const [newEmployee, setNewEmployee] =
+    useState<EmployeeForm>(initialEmployeeForm);
 
   const [editingEmployeeId, setEditingEmployeeId] = useState<number | null>(
     null
   );
 
-  const [editingEmployees, setEditingEmployees] = useState<
-    Record<number, EditEmployeeForm>
-  >({});
+  const [editEmployee, setEditEmployee] =
+    useState<EmployeeForm>(initialEmployeeForm);
 
-  /**
-   * employee と manager を一覧に残す
-   * owner は安全のため一覧には出さない
-   */
-    const employeeUsers = useMemo(() => {
-         return users.filter(
-            (user) =>
-            user.role === "employee" ||
-            user.role === "manager" ||
-            user.role === "owner"
-        );
-    }, [users]);
+  const visibleUsers = useMemo(() => {
+    return users
+      .filter((user) => user.email !== "9999")
+      .sort((a, b) => {
+        const roleOrder: Record<string, number> = {
+          owner: 1,
+          manager: 2,
+          employee: 3,
+        };
+
+        const roleA = roleOrder[a.role] ?? 99;
+        const roleB = roleOrder[b.role] ?? 99;
+
+        if (roleA !== roleB) {
+          return roleA - roleB;
+        }
+
+        return a.id - b.id;
+      });
+  }, [users]);
 
   const fetchUsers = async () => {
     try {
@@ -119,154 +123,88 @@ export default function OwnerEmployeesPage() {
       return;
     }
 
+    if (newEmployee.employee_number.trim() === "9999") {
+      setMessage("9999はメンテナンス用のため使用できません");
+      return;
+    }
+
     try {
       setMessage("");
 
       await api.post("/users/", {
         name: newEmployee.name.trim(),
         email: newEmployee.employee_number.trim(),
-        password: "unused",
-        role: "employee",
+        password: "1234",
+        role: newEmployee.role,
         hourly_wage: Number(newEmployee.hourly_wage || 0),
       });
 
-      setMessage("従業員を追加しました");
+      setMessage("ユーザーを追加しました");
 
-      setNewEmployee({
-        employee_number: "",
-        name: "",
-        hourly_wage: "",
-      });
+      setNewEmployee(initialEmployeeForm);
 
       await fetchUsers();
     } catch (error: any) {
-      console.error("従業員追加失敗:", error);
+      console.error("ユーザー追加失敗:", error);
       console.error("レスポンス:", error.response?.data);
 
-      setMessage(formatApiError(error, "従業員の追加に失敗しました"));
+      setMessage(formatApiError(error, "ユーザーの追加に失敗しました"));
     }
   };
 
   const handleStartEditEmployee = (user: User) => {
     setEditingEmployeeId(user.id);
 
-    setEditingEmployees((prev) => ({
-      ...prev,
-      [user.id]: {
-        employee_number: user.email ?? "",
-        name: user.name ?? "",
-        role: user.role ?? "employee",
-        hourly_wage: String(user.hourly_wage ?? 0),
-      },
-    }));
+    setEditEmployee({
+      employee_number: user.email,
+      name: user.name,
+      role: user.role,
+      hourly_wage: String(user.hourly_wage),
+    });
 
     setMessage("");
   };
 
-  const handleChangeEditEmployee = (
-    userId: number,
-    field: keyof EditEmployeeForm,
-    value: string
-  ) => {
-    setEditingEmployees((prev) => {
-      const current = prev[userId] ?? {
-        employee_number: "",
-        name: "",
-        role: "employee",
-        hourly_wage: "",
-      };
-
-      return {
-        ...prev,
-        [userId]: {
-          ...current,
-          [field]: value,
-        },
-      };
-    });
-  };
-
-  const handleCancelEditEmployee = (userId: number) => {
+  const handleCancelEditEmployee = () => {
     setEditingEmployeeId(null);
-
-    setEditingEmployees((prev) => {
-      const next = { ...prev };
-      delete next[userId];
-      return next;
-    });
-
-    setMessage("");
+    setEditEmployee(initialEmployeeForm);
   };
 
   const handleUpdateEmployee = async (userId: number) => {
-    const form = editingEmployees[userId];
-
-    if (!form) {
-      setMessage("編集データが見つかりません");
-      return;
-    }
-
-    if (!form.employee_number.trim()) {
+    if (!editEmployee.employee_number.trim()) {
       setMessage("従業員番号を入力してください");
       return;
     }
 
-    if (!form.name.trim()) {
+    if (!editEmployee.name.trim()) {
       setMessage("名前を入力してください");
       return;
     }
 
-    const updatedEmployee = {
-      name: form.name.trim(),
-      email: form.employee_number.trim(),
-      role: form.role,
-      hourly_wage: Number(form.hourly_wage || 0),
-    };
+    if (editEmployee.employee_number.trim() === "9999") {
+      setMessage("9999はメンテナンス用のため使用できません");
+      return;
+    }
 
     try {
-      setSavingUserId(userId);
       setMessage("");
 
-      await api.put(`/users/${userId}`, updatedEmployee);
-
-      /**
-       * 保存成功後、画面上の一覧もすぐ更新する
-       */
-      setUsers((prev) =>
-        prev.map((user) =>
-          user.id === userId
-            ? {
-                ...user,
-                name: updatedEmployee.name,
-                email: updatedEmployee.email,
-                role: updatedEmployee.role,
-                hourly_wage: updatedEmployee.hourly_wage,
-              }
-            : user
-        )
-      );
-
-      /**
-       * 保存成功後、編集モードを解除して通常表示へ戻す
-       */
-      setEditingEmployeeId(null);
-
-      setEditingEmployees((prev) => {
-        const next = { ...prev };
-        delete next[userId];
-        return next;
+      await api.put(`/users/${userId}`, {
+        name: editEmployee.name.trim(),
+        email: editEmployee.employee_number.trim(),
+        role: editEmployee.role,
+        hourly_wage: Number(editEmployee.hourly_wage || 0),
       });
 
-      setMessage("従業員情報を更新しました");
+      setMessage("ユーザー情報を更新しました");
 
+      handleCancelEditEmployee();
       await fetchUsers();
     } catch (error: any) {
-      console.error("従業員更新失敗:", error);
+      console.error("ユーザー更新失敗:", error);
       console.error("レスポンス:", error.response?.data);
 
-      setMessage(formatApiError(error, "従業員情報の更新に失敗しました"));
-    } finally {
-      setSavingUserId(null);
+      setMessage(formatApiError(error, "ユーザー情報の更新に失敗しました"));
     }
   };
 
@@ -274,12 +212,22 @@ export default function OwnerEmployeesPage() {
     const targetUser = users.find((user) => user.id === userId);
 
     if (!targetUser) {
-      setMessage("削除対象の従業員が見つかりません");
+      setMessage("削除対象のユーザーが見つかりません");
+      return;
+    }
+
+    if (targetUser.email === "9999") {
+      setMessage("メンテナンス用アカウントは削除できません");
+      return;
+    }
+
+    if (targetUser.role === "owner") {
+      setMessage("オーナーは画面から削除できません");
       return;
     }
 
     const ok = window.confirm(
-      `${targetUser.name}（${targetUser.email}）を削除しますか？\nこの従業員のシフトや関連データも削除される可能性があります。`
+      `${targetUser.name}（${targetUser.email}）を削除しますか？\nこのユーザーのシフトや関連データも削除される可能性があります。`
     );
 
     if (!ok) {
@@ -291,24 +239,14 @@ export default function OwnerEmployeesPage() {
 
       await api.delete(`/users/${userId}`);
 
-      setMessage("従業員を削除しました");
-
-      if (editingEmployeeId === userId) {
-        setEditingEmployeeId(null);
-      }
-
-      setEditingEmployees((prev) => {
-        const next = { ...prev };
-        delete next[userId];
-        return next;
-      });
+      setMessage("ユーザーを削除しました");
 
       await fetchUsers();
     } catch (error: any) {
-      console.error("従業員削除失敗:", error);
+      console.error("ユーザー削除失敗:", error);
       console.error("レスポンス:", error.response?.data);
 
-      setMessage(formatApiError(error, "従業員の削除に失敗しました"));
+      setMessage(formatApiError(error, "ユーザーの削除に失敗しました"));
     }
   };
 
@@ -319,22 +257,22 @@ export default function OwnerEmployeesPage() {
           <p className="owner-employees-label">Employees</p>
           <h2>従業員管理</h2>
           <p>
-            従業員の追加・編集・削除、時給の変更を行います。
-            シフト作成や人件費計算に使われる大事な情報です。
+            従業員・管理者・オーナーの確認、時給や権限の変更を行います。
+            メンテナンス用アカウントはここには表示されません。
           </p>
         </div>
 
         <div className="owner-employees-count-card">
-          <span>登録スタッフ</span>
-          <strong>{employeeUsers.length}人</strong>
+          <span>登録ユーザー</span>
+          <strong>{visibleUsers.length}人</strong>
         </div>
       </section>
 
       <section className="owner-employees-section">
         <div className="owner-section-title-row">
           <div>
-            <h3>従業員追加</h3>
-            <p>従業員番号・名前・時給を入力してください。</p>
+            <h3>ユーザー追加</h3>
+            <p>従業員番号・名前・権限・時給を入力してください。</p>
           </div>
         </div>
 
@@ -345,12 +283,12 @@ export default function OwnerEmployeesPage() {
               type="text"
               value={newEmployee.employee_number}
               onChange={(e) =>
-                setNewEmployee((prev) => ({
-                  ...prev,
+                setNewEmployee({
+                  ...newEmployee,
                   employee_number: e.target.value,
-                }))
+                })
               }
-              placeholder="例：EMP001"
+              placeholder="例：001"
               required
             />
           </label>
@@ -361,14 +299,31 @@ export default function OwnerEmployeesPage() {
               type="text"
               value={newEmployee.name}
               onChange={(e) =>
-                setNewEmployee((prev) => ({
-                  ...prev,
+                setNewEmployee({
+                  ...newEmployee,
                   name: e.target.value,
-                }))
+                })
               }
               placeholder="例：田中太郎"
               required
             />
+          </label>
+
+          <label>
+            権限
+            <select
+              value={newEmployee.role}
+              onChange={(e) =>
+                setNewEmployee({
+                  ...newEmployee,
+                  role: e.target.value,
+                })
+              }
+            >
+              <option value="employee">従業員</option>
+              <option value="manager">管理者</option>
+              <option value="owner">オーナー</option>
+            </select>
           </label>
 
           <label>
@@ -377,10 +332,10 @@ export default function OwnerEmployeesPage() {
               type="number"
               value={newEmployee.hourly_wage}
               onChange={(e) =>
-                setNewEmployee((prev) => ({
-                  ...prev,
+                setNewEmployee({
+                  ...newEmployee,
                   hourly_wage: e.target.value,
-                }))
+                })
               }
               min="0"
               placeholder="例：1200"
@@ -388,7 +343,7 @@ export default function OwnerEmployeesPage() {
             />
           </label>
 
-          <button type="submit">従業員を追加</button>
+          <button type="submit">ユーザーを追加</button>
         </form>
 
         {message && <p className="owner-employees-message">{message}</p>}
@@ -397,8 +352,8 @@ export default function OwnerEmployeesPage() {
       <section className="owner-employees-section">
         <div className="owner-section-title-row">
           <div>
-            <h3>従業員一覧</h3>
-            <p>登録済みの従業員・管理者を確認できます。</p>
+            <h3>ユーザー一覧</h3>
+            <p>登録済みのユーザーを確認できます。</p>
           </div>
 
           <button
@@ -426,20 +381,13 @@ export default function OwnerEmployeesPage() {
               </thead>
 
               <tbody>
-                {employeeUsers.length === 0 ? (
+                {visibleUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={5}>従業員がまだ登録されていません</td>
+                    <td colSpan={5}>ユーザーがまだ登録されていません</td>
                   </tr>
                 ) : (
-                  employeeUsers.map((user) => {
+                  visibleUsers.map((user) => {
                     const isEditing = editingEmployeeId === user.id;
-
-                    const editForm = editingEmployees[user.id] ?? {
-                      employee_number: user.email ?? "",
-                      name: user.name ?? "",
-                      role: user.role ?? "employee",
-                      hourly_wage: String(user.hourly_wage ?? 0),
-                    };
 
                     return (
                       <tr key={user.id}>
@@ -447,13 +395,12 @@ export default function OwnerEmployeesPage() {
                           {isEditing ? (
                             <input
                               type="text"
-                              value={editForm.employee_number}
+                              value={editEmployee.employee_number}
                               onChange={(e) =>
-                                handleChangeEditEmployee(
-                                  user.id,
-                                  "employee_number",
-                                  e.target.value
-                                )
+                                setEditEmployee({
+                                  ...editEmployee,
+                                  employee_number: e.target.value,
+                                })
                               }
                             />
                           ) : (
@@ -465,13 +412,12 @@ export default function OwnerEmployeesPage() {
                           {isEditing ? (
                             <input
                               type="text"
-                              value={editForm.name}
+                              value={editEmployee.name}
                               onChange={(e) =>
-                                handleChangeEditEmployee(
-                                  user.id,
-                                  "name",
-                                  e.target.value
-                                )
+                                setEditEmployee({
+                                  ...editEmployee,
+                                  name: e.target.value,
+                                })
                               }
                             />
                           ) : (
@@ -482,13 +428,12 @@ export default function OwnerEmployeesPage() {
                         <td>
                           {isEditing ? (
                             <select
-                              value={editForm.role}
+                              value={editEmployee.role}
                               onChange={(e) =>
-                                handleChangeEditEmployee(
-                                  user.id,
-                                  "role",
-                                  e.target.value
-                                )
+                                setEditEmployee({
+                                  ...editEmployee,
+                                  role: e.target.value,
+                                })
                               }
                             >
                               <option value="employee">従業員</option>
@@ -504,13 +449,12 @@ export default function OwnerEmployeesPage() {
                           {isEditing ? (
                             <input
                               type="number"
-                              value={editForm.hourly_wage}
+                              value={editEmployee.hourly_wage}
                               onChange={(e) =>
-                                handleChangeEditEmployee(
-                                  user.id,
-                                  "hourly_wage",
-                                  e.target.value
-                                )
+                                setEditEmployee({
+                                  ...editEmployee,
+                                  hourly_wage: e.target.value,
+                                })
                               }
                               min="0"
                             />
@@ -526,16 +470,14 @@ export default function OwnerEmployeesPage() {
                                 type="button"
                                 className="owner-table-save-button"
                                 onClick={() => handleUpdateEmployee(user.id)}
-                                disabled={savingUserId === user.id}
                               >
-                                {savingUserId === user.id ? "保存中..." : "保存"}
+                                保存
                               </button>
 
                               <button
                                 type="button"
                                 className="owner-table-cancel-button"
-                                onClick={() => handleCancelEditEmployee(user.id)}
-                                disabled={savingUserId === user.id}
+                                onClick={handleCancelEditEmployee}
                               >
                                 キャンセル
                               </button>
@@ -552,13 +494,13 @@ export default function OwnerEmployeesPage() {
 
                               {user.role !== "owner" && (
                                 <button
-                                    type="button"
-                                    className="owner-table-delete-button"
-                                    onClick={() => handleDeleteUser(user.id)}
+                                  type="button"
+                                  className="owner-table-delete-button"
+                                  onClick={() => handleDeleteUser(user.id)}
                                 >
-                                    削除
+                                  削除
                                 </button>
-                                )}
+                              )}
                             </div>
                           )}
                         </td>

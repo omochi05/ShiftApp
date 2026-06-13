@@ -146,29 +146,30 @@ export default function OwnerShiftsPage() {
    */
   const shiftUsers = useMemo(() => {
     return users
-      .filter(
+        .filter(
         (user) =>
-          user.role === "owner" ||
-          user.role === "manager" ||
-          user.role === "employee"
-      )
-      .sort((a, b) => {
+            user.email !== "9999" &&
+            (user.role === "owner" ||
+            user.role === "manager" ||
+            user.role === "employee")
+        )
+        .sort((a, b) => {
         const roleOrder: Record<string, number> = {
-          owner: 1,
-          manager: 2,
-          employee: 3,
+            owner: 1,
+            manager: 2,
+            employee: 3,
         };
 
         const roleA = roleOrder[a.role] ?? 99;
         const roleB = roleOrder[b.role] ?? 99;
 
         if (roleA !== roleB) {
-          return roleA - roleB;
+            return roleA - roleB;
         }
 
         return a.id - b.id;
-      });
-  }, [users]);
+        });
+    }, [users]);
 
   const monthlyShifts = useMemo(() => {
     return shifts.filter((shift) => shift.work_date.startsWith(targetMonth));
