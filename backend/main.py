@@ -8,6 +8,7 @@ from routers import sales
 from routers import shifts
 from routers import shift_templates
 from routers import users
+from routers import notifications
 
 app = FastAPI()
 
@@ -16,6 +17,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "https://shift-app-r7j1.vercel.app",
         "https://shift-app-r7j1-og826jjuv-omochi05s-projects.vercel.app",
         "https://shift-app-r7j1-git-main-omochi05s-projects.vercel.app",
     ],
@@ -32,6 +34,7 @@ app.include_router(sales.router)
 app.include_router(shifts.router)
 app.include_router(shift_templates.router)
 app.include_router(users.router)
+app.include_router(notifications.router)
 
 
 @app.get("/")
