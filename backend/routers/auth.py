@@ -4,17 +4,19 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import User
 from schemas import OwnerLoginRequest, OwnerLoginResponse
+from security import verify_password
+
 
 router = APIRouter(
     prefix="/auth",
-    tags=["auth"]
+    tags=["auth"],
 )
 
 
 @router.post("/login", response_model=OwnerLoginResponse)
 def owner_login(
     login_data: OwnerLoginRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     user = (
         db.query(User)
@@ -25,19 +27,19 @@ def owner_login(
     if user is None:
         raise HTTPException(
             status_code=401,
-            detail="従業員番号またはパスワードが違います"
+            detail="従業員番号またはパスワードが違います",
         )
 
-    if user.password != login_data.password:
+    if not verify_password(login_data.password, user.password):
         raise HTTPException(
             status_code=401,
-            detail="従業員番号またはパスワードが違います"
+            detail="従業員番号またはパスワードが違います",
         )
 
     if user.role != "owner":
         raise HTTPException(
             status_code=403,
-            detail="オーナーのみログインできます"
+            detail="オーナーのみログインできます",
         )
 
     return OwnerLoginResponse(

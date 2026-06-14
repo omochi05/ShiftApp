@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+from security import hash_password
 
 from database import get_db
 from models import User, Shift
@@ -171,10 +172,10 @@ def create_user(
         )
 
     new_user = User(
-        name=clean_name,
-        email=clean_email,
-        password=user.password,
-        role=clean_role,
+        name=user.name,
+        email=user.email,
+        password=hash_password(user.password),
+        role=user.role,
         hourly_wage=user.hourly_wage,
     )
 
