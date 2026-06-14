@@ -213,3 +213,68 @@
     font-size: 21px;
   }
 }
+
+/* =========================
+   Owner Dashboard Menu Bar
+========================= */
+
+.owner-menu-bar {
+  margin-bottom: 24px;
+  padding: 14px;
+
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+}
+
+.owner-menu-bar a,
+.owner-menu-bar button {
+  padding: 11px 14px;
+
+  border: none;
+  border-radius: 14px;
+
+  background: #f8fafc;
+  color: #111827;
+
+  font-size: 14px;
+  font-weight: 900;
+  text-decoration: none;
+
+  cursor: pointer;
+}
+
+.owner-menu-bar a:hover,
+.owner-menu-bar button:hover {
+  background: #e5e7eb;
+}
+
+.owner-menu-bar button {
+  margin-left: auto;
+  background: #111827;
+  color: #ffffff;
+}
+
+@media screen and (max-width: 640px) {
+  .owner-menu-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .owner-menu-bar a,
+  .owner-menu-bar button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .owner-menu-bar button {
+    margin-left: 0;
+    grid-column: 1 / -1;
+  }
+}
