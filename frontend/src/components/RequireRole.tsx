@@ -10,9 +10,27 @@ export default function RequireRole({ allowedRoles }: RequireRoleProps) {
   const employeeNumber = localStorage.getItem("employeeNumber");
   const loginUserId = localStorage.getItem("loginUserId");
 
-  const isLoggedIn = Boolean(accessToken && loginRole && loginUserId);
+  const loginPassed = sessionStorage.getItem("loginPassed");
+
+  const isLoggedIn = Boolean(
+    accessToken && loginRole && loginUserId && loginPassed === "true"
+  );
 
   if (!isLoggedIn) {
+    localStorage.removeItem("accessToken");
+
+    localStorage.removeItem("loginUserId");
+    localStorage.removeItem("loginName");
+    localStorage.removeItem("loginRole");
+    localStorage.removeItem("employeeNumber");
+
+    localStorage.removeItem("ownerLogin");
+    localStorage.removeItem("ownerId");
+    localStorage.removeItem("ownerName");
+    localStorage.removeItem("ownerNumber");
+
+    sessionStorage.removeItem("loginPassed");
+
     return <Navigate to="/" replace />;
   }
 
@@ -23,6 +41,8 @@ export default function RequireRole({ allowedRoles }: RequireRoleProps) {
 
   if (!loginRole || !allowedRoles.includes(loginRole)) {
     localStorage.clear();
+    sessionStorage.clear();
+
     return <Navigate to="/" replace />;
   }
 

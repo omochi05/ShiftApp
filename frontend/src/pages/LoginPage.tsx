@@ -33,6 +33,8 @@ export default function LoginPage() {
     localStorage.removeItem("ownerId");
     localStorage.removeItem("ownerName");
     localStorage.removeItem("ownerNumber");
+
+    sessionStorage.removeItem("loginPassed");
   };
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
@@ -67,6 +69,10 @@ export default function LoginPage() {
       localStorage.setItem("employeeNumber", res.data.employee_number);
       localStorage.setItem("loginRole", res.data.role);
 
+      // URL直接入力対策用：ログイン成功したタブだけ通す
+      sessionStorage.setItem("loginPassed", "true");
+
+      // 既存のオーナー判定コードとの互換用
       if (res.data.role === "owner" || res.data.employee_number === "9999") {
         localStorage.setItem("ownerLogin", "true");
         localStorage.setItem("ownerId", String(res.data.id));
@@ -92,6 +98,8 @@ export default function LoginPage() {
       navigate("/employee");
     } catch (error: any) {
       console.error("ログイン失敗:", error);
+
+      clearLoginStorage();
 
       setMessage(
         error.response?.data?.detail ||

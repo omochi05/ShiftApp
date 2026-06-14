@@ -1,83 +1,51 @@
-import { HashRouter, Routes, Route } from "react-router-dom";
-
-import LoginPage from "./pages/LoginPage";
-import ManagerDashboard from "./pages/ManagerDashboard";
-import EmployeeDashboard from "./pages/EmployeeDashboard";
-import ShiftPrintPage from "./pages/ShiftPrintPage";
-import PasswordChangePage from "./pages/PasswordChangePage";
+import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import RequireRole from "./components/RequireRole";
 
-import OwnerLayout from "./pages/owner/OwnerLayout";
-import OwnerDashboardHome from "./pages/owner/OwnerDashboardHome";
+import LoginPage from "./pages/LoginPage";
+import EmployeeDashboard from "./pages/EmployeeDashboard";
+import ManagerDashboard from "./pages/ManagerDashboard";
+import ChangePasswordPage from "./pages/ChangePasswordPage";
+import ShiftPrintPage from "./pages/ShiftPrintPage";
+
+import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import OwnerEmployeesPage from "./pages/owner/OwnerEmployeesPage";
-import OwnerSalesPage from "./pages/owner/OwnerSalesPage";
 import OwnerShiftsPage from "./pages/owner/OwnerShiftsPage";
-import OwnerShiftTimelinePage from "./pages/owner/OwnerShiftTimelinePage";
-
-function AppLayout() {
-  return (
-    <Routes>
-      <Route path="/" element={<LoginPage />} />
-
-      <Route
-        path="/owner"
-        element={
-          <RequireRole allowedRoles={["owner", "manager"]}>
-            <OwnerLayout />
-          </RequireRole>
-        }
-      >
-        <Route index element={<OwnerDashboardHome />} />
-        <Route path="shifts" element={<OwnerShiftsPage />} />
-        <Route path="timeline" element={<OwnerShiftTimelinePage />} />
-        <Route path="employees" element={<OwnerEmployeesPage />} />
-        <Route path="print/shifts" element={<ShiftPrintPage />} />
-
-        <Route
-          path="sales"
-          element={
-            <RequireRole allowedRoles={["owner"]}>
-              <OwnerSalesPage />
-            </RequireRole>
-          }
-        />
-      </Route>
-
-      <Route
-        path="/manager"
-        element={
-          <RequireRole allowedRoles={["manager"]}>
-            <ManagerDashboard />
-          </RequireRole>
-        }
-      />
-
-      <Route
-        path="/employee"
-        element={
-          <RequireRole allowedRoles={["employee"]}>
-            <EmployeeDashboard />
-          </RequireRole>
-        }
-      />
-
-      <Route
-        path="/change-password"
-        element={
-          <RequireRole allowedRoles={["owner", "manager", "employee"]}>
-            <PasswordChangePage />
-          </RequireRole>
-        }
-      />
-    </Routes>
-  );
-}
 
 export default function App() {
   return (
     <HashRouter>
-      <AppLayout />
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+
+        <Route element={<RequireRole allowedRoles={["employee"]} />}>
+          <Route path="/employee" element={<EmployeeDashboard />} />
+        </Route>
+
+        <Route element={<RequireRole allowedRoles={["manager", "owner"]} />}>
+          <Route path="/manager" element={<ManagerDashboard />} />
+        </Route>
+
+        <Route element={<RequireRole allowedRoles={["owner"]} />}>
+          <Route path="/owner" element={<OwnerDashboard />} />
+          <Route path="/owner/employees" element={<OwnerEmployeesPage />} />
+          <Route path="/owner/shifts" element={<OwnerShiftsPage />} />
+        </Route>
+
+        <Route element={<RequireRole allowedRoles={["owner", "manager"]} />}>
+          <Route path="/print-shift" element={<ShiftPrintPage />} />
+        </Route>
+
+        <Route
+          element={
+            <RequireRole allowedRoles={["owner", "manager", "employee"]} />
+          }
+        >
+          <Route path="/change-password" element={<ChangePasswordPage />} />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </HashRouter>
   );
 }
