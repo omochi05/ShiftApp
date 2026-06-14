@@ -40,7 +40,6 @@ def serialize_user(user: User, current_user: User):
       シフト表で名前表示に必要な最低限だけ返す
     """
 
-    # owner・メンテナンスは全情報OK
     if is_owner_or_maintenance(current_user):
         return {
             "id": user.id,
@@ -52,7 +51,6 @@ def serialize_user(user: User, current_user: User):
             "updated_at": user.updated_at,
         }
 
-    # manager は時給だけ隠す
     if is_manager(current_user):
         return {
             "id": user.id,
@@ -63,7 +61,6 @@ def serialize_user(user: User, current_user: User):
             "updated_at": user.updated_at,
         }
 
-    # employee は最低限だけ
     return {
         "id": user.id,
         "name": user.name,
@@ -102,7 +99,6 @@ def create_user(
         )
 
     try:
-        # manager は時給を設定できない
         hourly_wage = user.hourly_wage if is_owner_or_maintenance(current_user) else 0
 
         new_user = User(
@@ -245,7 +241,21 @@ def change_password(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    user = db.query(User).filter(User.id == request.user_id).first()
+    """
+    第4段階：
+    パスワード変更は本人だけ許可する。
+
+    owner / manager / employee / 9999 のどれであっても、
+    他人のパスワード変更はこのAPIではできない。
+    """
+
+    if current_user.id != request.user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="自分のパスワードのみ変更できます",
+        )
+
+    user = db.query(User).filter(User.id == current_user.id).first()
 
     if user is None:
         raise HTTPException(
@@ -253,21 +263,16 @@ def change_password(
             detail="ユーザーが見つかりません",
         )
 
-    # 今の段階では、本人・owner・9999 のみ変更可能
-    if (
-        current_user.id != user.id
-        and current_user.role != "owner"
-        and not is_maintenance_user(current_user)
-    ):
-        raise HTTPException(
-            status_code=403,
-            detail="このユーザーのパスワードは変更できません",
-        )
-
     if not verify_password(request.current_password, user.password):
         raise HTTPException(
             status_code=400,
             detail="現在のパスワードが違います",
+        )
+
+    if verify_password(request.new_password, user.password):
+        raise HTTPException(
+            status_code=400,
+            detail="現在のパスワードと同じパスワードは使用できません",
         )
 
     try:
