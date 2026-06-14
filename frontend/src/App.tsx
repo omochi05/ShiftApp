@@ -8,11 +8,11 @@ import ManagerDashboard from "./pages/ManagerDashboard";
 import PasswordChangePage from "./pages/PasswordChangePage";
 import ShiftPrintPage from "./pages/ShiftPrintPage";
 
-import OwnerDashboard from "./pages/owner/OwnerDashboard";
+import OwnerDashboard from "./pages/owner/OwnerDashboardHome";
 import OwnerEmployeesPage from "./pages/owner/OwnerEmployeesPage";
 import OwnerSalesPage from "./pages/owner/OwnerSalesPage";
 import OwnerShiftsPage from "./pages/owner/OwnerShiftsPage";
-import OwnerShiftTimeline from "./pages/owner/OwnerShiftTimeline";
+import OwnerShiftTimeline from "./pages/owner/OwnerShiftTimelinePage";
 
 export default function App() {
   return (
