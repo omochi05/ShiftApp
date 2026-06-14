@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
+
 import { api } from "../../api/client";
-import "./OwnerEmployeesPage.css";
 import OwnerHamburgerMenu from "../../components/OwnerHamburgerMenu";
+import "./OwnerEmployeesPage.css";
 
 type User = {
   id: number;
@@ -65,6 +66,9 @@ function formatApiError(error: any, fallbackMessage: string) {
 }
 
 export default function OwnerEmployeesPage() {
+  const loginRole = localStorage.getItem("loginRole");
+  const canViewWage = loginRole === "owner";
+
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -151,11 +155,10 @@ export default function OwnerEmployeesPage() {
         email: newEmployee.employee_number.trim(),
         password: "1234",
         role: newEmployee.role,
-        hourly_wage: Number(newEmployee.hourly_wage || 0),
+        hourly_wage: canViewWage ? Number(newEmployee.hourly_wage || 0) : 0,
       });
 
       setMessage("ユーザーを追加しました");
-
       setNewEmployee(initialEmployeeForm);
 
       await fetchUsers();
@@ -174,7 +177,7 @@ export default function OwnerEmployeesPage() {
       employee_number: user.email,
       name: user.name,
       role: user.role,
-      hourly_wage: String(user.hourly_wage),
+      hourly_wage: String(user.hourly_wage || 0),
     });
 
     setMessage("");
@@ -215,7 +218,11 @@ export default function OwnerEmployeesPage() {
           ? "9999"
           : editEmployee.employee_number.trim(),
         role: isMaintenanceUser(user) ? "owner" : editEmployee.role,
-        hourly_wage: Number(editEmployee.hourly_wage || 0),
+
+        // 管理者画面では時給を表示・編集しないが、既存値は壊さない
+        hourly_wage: canViewWage
+          ? Number(editEmployee.hourly_wage || 0)
+          : Number(user.hourly_wage || 0),
       });
 
       setMessage("ユーザー情報を更新しました");
@@ -268,13 +275,16 @@ export default function OwnerEmployeesPage() {
   return (
     <div className="owner-employees-page">
       <OwnerHamburgerMenu />
+
       <section className="owner-employees-hero">
         <div>
           <p className="owner-employees-label">Employees</p>
           <h2>従業員管理</h2>
           <p>
-            従業員・管理者・オーナーの確認、時給や権限の変更を行います。
-            メンテナンス用アカウントも確認できます。
+            従業員・管理者・オーナーの確認、権限の変更を行います。
+            {canViewWage
+              ? " オーナーは時給も確認・編集できます。"
+              : " 管理者画面では時給は表示されません。"}
           </p>
         </div>
 
@@ -288,7 +298,10 @@ export default function OwnerEmployeesPage() {
         <div className="owner-section-title-row">
           <div>
             <h3>ユーザー追加</h3>
-            <p>従業員番号・名前・権限・時給を入力してください。</p>
+            <p>
+              従業員番号・名前・権限を入力してください。
+              {canViewWage && " オーナーは時給も設定できます。"}
+            </p>
           </div>
         </div>
 
@@ -342,22 +355,23 @@ export default function OwnerEmployeesPage() {
             </select>
           </label>
 
-          <label>
-            時給
-            <input
-              type="number"
-              value={newEmployee.hourly_wage}
-              onChange={(e) =>
-                setNewEmployee({
-                  ...newEmployee,
-                  hourly_wage: e.target.value,
-                })
-              }
-              min="0"
-              placeholder="例：1200"
-              required
-            />
-          </label>
+          {canViewWage && (
+            <label>
+              時給
+              <input
+                type="number"
+                value={newEmployee.hourly_wage}
+                onChange={(e) =>
+                  setNewEmployee({
+                    ...newEmployee,
+                    hourly_wage: e.target.value,
+                  })
+                }
+                min="0"
+                placeholder="例：1200"
+              />
+            </label>
+          )}
 
           <button type="submit">ユーザーを追加</button>
         </form>
@@ -391,7 +405,7 @@ export default function OwnerEmployeesPage() {
                   <th>従業員番号</th>
                   <th>名前</th>
                   <th>権限</th>
-                  <th>時給</th>
+                  {canViewWage && <th>時給</th>}
                   <th>操作</th>
                 </tr>
               </thead>
@@ -399,7 +413,9 @@ export default function OwnerEmployeesPage() {
               <tbody>
                 {visibleUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={5}>ユーザーがまだ登録されていません</td>
+                    <td colSpan={canViewWage ? 5 : 4}>
+                      ユーザーがまだ登録されていません
+                    </td>
                   </tr>
                 ) : (
                   visibleUsers.map((user) => {
@@ -462,23 +478,27 @@ export default function OwnerEmployeesPage() {
                           )}
                         </td>
 
-                        <td>
-                          {isEditing ? (
-                            <input
-                              type="number"
-                              value={editEmployee.hourly_wage}
-                              onChange={(e) =>
-                                setEditEmployee({
-                                  ...editEmployee,
-                                  hourly_wage: e.target.value,
-                                })
-                              }
-                              min="0"
-                            />
-                          ) : (
-                            `${Number(user.hourly_wage || 0).toLocaleString()}円`
-                          )}
-                        </td>
+                        {canViewWage && (
+                          <td>
+                            {isEditing ? (
+                              <input
+                                type="number"
+                                value={editEmployee.hourly_wage}
+                                onChange={(e) =>
+                                  setEditEmployee({
+                                    ...editEmployee,
+                                    hourly_wage: e.target.value,
+                                  })
+                                }
+                                min="0"
+                              />
+                            ) : (
+                              `${Number(
+                                user.hourly_wage || 0
+                              ).toLocaleString()}円`
+                            )}
+                          </td>
+                        )}
 
                         <td>
                           {isEditing ? (
