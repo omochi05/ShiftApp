@@ -5,11 +5,12 @@ import RequireRole from "./components/RequireRole";
 import LoginPage from "./pages/LoginPage";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import ManagerDashboard from "./pages/ManagerDashboard";
-import OwnerDashboard from "./pages/OwnerDashboard";
 import PasswordChangePage from "./pages/PasswordChangePage";
 import ShiftPrintPage from "./pages/ShiftPrintPage";
 
+import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import OwnerEmployeesPage from "./pages/owner/OwnerEmployeesPage";
+import OwnerSalesPage from "./pages/owner/OwnerSalesPage";
 import OwnerShiftsPage from "./pages/owner/OwnerShiftsPage";
 
 export default function App() {
@@ -26,8 +27,12 @@ export default function App() {
           <Route path="/manager" element={<ManagerDashboard />} />
 
           <Route path="/owner" element={<OwnerDashboard />} />
+          <Route path="/owner/ownerdashboard" element={<OwnerDashboard />} />
+
           <Route path="/owner/shifts" element={<OwnerShiftsPage />} />
           <Route path="/owner/employees" element={<OwnerEmployeesPage />} />
+          <Route path="/owner/sales" element={<OwnerSalesPage />} />
+
           <Route path="/print-shift" element={<ShiftPrintPage />} />
         </Route>
 
