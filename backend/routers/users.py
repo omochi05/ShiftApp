@@ -31,7 +31,7 @@ def serialize_user(user: User, current_user: User):
     roleごとに返すユーザー情報を変える
 
     owner / 9999:
-      すべて返す
+      全情報を返す
 
     manager:
       時給以外を返す
@@ -98,6 +98,13 @@ def create_user(
             detail="9999はメンテナンス用のため作成できません",
         )
 
+    # manager は owner を作成できない
+    if is_manager(current_user) and user.role == "owner":
+        raise HTTPException(
+            status_code=403,
+            detail="管理者はオーナーを作成できません",
+        )
+
     try:
         hourly_wage = user.hourly_wage if is_owner_or_maintenance(current_user) else 0
 
@@ -117,11 +124,11 @@ def create_user(
 
     except Exception as error:
         db.rollback()
-        print("ユーザー作成に失敗しました:", error)
+        print("ユーザー作成に失敗しました:", repr(error))
 
         raise HTTPException(
             status_code=500,
-            detail="ユーザー作成に失敗しました",
+            detail=f"ユーザー作成に失敗しました: {str(error)}",
         )
 
 
@@ -150,6 +157,20 @@ def update_user(
         raise HTTPException(
             status_code=400,
             detail="9999はメンテナンス用のため使用できません",
+        )
+
+    # manager は owner を作れない・付与できない
+    if is_manager(current_user) and user_data.role == "owner":
+        raise HTTPException(
+            status_code=403,
+            detail="管理者はオーナー権限を付与できません",
+        )
+
+    # manager は既存 owner を編集できない
+    if is_manager(current_user) and user.role == "owner":
+        raise HTTPException(
+            status_code=403,
+            detail="管理者はオーナー情報を編集できません",
         )
 
     existing_email_user = (
@@ -182,11 +203,11 @@ def update_user(
 
     except Exception as error:
         db.rollback()
-        print("ユーザー更新に失敗しました:", error)
+        print("ユーザー更新に失敗しました:", repr(error))
 
         raise HTTPException(
             status_code=500,
-            detail="ユーザー更新に失敗しました",
+            detail=f"ユーザー更新に失敗しました: {str(error)}",
         )
 
 
@@ -227,11 +248,11 @@ def delete_user(
 
     except Exception as error:
         db.rollback()
-        print("ユーザー削除に失敗しました:", error)
+        print("ユーザー削除に失敗しました:", repr(error))
 
         raise HTTPException(
             status_code=500,
-            detail="ユーザー削除に失敗しました",
+            detail=f"ユーザー削除に失敗しました: {str(error)}",
         )
 
 
@@ -241,6 +262,14 @@ def change_password(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """
+    第4段階：
+    パスワード変更は本人だけ許可する。
+
+    owner / manager / employee / 9999 のどれであっても、
+    他人のパスワード変更はこのAPIではできない。
+    """
+
     if current_user.id != request.user_id:
         raise HTTPException(
             status_code=403,
@@ -268,7 +297,9 @@ def change_password(
         )
 
     try:
-        user.password = hash_password(request.new_password)
+        hashed_password = hash_password(request.new_password)
+
+        user.password = hashed_password
 
         db.commit()
 
@@ -278,9 +309,9 @@ def change_password(
 
     except Exception as error:
         db.rollback()
-        print("パスワード変更に失敗しました:", error)
+        print("パスワード変更に失敗しました:", repr(error))
 
         raise HTTPException(
             status_code=500,
-            detail="パスワード変更に失敗しました",
+            detail=f"パスワード変更に失敗しました: {str(error)}",
         )
