@@ -1,9 +1,9 @@
 .owner-home {
   min-height: 100vh;
-  padding: 28px;
+  padding: 24px;
 
   background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 34%),
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.13), transparent 34%),
     radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.12), transparent 36%),
     #f1f5f9;
 
@@ -20,8 +20,8 @@
 ========================= */
 
 .owner-menu-bar {
-  width: min(1500px, 100%);
-  margin: 0 auto 24px;
+  width: min(1480px, 100%);
+  margin: 0 auto 22px;
   padding: 14px;
 
   display: flex;
@@ -68,7 +68,7 @@
 ========================= */
 
 .owner-home-hero {
-  width: min(1500px, 100%);
+  width: min(1480px, 100%);
   margin: 0 auto 28px;
   padding: 34px 28px;
 
@@ -94,7 +94,7 @@
 .owner-home-hero h1 {
   margin: 0 0 14px;
 
-  font-size: 34px;
+  font-size: 36px;
   font-weight: 1000;
   letter-spacing: -0.04em;
 }
@@ -114,16 +114,16 @@
 ========================= */
 
 .owner-home-grid {
-  width: min(1500px, 100%);
+  width: min(1480px, 100%);
   margin: 0 auto;
 
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 26px;
+  gap: 24px;
 }
 
 .owner-home-card {
-  min-height: 210px;
+  min-height: 230px;
   padding: 28px;
 
   display: flex;
@@ -184,7 +184,7 @@
 }
 
 .owner-home-card h2 {
-  margin: 20px 0 12px;
+  margin: 22px 0 12px;
 
   color: #111827;
 
