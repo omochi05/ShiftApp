@@ -1,55 +1,69 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
+
 import { api } from "../../api/client";
-import "./OwnerShiftsPage.css";
 import OwnerHamburgerMenu from "../../components/OwnerHamburgerMenu";
+import "./OwnerSalesPage.css";
 
-type User = {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  hourly_wage: number;
+type OwnerDashboardMonthly = {
+  year: number;
+  month: number;
+  total_sales: number;
+  total_labor_cost: number;
+  labor_cost_rate: number;
 };
 
-type Shift = {
-  id: number;
-  user_id: number;
-  user_name?: string;
-  work_date: string;
-  start_time: string;
-  end_time: string;
-  break_minutes: number;
-  created_by?: number;
+type OwnerWeeklyDashboard = {
+  year: number;
+  week: number;
+  start_date?: string;
+  end_date?: string;
+  total_sales: number;
+  total_labor_cost: number;
+  profit?: number;
+  status?: string;
+  labor_cost_rate?: number;
 };
 
-type ShiftForm = {
-  user_id: string;
-  work_date: string;
-  start_time: string;
-  end_time: string;
-  break_minutes: string;
+type OwnerWeekdayDashboard = {
+  weekday: string;
+  total_sales: number;
+  total_labor_cost: number;
+  labor_cost_rate: number;
 };
 
-function getTodayDate() {
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+type SaleForm = {
+  sale_date: string;
+  amount: string;
+  customer_count: string;
+  memo: string;
+};
 
-  return `${year}-${month}-${day}`;
+function getTodayText() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+
+  return `${yyyy}-${mm}-${dd}`;
 }
 
-function getRoleLabel(role: string) {
-  if (role === "owner") {
-    return "オーナー";
-  }
+function getCurrentWeekNumber() {
+  const now = new Date();
+  const firstDay = new Date(now.getFullYear(), 0, 1);
+  const pastDays = Math.floor(
+    (now.getTime() - firstDay.getTime()) / 86400000
+  );
 
-  if (role === "manager") {
-    return "管理者";
-  }
+  return Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
+}
 
-  return "従業員";
+function formatYen(value: number | null | undefined) {
+  return `${Number(value || 0).toLocaleString()}円`;
+}
+
+function formatPercent(value: number | null | undefined) {
+  return `${Number(value || 0).toFixed(1)}%`;
 }
 
 function formatApiError(error: any, fallbackMessage: string) {
@@ -70,569 +84,406 @@ function formatApiError(error: any, fallbackMessage: string) {
   return `${fallbackMessage}：APIに接続できませんでした`;
 }
 
-export default function OwnerShiftsPage() {
-  const loginUserId = Number(localStorage.getItem("loginUserId") || 0);
-  const loginRole = localStorage.getItem("loginRole") || "";
-  const loginName = localStorage.getItem("loginName") || "ユーザー";
+export default function OwnerSalesPage() {
+  const now = new Date();
 
-  const [users, setUsers] = useState<User[]>([]);
-  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth() + 1);
+  const [week, setWeek] = useState(getCurrentWeekNumber());
+
+  const [monthlyDashboard, setMonthlyDashboard] =
+    useState<OwnerDashboardMonthly | null>(null);
+
+  const [weeklyDashboard, setWeeklyDashboard] =
+    useState<OwnerWeeklyDashboard | null>(null);
+
+  const [weekdayDashboard, setWeekdayDashboard] = useState<
+    OwnerWeekdayDashboard[]
+  >([]);
+
+  const [saleForm, setSaleForm] = useState<SaleForm>({
+    sale_date: getTodayText(),
+    amount: "",
+    customer_count: "",
+    memo: "",
+  });
+
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
+  const [saleMessage, setSaleMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const [newShift, setNewShift] = useState<ShiftForm>({
-    user_id: "",
-    work_date: getTodayDate(),
-    start_time: "09:00",
-    end_time: "17:00",
-    break_minutes: "60",
-  });
+  const selectedMonthText = useMemo(() => {
+    return `${year}年${month}月`;
+  }, [year, month]);
 
-  const [editingShiftId, setEditingShiftId] = useState<number | null>(null);
-  const [editShift, setEditShift] = useState<ShiftForm>({
-    user_id: "",
-    work_date: "",
-    start_time: "",
-    end_time: "",
-    break_minutes: "",
-  });
+  const monthlyProfit = useMemo(() => {
+    if (!monthlyDashboard) {
+      return 0;
+    }
 
-  /**
-   * シフト登録対象
-   * 管理者画面から入った場合でも、
-   * オーナー・管理者・従業員を全員シフトに登録できる
-   */
-  const shiftUsers = useMemo(() => {
-    return users
-      .filter(
-        (user) =>
-          user.role === "owner" ||
-          user.role === "manager" ||
-          user.role === "employee"
-      )
-      .sort((a, b) => {
-        const roleOrder: Record<string, number> = {
-          owner: 1,
-          manager: 2,
-          employee: 3,
-        };
+    return (
+      Number(monthlyDashboard.total_sales || 0) -
+      Number(monthlyDashboard.total_labor_cost || 0)
+    );
+  }, [monthlyDashboard]);
 
-        const roleA = roleOrder[a.role] ?? 99;
-        const roleB = roleOrder[b.role] ?? 99;
+  const fetchMonthlyDashboard = async () => {
+    const res = await api.get<OwnerDashboardMonthly>(
+      `/owner/dashboard/month?year=${year}&month=${month}`
+    );
 
-        if (roleA !== roleB) {
-          return roleA - roleB;
-        }
+    setMonthlyDashboard(res.data);
+  };
 
-        return a.id - b.id;
-      });
-  }, [users]);
+  const fetchWeeklyDashboard = async () => {
+    try {
+      const res = await api.get<OwnerWeeklyDashboard>(
+        `/owner/dashboard/week?year=${year}&week=${week}`
+      );
 
-  const userNameMap = useMemo(() => {
-    const map = new Map<number, string>();
+      setWeeklyDashboard(res.data);
+    } catch (error) {
+      console.error("週間売上ダッシュボード取得失敗:", error);
+      setWeeklyDashboard(null);
+    }
+  };
 
-    users.forEach((user) => {
-      map.set(user.id, user.name);
-    });
+  const fetchWeekdayDashboard = async () => {
+    try {
+      const res = await api.get<OwnerWeekdayDashboard[]>(
+        `/owner/dashboard/weekday?year=${year}&month=${month}`
+      );
 
-    return map;
-  }, [users]);
+      setWeekdayDashboard(res.data);
+    } catch (error) {
+      console.error("曜日別売上ダッシュボード取得失敗:", error);
+      setWeekdayDashboard([]);
+    }
+  };
 
-  const displayedShifts = useMemo(() => {
-    const seen = new Set<string>();
-
-    return shifts
-      .map((shift) => ({
-        ...shift,
-        user_name:
-          shift.user_name || userNameMap.get(shift.user_id) || `ID:${shift.user_id}`,
-      }))
-      .filter((shift) => {
-        const key = [
-          shift.user_id,
-          shift.work_date,
-          shift.start_time.slice(0, 5),
-          shift.end_time.slice(0, 5),
-          shift.break_minutes,
-        ].join("-");
-
-        if (seen.has(key)) {
-          return false;
-        }
-
-        seen.add(key);
-        return true;
-      })
-      .sort((a, b) => {
-        if (a.work_date !== b.work_date) {
-          return a.work_date.localeCompare(b.work_date);
-        }
-
-        if (a.start_time !== b.start_time) {
-          return a.start_time.localeCompare(b.start_time);
-        }
-
-        return a.user_id - b.user_id;
-      });
-  }, [shifts, userNameMap]);
-
-  const fetchData = async () => {
+  const loadSalesData = async () => {
     try {
       setLoading(true);
-      setMessage("");
+      setErrorMessage("");
 
-      const [usersRes, shiftsRes] = await Promise.all([
-        api.get<User[]>("/users/"),
-        api.get<Shift[]>("/shifts/"),
+      await Promise.all([
+        fetchMonthlyDashboard(),
+        fetchWeeklyDashboard(),
+        fetchWeekdayDashboard(),
       ]);
-
-      setUsers(usersRes.data);
-      setShifts(shiftsRes.data);
     } catch (error: any) {
-      console.error("シフト管理データ取得失敗:", error);
-      setMessage(formatApiError(error, "シフト情報の取得に失敗しました"));
+      console.error("売上データ取得失敗:", error);
+      setErrorMessage(formatApiError(error, "売上データの取得に失敗しました"));
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    loadSalesData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [year, month, week]);
 
-  const handleCreateShift = async (e: FormEvent) => {
+  const handleCreateSale = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!newShift.user_id) {
-      setMessage("勤務者を選択してください");
+    if (!saleForm.sale_date) {
+      setSaleMessage("売上日を入力してください");
       return;
     }
 
-    if (!newShift.work_date) {
-      setMessage("勤務日を入力してください");
-      return;
-    }
-
-    if (!newShift.start_time || !newShift.end_time) {
-      setMessage("開始時間と終了時間を入力してください");
+    if (!saleForm.amount) {
+      setSaleMessage("売上金額を入力してください");
       return;
     }
 
     try {
-      setMessage("");
+      setSaleMessage("");
 
-      await api.post("/shifts/", {
-        user_id: Number(newShift.user_id),
-        work_date: newShift.work_date,
-        start_time: newShift.start_time,
-        end_time: newShift.end_time,
-        break_minutes: Number(newShift.break_minutes || 0),
-        created_by: loginUserId || 1,
+      await api.post("/sales/", {
+        sale_date: saleForm.sale_date,
+        amount: Number(saleForm.amount || 0),
+        customer_count: Number(saleForm.customer_count || 0),
+        memo: saleForm.memo,
       });
 
-      setMessage("シフトを登録しました");
+      setSaleMessage("売上を登録しました");
 
-      setNewShift((prev) => ({
+      setSaleForm((prev) => ({
         ...prev,
-        user_id: "",
-        start_time: "09:00",
-        end_time: "17:00",
-        break_minutes: "60",
+        amount: "",
+        customer_count: "",
+        memo: "",
       }));
 
-      await fetchData();
+      await loadSalesData();
     } catch (error: any) {
-      console.error("シフト登録失敗:", error);
-      setMessage(formatApiError(error, "シフト登録に失敗しました"));
-    }
-  };
+      console.error("売上登録失敗:", error);
 
-  const handleStartEdit = (shift: Shift) => {
-    setEditingShiftId(shift.id);
+      if (error.response?.status === 400 || error.response?.status === 409) {
+        setSaleMessage("同じ日付の売上がすでに登録されています");
+        return;
+      }
 
-    setEditShift({
-      user_id: String(shift.user_id),
-      work_date: shift.work_date,
-      start_time: shift.start_time.slice(0, 5),
-      end_time: shift.end_time.slice(0, 5),
-      break_minutes: String(shift.break_minutes || 0),
-    });
-
-    setMessage("");
-  };
-
-  const handleCancelEdit = () => {
-    setEditingShiftId(null);
-
-    setEditShift({
-      user_id: "",
-      work_date: "",
-      start_time: "",
-      end_time: "",
-      break_minutes: "",
-    });
-
-    setMessage("");
-  };
-
-  const handleUpdateShift = async (shiftId: number) => {
-    if (!editShift.user_id) {
-      setMessage("勤務者を選択してください");
-      return;
-    }
-
-    if (!editShift.work_date) {
-      setMessage("勤務日を入力してください");
-      return;
-    }
-
-    if (!editShift.start_time || !editShift.end_time) {
-      setMessage("開始時間と終了時間を入力してください");
-      return;
-    }
-
-    try {
-      setMessage("");
-
-      await api.put(`/shifts/${shiftId}`, {
-        user_id: Number(editShift.user_id),
-        work_date: editShift.work_date,
-        start_time: editShift.start_time,
-        end_time: editShift.end_time,
-        break_minutes: Number(editShift.break_minutes || 0),
-        created_by: loginUserId || 1,
-      });
-
-      setMessage("シフトを更新しました");
-
-      setEditingShiftId(null);
-
-      await fetchData();
-    } catch (error: any) {
-      console.error("シフト更新失敗:", error);
-      setMessage(formatApiError(error, "シフト更新に失敗しました"));
-    }
-  };
-
-  const handleDeleteShift = async (shiftId: number) => {
-    const ok = window.confirm("このシフトを削除しますか？");
-
-    if (!ok) {
-      return;
-    }
-
-    try {
-      setMessage("");
-
-      await api.delete(`/shifts/${shiftId}`);
-
-      setMessage("シフトを削除しました");
-
-      await fetchData();
-    } catch (error: any) {
-      console.error("シフト削除失敗:", error);
-      setMessage(formatApiError(error, "シフト削除に失敗しました"));
+      setSaleMessage(formatApiError(error, "売上登録に失敗しました"));
     }
   };
 
   return (
-    <div className="owner-shifts-page">
+    <div className="owner-sales-page">
       <OwnerHamburgerMenu />
-      <section className="owner-shifts-hero">
+
+      <section className="owner-sales-hero">
         <div>
-          <p className="owner-shifts-label">SHIFT MANAGEMENT</p>
-          <h2>シフト管理</h2>
+          <p className="owner-sales-label">SALES MANAGEMENT</p>
+          <h2>売上管理</h2>
           <p>
-            シフトの追加・編集・削除を行います。
-            管理者画面から入った場合でも、オーナー・管理者・従業員をシフトに登録できます。
+            日別売上を登録し、月間売上・人件費・人件費率を確認できます。
+            このページはオーナー専用です。
           </p>
         </div>
 
-        <div className="owner-shifts-count-card">
-          <span>ログイン中</span>
-          <strong>{loginName}</strong>
-          <small>{loginRole === "manager" ? "管理者" : "オーナー"}</small>
+        <div className="owner-sales-period-card">
+          <span>対象期間</span>
+          <strong>{selectedMonthText}</strong>
+          <small>第{week}週</small>
         </div>
       </section>
 
-      <section className="owner-shifts-section">
+      <section className="owner-sales-filter-section">
         <div className="owner-section-title-row">
           <div>
-            <h3>シフト追加</h3>
-            <p>勤務者・勤務日・勤務時間を入力してください。</p>
+            <h3>集計期間</h3>
+            <p>確認したい年月・週を選択してください。</p>
           </div>
 
           <button
             type="button"
-            className="owner-shifts-refresh-button"
-            onClick={fetchData}
+            className="owner-sales-refresh-button"
+            onClick={loadSalesData}
           >
             再読み込み
           </button>
         </div>
 
-        <form className="owner-shifts-form" onSubmit={handleCreateShift}>
+        <div className="owner-sales-filter-grid">
           <label>
-            勤務者
-            <select
-              value={newShift.user_id}
-              onChange={(e) =>
-                setNewShift((prev) => ({
-                  ...prev,
-                  user_id: e.target.value,
-                }))
-              }
-              required
-            >
-              <option value="">勤務者を選択</option>
+            年
+            <input
+              type="number"
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              min="2020"
+              max="2100"
+            />
+          </label>
 
-              {shiftUsers.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name}（{getRoleLabel(user.role)} / {user.email}）
+          <label>
+            月
+            <select
+              value={month}
+              onChange={(e) => setMonth(Number(e.target.value))}
+            >
+              {Array.from({ length: 12 }, (_, index) => index + 1).map((m) => (
+                <option key={m} value={m}>
+                  {m}月
                 </option>
               ))}
             </select>
           </label>
 
           <label>
-            勤務日
-            <input
-              type="date"
-              value={newShift.work_date}
-              onChange={(e) =>
-                setNewShift((prev) => ({
-                  ...prev,
-                  work_date: e.target.value,
-                }))
-              }
-              required
-            />
-          </label>
-
-          <label>
-            開始時間
-            <input
-              type="time"
-              value={newShift.start_time}
-              onChange={(e) =>
-                setNewShift((prev) => ({
-                  ...prev,
-                  start_time: e.target.value,
-                }))
-              }
-              required
-            />
-          </label>
-
-          <label>
-            終了時間
-            <input
-              type="time"
-              value={newShift.end_time}
-              onChange={(e) =>
-                setNewShift((prev) => ({
-                  ...prev,
-                  end_time: e.target.value,
-                }))
-              }
-              required
-            />
-          </label>
-
-          <label>
-            休憩
+            週
             <input
               type="number"
-              value={newShift.break_minutes}
+              value={week}
+              onChange={(e) => setWeek(Number(e.target.value))}
+              min="1"
+              max="53"
+            />
+          </label>
+        </div>
+      </section>
+
+      <section className="owner-sales-summary-grid">
+        <article className="owner-sales-summary-card owner-sales-summary-blue">
+          <span>月間売上</span>
+          <strong>{formatYen(monthlyDashboard?.total_sales)}</strong>
+          <p>{selectedMonthText} の売上合計</p>
+        </article>
+
+        <article className="owner-sales-summary-card owner-sales-summary-green">
+          <span>月間人件費</span>
+          <strong>{formatYen(monthlyDashboard?.total_labor_cost)}</strong>
+          <p>登録シフトから計算</p>
+        </article>
+
+        <article className="owner-sales-summary-card owner-sales-summary-orange">
+          <span>人件費率</span>
+          <strong>{formatPercent(monthlyDashboard?.labor_cost_rate)}</strong>
+          <p>売上に対する人件費の割合</p>
+        </article>
+
+        <article className="owner-sales-summary-card owner-sales-summary-dark">
+          <span>概算利益</span>
+          <strong>{formatYen(monthlyProfit)}</strong>
+          <p>売上 - 人件費</p>
+        </article>
+      </section>
+
+      <section className="owner-sales-section">
+        <div className="owner-section-title-row">
+          <div>
+            <h3>売上登録</h3>
+            <p>日付・売上金額・客数・メモを入力してください。</p>
+          </div>
+        </div>
+
+        <form className="owner-sales-form" onSubmit={handleCreateSale}>
+          <label>
+            売上日
+            <input
+              type="date"
+              value={saleForm.sale_date}
               onChange={(e) =>
-                setNewShift((prev) => ({
-                  ...prev,
-                  break_minutes: e.target.value,
-                }))
+                setSaleForm({
+                  ...saleForm,
+                  sale_date: e.target.value,
+                })
               }
-              min="0"
-              step="5"
-              placeholder="例：60"
+              required
             />
           </label>
 
-          <button type="submit">シフトを追加</button>
+          <label>
+            売上金額
+            <input
+              type="number"
+              value={saleForm.amount}
+              onChange={(e) =>
+                setSaleForm({
+                  ...saleForm,
+                  amount: e.target.value,
+                })
+              }
+              min="0"
+              placeholder="例：150000"
+              required
+            />
+          </label>
+
+          <label>
+            客数
+            <input
+              type="number"
+              value={saleForm.customer_count}
+              onChange={(e) =>
+                setSaleForm({
+                  ...saleForm,
+                  customer_count: e.target.value,
+                })
+              }
+              min="0"
+              placeholder="例：320"
+            />
+          </label>
+
+          <label>
+            メモ
+            <input
+              type="text"
+              value={saleForm.memo}
+              onChange={(e) =>
+                setSaleForm({
+                  ...saleForm,
+                  memo: e.target.value,
+                })
+              }
+              placeholder="例：雨天・イベント日など"
+            />
+          </label>
+
+          <button type="submit">売上を登録</button>
         </form>
 
-        {message && <p className="owner-shifts-message">{message}</p>}
+        {saleMessage && <p className="owner-sales-message">{saleMessage}</p>}
+        {errorMessage && <p className="owner-sales-error">{errorMessage}</p>}
       </section>
 
-      <section className="owner-shifts-section">
+      <section className="owner-sales-section">
         <div className="owner-section-title-row">
           <div>
-            <h3>シフト一覧</h3>
-            <p>登録済みのシフトを確認・編集できます。</p>
+            <h3>週間集計</h3>
+            <p>選択した週の売上・人件費・利益を確認できます。</p>
           </div>
         </div>
 
         {loading ? (
-          <div className="owner-shifts-loading">読み込み中...</div>
-        ) : displayedShifts.length === 0 ? (
-          <div className="owner-shifts-empty">
-            シフトがまだ登録されていません。
+          <div className="owner-sales-loading">読み込み中...</div>
+        ) : weeklyDashboard ? (
+          <div className="owner-sales-weekly-grid">
+            <article>
+              <span>週間売上</span>
+              <strong>{formatYen(weeklyDashboard.total_sales)}</strong>
+            </article>
+
+            <article>
+              <span>週間人件費</span>
+              <strong>{formatYen(weeklyDashboard.total_labor_cost)}</strong>
+            </article>
+
+            <article>
+              <span>週間人件費率</span>
+              <strong>{formatPercent(weeklyDashboard.labor_cost_rate)}</strong>
+            </article>
+
+            <article>
+              <span>週間利益</span>
+              <strong>{formatYen(weeklyDashboard.profit)}</strong>
+            </article>
           </div>
         ) : (
-          <div className="owner-shifts-table-wrap">
-            <table className="owner-shifts-table">
+          <div className="owner-sales-empty">
+            この週の集計データはまだありません。
+          </div>
+        )}
+      </section>
+
+      <section className="owner-sales-section">
+        <div className="owner-section-title-row">
+          <div>
+            <h3>曜日別集計</h3>
+            <p>曜日ごとの売上・人件費率を確認できます。</p>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="owner-sales-loading">読み込み中...</div>
+        ) : weekdayDashboard.length === 0 ? (
+          <div className="owner-sales-empty">
+            曜日別データはまだありません。
+          </div>
+        ) : (
+          <div className="owner-sales-table-wrap">
+            <table className="owner-sales-table">
               <thead>
                 <tr>
-                  <th>勤務者</th>
-                  <th>勤務日</th>
-                  <th>開始</th>
-                  <th>終了</th>
-                  <th>休憩</th>
-                  <th>操作</th>
+                  <th>曜日</th>
+                  <th>売上</th>
+                  <th>人件費</th>
+                  <th>人件費率</th>
                 </tr>
               </thead>
 
               <tbody>
-                {displayedShifts.map((shift) => {
-                  const isEditing = editingShiftId === shift.id;
-
-                  return (
-                    <tr key={shift.id}>
-                      <td>
-                        {isEditing ? (
-                          <select
-                            value={editShift.user_id}
-                            onChange={(e) =>
-                              setEditShift((prev) => ({
-                                ...prev,
-                                user_id: e.target.value,
-                              }))
-                            }
-                          >
-                            <option value="">勤務者を選択</option>
-
-                            {shiftUsers.map((user) => (
-                              <option key={user.id} value={user.id}>
-                                {user.name}（{getRoleLabel(user.role)} /{" "}
-                                {user.email}）
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          shift.user_name
-                        )}
-                      </td>
-
-                      <td>
-                        {isEditing ? (
-                          <input
-                            type="date"
-                            value={editShift.work_date}
-                            onChange={(e) =>
-                              setEditShift((prev) => ({
-                                ...prev,
-                                work_date: e.target.value,
-                              }))
-                            }
-                          />
-                        ) : (
-                          shift.work_date
-                        )}
-                      </td>
-
-                      <td>
-                        {isEditing ? (
-                          <input
-                            type="time"
-                            value={editShift.start_time}
-                            onChange={(e) =>
-                              setEditShift((prev) => ({
-                                ...prev,
-                                start_time: e.target.value,
-                              }))
-                            }
-                          />
-                        ) : (
-                          shift.start_time.slice(0, 5)
-                        )}
-                      </td>
-
-                      <td>
-                        {isEditing ? (
-                          <input
-                            type="time"
-                            value={editShift.end_time}
-                            onChange={(e) =>
-                              setEditShift((prev) => ({
-                                ...prev,
-                                end_time: e.target.value,
-                              }))
-                            }
-                          />
-                        ) : (
-                          shift.end_time.slice(0, 5)
-                        )}
-                      </td>
-
-                      <td>
-                        {isEditing ? (
-                          <input
-                            type="number"
-                            value={editShift.break_minutes}
-                            onChange={(e) =>
-                              setEditShift((prev) => ({
-                                ...prev,
-                                break_minutes: e.target.value,
-                              }))
-                            }
-                            min="0"
-                            step="5"
-                          />
-                        ) : (
-                          `${shift.break_minutes || 0}分`
-                        )}
-                      </td>
-
-                      <td>
-                        {isEditing ? (
-                          <div className="owner-table-actions">
-                            <button
-                              type="button"
-                              className="owner-table-save-button"
-                              onClick={() => handleUpdateShift(shift.id)}
-                            >
-                              保存
-                            </button>
-
-                            <button
-                              type="button"
-                              className="owner-table-cancel-button"
-                              onClick={handleCancelEdit}
-                            >
-                              キャンセル
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="owner-table-actions">
-                            <button
-                              type="button"
-                              className="owner-table-edit-button"
-                              onClick={() => handleStartEdit(shift)}
-                            >
-                              編集
-                            </button>
-
-                            <button
-                              type="button"
-                              className="owner-table-delete-button"
-                              onClick={() => handleDeleteShift(shift.id)}
-                            >
-                              削除
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
+                {weekdayDashboard.map((item) => (
+                  <tr key={item.weekday}>
+                    <td>{item.weekday}</td>
+                    <td>{formatYen(item.total_sales)}</td>
+                    <td>{formatYen(item.total_labor_cost)}</td>
+                    <td>{formatPercent(item.labor_cost_rate)}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
