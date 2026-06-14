@@ -244,13 +244,24 @@ export default function EmployeeDashboard() {
       setLoading(true);
       setMessage("");
 
-      const [usersRes, shiftsRes] = await Promise.all([
-        api.get<User[]>("/users/"),
-        api.get<Shift[]>("/shifts/"),
+      const shiftsRes = await api.get<Shift[]>(`/shifts/user/${loginUserId}`);
+
+      const myShifts = shiftsRes.data.map((shift) => ({
+        ...shift,
+        user_name: loginName,
+      }));
+
+      setUsers([
+        {
+          id: loginUserId,
+          name: loginName,
+          email: employeeNumber,
+          role: "employee",
+          hourly_wage: 0,
+        },
       ]);
 
-      setUsers(usersRes.data);
-      setShifts(shiftsRes.data);
+      setShifts(myShifts);
     } catch (error: any) {
       console.error("従業員シフト取得失敗:", error);
       setMessage(formatApiError(error, "シフト情報の取得に失敗しました"));
@@ -258,7 +269,6 @@ export default function EmployeeDashboard() {
       setLoading(false);
     }
   };
-
   const reloadAllData = async () => {
     await Promise.all([fetchData(), fetchNotifications()]);
   };
