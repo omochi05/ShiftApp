@@ -18,25 +18,57 @@ def is_maintenance_user(user: User):
     return user.email == "9999"
 
 
-def can_view_wage(current_user: User):
-    return current_user.role == "owner" or is_maintenance_user(current_user)
+def is_owner_or_maintenance(user: User):
+    return user.role == "owner" or is_maintenance_user(user)
+
+
+def is_manager(user: User):
+    return user.role == "manager"
 
 
 def serialize_user(user: User, current_user: User):
-    data = {
+    """
+    roleごとに返すユーザー情報を変える
+
+    owner / 9999:
+      すべて返す
+
+    manager:
+      時給以外を返す
+
+    employee:
+      シフト表で名前表示に必要な最低限だけ返す
+    """
+
+    # owner・メンテナンスは全情報OK
+    if is_owner_or_maintenance(current_user):
+        return {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role,
+            "hourly_wage": user.hourly_wage,
+            "created_at": user.created_at,
+            "updated_at": user.updated_at,
+        }
+
+    # manager は時給だけ隠す
+    if is_manager(current_user):
+        return {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role,
+            "created_at": user.created_at,
+            "updated_at": user.updated_at,
+        }
+
+    # employee は最低限だけ
+    return {
         "id": user.id,
         "name": user.name,
-        "email": user.email,
         "role": user.role,
-        "created_at": user.created_at,
-        "updated_at": user.updated_at,
     }
-
-    # 時給はオーナー・メンテナンスだけ返す
-    if can_view_wage(current_user):
-        data["hourly_wage"] = user.hourly_wage
-
-    return data
 
 
 @router.get("/")
@@ -71,7 +103,7 @@ def create_user(
 
     try:
         # manager は時給を設定できない
-        hourly_wage = user.hourly_wage if can_view_wage(current_user) else 0
+        hourly_wage = user.hourly_wage if is_owner_or_maintenance(current_user) else 0
 
         new_user = User(
             name=user.name,
@@ -144,7 +176,7 @@ def update_user(
 
         # 時給変更は owner・9999 だけ許可
         # manager が hourly_wage を送ってきても無視する
-        if can_view_wage(current_user):
+        if is_owner_or_maintenance(current_user):
             user.hourly_wage = user_data.hourly_wage
 
         db.commit()
