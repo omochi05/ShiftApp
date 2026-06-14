@@ -100,7 +100,9 @@
   position: fixed;
   inset: 0;
 
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(3px);
+
   z-index: 90;
 }
 
@@ -109,17 +111,20 @@
   top: 0;
   right: 0;
 
-  width: min(360px, 86vw);
+  width: min(390px, 88vw);
   height: 100vh;
 
-  padding: 22px;
+  padding: 24px 22px;
 
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 
-  background: #ffffff;
-  box-shadow: -18px 0 50px rgba(15, 23, 42, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(37, 99, 235, 0.12), transparent 34%),
+    #ffffff;
+
+  box-shadow: -22px 0 60px rgba(15, 23, 42, 0.22);
 
   transform: translateX(110%);
   transition: transform 0.22s ease;
@@ -132,66 +137,126 @@
 }
 
 .owner-hamburger-menu-head {
-  margin-bottom: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
+
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .owner-hamburger-menu-head strong {
   color: #111827;
-  font-size: 22px;
+
+  font-size: 25px;
   font-weight: 1000;
+  letter-spacing: -0.04em;
 }
 
 .owner-hamburger-menu-head button {
-  width: 42px;
-  height: 42px;
+  width: 50px;
+  height: 50px;
 
   border: none;
-  border-radius: 14px;
+  border-radius: 18px;
 
   background: #f1f5f9;
   color: #111827;
 
-  font-size: 24px;
-  font-weight: 900;
+  font-size: 30px;
+  font-weight: 1000;
+  line-height: 1;
 
   cursor: pointer;
+}
+
+.owner-hamburger-menu-head button:hover {
+  background: #e5e7eb;
 }
 
 .owner-hamburger-menu a,
 .owner-hamburger-logout {
   width: 100%;
-  padding: 15px 16px;
+  min-height: 54px;
+  padding: 0 18px;
 
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
   border: none;
-  border-radius: 16px;
+  border-radius: 18px;
 
   background: #f8fafc;
   color: #111827;
 
-  font-size: 15px;
-  font-weight: 900;
+  font-size: 16px;
+  font-weight: 1000;
   text-decoration: none;
   text-align: left;
 
   cursor: pointer;
 }
 
+.owner-hamburger-menu a::after {
+  content: "→";
+
+  color: #64748b;
+
+  font-size: 18px;
+  font-weight: 1000;
+}
+
 .owner-hamburger-menu a:hover,
 .owner-hamburger-logout:hover {
-  background: #e5e7eb;
+  background: #eef2ff;
+  transform: translateX(-2px);
+}
+
+.owner-hamburger-menu a:nth-of-type(1) {
+  background: #eff6ff;
+}
+
+.owner-hamburger-menu a:nth-of-type(2) {
+  border-left: 6px solid #22c55e;
+}
+
+.owner-hamburger-menu a:nth-of-type(3) {
+  border-left: 6px solid #7c3aed;
+}
+
+.owner-hamburger-menu a:nth-of-type(4) {
+  border-left: 6px solid #ea580c;
+}
+
+.owner-hamburger-menu a:nth-of-type(5) {
+  border-left: 6px solid #0891b2;
+}
+
+.owner-hamburger-menu a:nth-of-type(6) {
+  border-left: 6px solid #6b7280;
+}
+
+.owner-hamburger-menu a:nth-of-type(7) {
+  border-left: 6px solid #ef4444;
 }
 
 .owner-hamburger-logout {
   margin-top: auto;
 
+  justify-content: center;
+
   background: #111827;
   color: #ffffff;
+
+  font-size: 17px;
+}
+
+.owner-hamburger-logout:hover {
+  background: #1f2937;
+  transform: none;
 }
 
 @media screen and (max-width: 640px) {
@@ -229,7 +294,22 @@
   }
 
   .owner-hamburger-menu {
-    width: min(340px, 88vw);
-    padding: 20px;
+    width: min(340px, 90vw);
+    padding: 20px 18px;
+    gap: 9px;
+  }
+
+  .owner-hamburger-menu-head strong {
+    font-size: 23px;
+  }
+
+  .owner-hamburger-menu a,
+  .owner-hamburger-logout {
+    min-height: 52px;
+    padding: 0 16px;
+
+    border-radius: 16px;
+
+    font-size: 15px;
   }
 }
