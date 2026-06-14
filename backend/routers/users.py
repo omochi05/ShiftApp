@@ -159,7 +159,7 @@ def update_user(
             detail="9999はメンテナンス用のため使用できません",
         )
 
-    # manager は owner を作れない・付与できない
+    # manager は owner 権限を付与できない
     if is_manager(current_user) and user_data.role == "owner":
         raise HTTPException(
             status_code=403,
@@ -263,11 +263,8 @@ def change_password(
     current_user: User = Depends(get_current_user),
 ):
     """
-    第4段階：
-    パスワード変更は本人だけ許可する。
-
-    owner / manager / employee / 9999 のどれであっても、
-    他人のパスワード変更はこのAPIではできない。
+    パスワード変更は本人だけ許可。
+    新しいパスワードは数字4桁のみ。
     """
 
     if current_user.id != request.user_id:
@@ -288,6 +285,12 @@ def change_password(
         raise HTTPException(
             status_code=400,
             detail="現在のパスワードが違います",
+        )
+
+    if not request.new_password.isdigit() or len(request.new_password) != 4:
+        raise HTTPException(
+            status_code=400,
+            detail="新しいパスワードは数字4桁で入力してください",
         )
 
     if verify_password(request.new_password, user.password):

@@ -42,20 +42,25 @@ function formatApiError(error: any, fallbackMessage: string) {
   return `${fallbackMessage}：APIに接続できませんでした`;
 }
 
+function normalizePin(value: string) {
+  return value.replace(/\D/g, "").slice(0, 4);
+}
+
 export default function PasswordChangePage() {
   const navigate = useNavigate();
 
   const loginUserId = Number(localStorage.getItem("loginUserId") || 0);
   const loginName = localStorage.getItem("loginName") || "ユーザー";
   const loginRole = localStorage.getItem("loginRole") || "";
+  const employeeNumber = localStorage.getItem("employeeNumber") || "";
+
   const isOwnerOrManager =
-    loginRole === "owner" ||
-    loginRole === "manager" ||
-    localStorage.getItem("employeeNumber") === "9999";
+    loginRole === "owner" || loginRole === "manager" || employeeNumber === "9999";
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
   const [message, setMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -78,8 +83,8 @@ export default function PasswordChangePage() {
       return;
     }
 
-    if (newPassword.length < 4) {
-      setMessage("新しいパスワードは4文字以上にしてください");
+    if (!/^\d{4}$/.test(newPassword)) {
+      setMessage("新しいパスワードは数字4桁で入力してください");
       return;
     }
 
@@ -104,7 +109,9 @@ export default function PasswordChangePage() {
         new_password: newPassword,
       });
 
-      setSuccessMessage("パスワードを変更しました。次回から新しいパスワードでログインしてください。");
+      setSuccessMessage(
+        "パスワードを変更しました。次回から新しい4桁の数字でログインしてください。"
+      );
 
       setCurrentPassword("");
       setNewPassword("");
@@ -145,9 +152,12 @@ export default function PasswordChangePage() {
             新しいパスワード
             <input
               type="password"
+              inputMode="numeric"
+              pattern="[0-9]{4}"
+              maxLength={4}
               value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="新しいパスワード"
+              onChange={(e) => setNewPassword(normalizePin(e.target.value))}
+              placeholder="数字4桁"
               autoComplete="new-password"
               disabled={loading}
             />
@@ -157,8 +167,11 @@ export default function PasswordChangePage() {
             新しいパスワード確認
             <input
               type="password"
+              inputMode="numeric"
+              pattern="[0-9]{4}"
+              maxLength={4}
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e) => setConfirmPassword(normalizePin(e.target.value))}
               placeholder="もう一度入力"
               autoComplete="new-password"
               disabled={loading}
@@ -166,6 +179,7 @@ export default function PasswordChangePage() {
           </label>
 
           {message && <p className="password-change-error">{message}</p>}
+
           {successMessage && (
             <p className="password-change-success">{successMessage}</p>
           )}
