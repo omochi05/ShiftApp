@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "../../api/client";
 import ShiftTimeline from "../../components/ShiftTimeline";
 import "./OwnerShiftTimelinePage.css";
+import OwnerHamburgerMenu from "../../components/OwnerHamburgerMenu";
 
 type User = {
   id: number;
@@ -489,6 +490,7 @@ export default function OwnerShiftTimelinePage() {
 
   return (
     <div className="owner-shift-timeline-page">
+      <OwnerHamburgerMenu />
     <section className="owner-shift-hero">
         <p>SHIFT TABLE</p>
         <h1>シフト表</h1>

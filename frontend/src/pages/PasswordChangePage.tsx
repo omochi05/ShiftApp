@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import "./PasswordChangePage.css";
+import OwnerHamburgerMenu from "../components/OwnerHamburgerMenu";
 
 export default function PasswordChangePage() {
   const navigate = useNavigate();
@@ -89,6 +90,7 @@ export default function PasswordChangePage() {
 
   return (
     <div className="password-change-page">
+      <OwnerHamburgerMenu />
       <section className="password-change-card">
         <p className="password-change-label">SECURITY</p>
         <h1>パスワード変更</h1>

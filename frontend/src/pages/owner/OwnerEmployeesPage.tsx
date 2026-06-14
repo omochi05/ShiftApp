@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { api } from "../../api/client";
 import "./OwnerEmployeesPage.css";
+import OwnerHamburgerMenu from "../../components/OwnerHamburgerMenu";
 
 type User = {
   id: number;
@@ -266,6 +267,7 @@ export default function OwnerEmployeesPage() {
 
   return (
     <div className="owner-employees-page">
+      <OwnerHamburgerMenu />
       <section className="owner-employees-hero">
         <div>
           <p className="owner-employees-label">Employees</p>

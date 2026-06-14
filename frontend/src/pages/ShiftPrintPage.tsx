@@ -4,6 +4,8 @@ import jsPDF from "jspdf";
 import { api } from "../api/client";
 import ShiftTimeline from "../components/ShiftTimeline";
 import "./ShiftPrintPage.css";
+import OwnerHamburgerMenu from "../components/OwnerHamburgerMenu";
+
 type User = {
   id: number;
   name: string;
@@ -340,6 +342,7 @@ export default function ShiftPrintPage() {
 
   return (
     <div className="shift-print-page">
+      <OwnerHamburgerMenu />
       <section className="shift-print-hero print-hide">
         <p>PRINT PREVIEW</p>
         <h1>印刷プレビュー</h1>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { api } from "../../api/client";
 import "./OwnerShiftsPage.css";
+import OwnerHamburgerMenu from "../../components/OwnerHamburgerMenu";
 
 type User = {
   id: number;
@@ -528,6 +529,7 @@ const handleCreateShift = async (e: FormEvent) => {
 
   return (
     <div className="owner-shifts-page">
+      <OwnerHamburgerMenu />
       <section className="owner-shifts-hero">
         <div>
           <p className="owner-shifts-label">Shift Management</p>
