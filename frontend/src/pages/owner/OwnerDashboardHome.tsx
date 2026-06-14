@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import OwnerHamburgerMenu from "../../components/OwnerHamburgerMenu";
 import "./OwnerDashboardHome.css";
 
 const menuCards = [
@@ -62,19 +63,7 @@ export default function OwnerDashboardHome() {
 
   return (
     <main className="owner-home">
-      <header className="owner-menu-bar">
-        <Link to="/owner/ownerdashboard">管理メニュー</Link>
-        <Link to="/owner/shifts">シフト管理</Link>
-        <Link to="/owner/timeline">シフト表</Link>
-        <Link to="/owner/sales">売上管理</Link>
-        <Link to="/owner/employees">従業員管理</Link>
-        <Link to="/owner/print/shifts">印刷</Link>
-        <Link to="/change-password">パスワード変更</Link>
-
-        <button type="button" onClick={handleLogout}>
-          ログアウト
-        </button>
-      </header>
+      <OwnerHamburgerMenu />
 
       <section className="owner-home-hero">
         <p className="owner-home-label">OWNER DASHBOARD</p>
