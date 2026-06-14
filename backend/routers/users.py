@@ -241,14 +241,6 @@ def change_password(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    第4段階：
-    パスワード変更は本人だけ許可する。
-
-    owner / manager / employee / 9999 のどれであっても、
-    他人のパスワード変更はこのAPIではできない。
-    """
-
     if current_user.id != request.user_id:
         raise HTTPException(
             status_code=403,
