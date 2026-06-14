@@ -1,69 +1,202 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-
 import { api } from "../../api/client";
-import OwnerHamburgerMenu from "../../components/OwnerHamburgerMenu";
 import "./OwnerSalesPage.css";
 
-type OwnerDashboardMonthly = {
-  year: number;
-  month: number;
-  total_sales: number;
-  total_labor_cost: number;
-  labor_cost_rate: number;
+type Sale = {
+  id: number;
+  sale_date: string;
+  amount: number;
 };
 
-type OwnerWeeklyDashboard = {
-  year: number;
-  week: number;
-  start_date?: string;
-  end_date?: string;
-  total_sales: number;
-  total_labor_cost: number;
-  profit?: number;
-  status?: string;
-  labor_cost_rate?: number;
+type Shift = {
+  id: number;
+  user_id: number;
+  user_name: string;
+  work_date: string;
+  start_time: string;
+  end_time: string;
+  break_minutes: number;
 };
 
-type OwnerWeekdayDashboard = {
-  weekday: string;
-  total_sales: number;
-  total_labor_cost: number;
-  labor_cost_rate: number;
+type User = {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  hourly_wage: number;
 };
 
 type SaleForm = {
   sale_date: string;
   amount: string;
-  customer_count: string;
-  memo: string;
 };
 
-function getTodayText() {
-  const now = new Date();
-  const yyyy = now.getFullYear();
-  const mm = String(now.getMonth() + 1).padStart(2, "0");
-  const dd = String(now.getDate()).padStart(2, "0");
+type PeriodMode = "week" | "month";
 
+type WeekdayAnalysis = {
+  weekdayIndex: number;
+  weekdayName: string;
+  sales: number;
+  laborCost: number;
+  shiftCount: number;
+  laborRate: number;
+  status: "good" | "warning" | "danger" | "none";
+  statusLabel: string;
+  advice: string;
+};
+
+const weekdayNames = ["日", "月", "火", "水", "木", "金", "土"];
+
+function getTodayDate() {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function getCurrentWeekNumber() {
-  const now = new Date();
-  const firstDay = new Date(now.getFullYear(), 0, 1);
-  const pastDays = Math.floor(
-    (now.getTime() - firstDay.getTime()) / 86400000
-  );
-
-  return Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
+function getCurrentMonth() {
+  return getTodayDate().slice(0, 7);
 }
 
-function formatYen(value: number | null | undefined) {
-  return `${Number(value || 0).toLocaleString()}円`;
+function toDate(dateText: string) {
+  return new Date(`${dateText}T00:00:00`);
 }
 
-function formatPercent(value: number | null | undefined) {
-  return `${Number(value || 0).toFixed(1)}%`;
+function formatDate(date: Date) {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function getMonday(dateText: string) {
+  const date = toDate(dateText);
+  const day = date.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  date.setDate(date.getDate() + diff);
+  return date;
+}
+
+function addDays(date: Date, days: number) {
+  const copied = new Date(date);
+  copied.setDate(copied.getDate() + days);
+  return copied;
+}
+
+function getWeekdayIndex(dateText: string) {
+  return toDate(dateText).getDay();
+}
+
+function formatCurrency(value: number) {
+  return `${Math.round(value).toLocaleString()}円`;
+}
+
+function timeToMinutes(time: string) {
+  const [hour, minute] = time.split(":").map(Number);
+  return hour * 60 + minute;
+}
+
+function getOverlapMinutes(
+  start: number,
+  end: number,
+  rangeStart: number,
+  rangeEnd: number
+) {
+  const overlapStart = Math.max(start, rangeStart);
+  const overlapEnd = Math.min(end, rangeEnd);
+  return Math.max(0, overlapEnd - overlapStart);
+}
+
+function calculateShiftCost(shift: Shift, users: User[]) {
+  const user = users.find((u) => u.id === shift.user_id);
+  const hourlyWage = user?.hourly_wage || 0;
+
+  let start = timeToMinutes(shift.start_time);
+  let end = timeToMinutes(shift.end_time);
+
+  if (end <= start) {
+    end += 24 * 60;
+  }
+
+  const breakMinutes = shift.break_minutes || 0;
+
+  const rawNightMinutes =
+    getOverlapMinutes(start, end, 0, 6 * 60) +
+    getOverlapMinutes(start, end, 22 * 60, 30 * 60);
+
+  const rawEarlyMinutes = getOverlapMinutes(start, end, 6 * 60, 9 * 60);
+  const rawNormalMinutes = getOverlapMinutes(start, end, 9 * 60, 22 * 60);
+
+  let remainingBreak = breakMinutes;
+
+  const normalBreak = Math.min(rawNormalMinutes, remainingBreak);
+  const normalMinutes = Math.max(0, rawNormalMinutes - normalBreak);
+  remainingBreak -= normalBreak;
+
+  const earlyBreak = Math.min(rawEarlyMinutes, remainingBreak);
+  const earlyMinutes = Math.max(0, rawEarlyMinutes - earlyBreak);
+  remainingBreak -= earlyBreak;
+
+  const nightBreak = Math.min(rawNightMinutes, remainingBreak);
+  const nightMinutes = Math.max(0, rawNightMinutes - nightBreak);
+
+  const normalCost = (normalMinutes / 60) * hourlyWage;
+  const earlyCost = (earlyMinutes / 60) * hourlyWage;
+  const nightCost = (nightMinutes / 60) * hourlyWage * 1.25;
+
+  return normalCost + earlyCost + nightCost;
+}
+
+function getRateStatus(rate: number, sales: number) {
+  if (sales <= 0) {
+    return {
+      status: "none" as const,
+      statusLabel: "未登録",
+    };
+  }
+
+  if (rate >= 35) {
+    return {
+      status: "danger" as const,
+      statusLabel: "高い",
+    };
+  }
+
+  if (rate >= 25) {
+    return {
+      status: "warning" as const,
+      statusLabel: "注意",
+    };
+  }
+
+  return {
+    status: "good" as const,
+    statusLabel: "良好",
+  };
+}
+
+function createAdvice(weekdayName: string, sales: number, laborCost: number) {
+  if (sales <= 0 && laborCost > 0) {
+    return `${weekdayName}曜日は売上未登録ですが、人件費が発生しています。売上入力漏れがないか確認してください。`;
+  }
+
+  if (sales <= 0) {
+    return `${weekdayName}曜日はまだ売上データがありません。売上を登録すると分析できます。`;
+  }
+
+  const rate = (laborCost / sales) * 100;
+
+  if (rate >= 35) {
+    return `${weekdayName}曜日は人件費率が高めです。売上に対して人員が多い可能性があります。ピーク時間以外の人数や勤務時間を見直しましょう。`;
+  }
+
+  if (rate >= 25) {
+    return `${weekdayName}曜日は人件費率に注意が必要です。売上が低い時間帯に人数が多くなっていないか確認しましょう。`;
+  }
+
+  return `${weekdayName}曜日は人件費率が良好です。現在の人員配置は売上とのバランスが取れています。`;
 }
 
 function formatApiError(error: any, fallbackMessage: string) {
@@ -85,263 +218,455 @@ function formatApiError(error: any, fallbackMessage: string) {
 }
 
 export default function OwnerSalesPage() {
-  const now = new Date();
-
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth() + 1);
-  const [week, setWeek] = useState(getCurrentWeekNumber());
-
-  const [monthlyDashboard, setMonthlyDashboard] =
-    useState<OwnerDashboardMonthly | null>(null);
-
-  const [weeklyDashboard, setWeeklyDashboard] =
-    useState<OwnerWeeklyDashboard | null>(null);
-
-  const [weekdayDashboard, setWeekdayDashboard] = useState<
-    OwnerWeekdayDashboard[]
-  >([]);
-
-  const [saleForm, setSaleForm] = useState<SaleForm>({
-    sale_date: getTodayText(),
-    amount: "",
-    customer_count: "",
-    memo: "",
-  });
+  const [sales, setSales] = useState<Sale[]>([]);
+  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
   const [loading, setLoading] = useState(true);
-  const [saleMessage, setSaleMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [message, setMessage] = useState("");
 
-  const selectedMonthText = useMemo(() => {
-    return `${year}年${month}月`;
-  }, [year, month]);
+  const [periodMode, setPeriodMode] = useState<PeriodMode>("week");
+  const [targetDate, setTargetDate] = useState(getTodayDate());
+  const [targetMonth, setTargetMonth] = useState(getCurrentMonth());
 
-  const monthlyProfit = useMemo(() => {
-    if (!monthlyDashboard) {
-      return 0;
-    }
+  const [isAiOpen, setIsAiOpen] = useState(true);
 
-    return (
-      Number(monthlyDashboard.total_sales || 0) -
-      Number(monthlyDashboard.total_labor_cost || 0)
-    );
-  }, [monthlyDashboard]);
+  const [saleForm, setSaleForm] = useState<SaleForm>({
+    sale_date: getTodayDate(),
+    amount: "",
+  });
 
-  const fetchMonthlyDashboard = async () => {
-    const res = await api.get<OwnerDashboardMonthly>(
-      `/owner/dashboard/month?year=${year}&month=${month}`
-    );
-
-    setMonthlyDashboard(res.data);
-  };
-
-  const fetchWeeklyDashboard = async () => {
-    try {
-      const res = await api.get<OwnerWeeklyDashboard>(
-        `/owner/dashboard/week?year=${year}&week=${week}`
-      );
-
-      setWeeklyDashboard(res.data);
-    } catch (error) {
-      console.error("週間売上ダッシュボード取得失敗:", error);
-      setWeeklyDashboard(null);
-    }
-  };
-
-  const fetchWeekdayDashboard = async () => {
-    try {
-      const res = await api.get<OwnerWeekdayDashboard[]>(
-        `/owner/dashboard/weekday?year=${year}&month=${month}`
-      );
-
-      setWeekdayDashboard(res.data);
-    } catch (error) {
-      console.error("曜日別売上ダッシュボード取得失敗:", error);
-      setWeekdayDashboard([]);
-    }
-  };
-
-  const loadSalesData = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      setErrorMessage("");
+      setMessage("");
 
-      await Promise.all([
-        fetchMonthlyDashboard(),
-        fetchWeeklyDashboard(),
-        fetchWeekdayDashboard(),
+      const [salesRes, shiftsRes, usersRes] = await Promise.all([
+        api.get<Sale[]>("/sales/"),
+        api.get<Shift[]>("/shifts/"),
+        api.get<User[]>("/users/"),
       ]);
-    } catch (error: any) {
-      console.error("売上データ取得失敗:", error);
-      setErrorMessage(formatApiError(error, "売上データの取得に失敗しました"));
+
+      setSales(salesRes.data);
+      setShifts(shiftsRes.data);
+      setUsers(usersRes.data);
+    } catch (error) {
+      console.error("売上管理データ取得失敗:", error);
+      setMessage("売上管理データの取得に失敗しました。");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadSalesData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [year, month, week]);
+    fetchData();
+  }, []);
+
+  const periodLabel = useMemo(() => {
+    if (periodMode === "month") {
+      return `${targetMonth} の集計`;
+    }
+
+    const monday = getMonday(targetDate);
+    const sunday = addDays(monday, 6);
+
+    return `${formatDate(monday)} 〜 ${formatDate(sunday)} の集計`;
+  }, [periodMode, targetDate, targetMonth]);
+
+  const filteredSales = useMemo(() => {
+    if (periodMode === "month") {
+      return sales.filter((sale) => sale.sale_date.startsWith(targetMonth));
+    }
+
+    const monday = formatDate(getMonday(targetDate));
+    const sunday = formatDate(addDays(getMonday(targetDate), 6));
+
+    return sales.filter(
+      (sale) => sale.sale_date >= monday && sale.sale_date <= sunday
+    );
+  }, [sales, periodMode, targetDate, targetMonth]);
+
+  const filteredShifts = useMemo(() => {
+    if (periodMode === "month") {
+      return shifts.filter((shift) => shift.work_date.startsWith(targetMonth));
+    }
+
+    const monday = formatDate(getMonday(targetDate));
+    const sunday = formatDate(addDays(getMonday(targetDate), 6));
+
+    return shifts.filter(
+      (shift) => shift.work_date >= monday && shift.work_date <= sunday
+    );
+  }, [shifts, periodMode, targetDate, targetMonth]);
+
+  const sortedSales = useMemo(() => {
+    return [...filteredSales].sort((a, b) => {
+      if (a.sale_date < b.sale_date) return 1;
+      if (a.sale_date > b.sale_date) return -1;
+      return b.id - a.id;
+    });
+  }, [filteredSales]);
+
+  const totalSales = useMemo(() => {
+    return filteredSales.reduce(
+      (sum, sale) => sum + Number(sale.amount || 0),
+      0
+    );
+  }, [filteredSales]);
+
+  const totalLaborCost = useMemo(() => {
+    return filteredShifts.reduce((sum, shift) => {
+      return sum + calculateShiftCost(shift, users);
+    }, 0);
+  }, [filteredShifts, users]);
+
+  const laborCostRate = totalSales > 0 ? (totalLaborCost / totalSales) * 100 : 0;
+
+  const selectedDateShifts = useMemo(() => {
+    return shifts.filter((shift) => shift.work_date === saleForm.sale_date);
+  }, [shifts, saleForm.sale_date]);
+
+  const selectedDateLaborCost = useMemo(() => {
+    return selectedDateShifts.reduce((sum, shift) => {
+      return sum + calculateShiftCost(shift, users);
+    }, 0);
+  }, [selectedDateShifts, users]);
+
+  const selectedDateSale = useMemo(() => {
+    return sales.find((sale) => sale.sale_date === saleForm.sale_date);
+  }, [sales, saleForm.sale_date]);
+
+  const selectedDateBaseSale = Number(
+    saleForm.amount || selectedDateSale?.amount || 0
+  );
+
+  const selectedDateLaborRate =
+    selectedDateBaseSale > 0
+      ? (selectedDateLaborCost / selectedDateBaseSale) * 100
+      : 0;
+
+  const weekdayAnalysis = useMemo<WeekdayAnalysis[]>(() => {
+    return weekdayNames.map((weekdayName, weekdayIndex) => {
+      const weekdaySales = filteredSales.filter(
+        (sale) => getWeekdayIndex(sale.sale_date) === weekdayIndex
+      );
+
+      const weekdayShifts = filteredShifts.filter(
+        (shift) => getWeekdayIndex(shift.work_date) === weekdayIndex
+      );
+
+      const salesTotal = weekdaySales.reduce(
+        (sum, sale) => sum + Number(sale.amount || 0),
+        0
+      );
+
+      const laborTotal = weekdayShifts.reduce((sum, shift) => {
+        return sum + calculateShiftCost(shift, users);
+      }, 0);
+
+      const rate = salesTotal > 0 ? (laborTotal / salesTotal) * 100 : 0;
+      const statusResult = getRateStatus(rate, salesTotal);
+
+      return {
+        weekdayIndex,
+        weekdayName,
+        sales: salesTotal,
+        laborCost: laborTotal,
+        shiftCount: weekdayShifts.length,
+        laborRate: rate,
+        status: statusResult.status,
+        statusLabel: statusResult.statusLabel,
+        advice: createAdvice(weekdayName, salesTotal, laborTotal),
+      };
+    });
+  }, [filteredSales, filteredShifts, users]);
+
+  const aiSupportMessages = useMemo(() => {
+    const dangerWeekdays = weekdayAnalysis.filter(
+      (item) => item.status === "danger"
+    );
+
+    const warningWeekdays = weekdayAnalysis.filter(
+      (item) => item.status === "warning"
+    );
+
+    const bestWeekday = [...weekdayAnalysis]
+      .filter((item) => item.sales > 0)
+      .sort((a, b) => a.laborRate - b.laborRate)[0];
+
+    const messages: string[] = [];
+
+    if (dangerWeekdays.length > 0) {
+      messages.push(
+        `${dangerWeekdays
+          .map((item) => `${item.weekdayName}曜日`)
+          .join("・")}は人件費率が高めです。固定シフト人数や勤務時間を見直す候補です。`
+      );
+    }
+
+    if (warningWeekdays.length > 0) {
+      messages.push(
+        `${warningWeekdays
+          .map((item) => `${item.weekdayName}曜日`)
+          .join("・")}は注意ラインです。売上が低い時間帯に人員が厚くなっていないか確認しましょう。`
+      );
+    }
+
+    if (bestWeekday) {
+      messages.push(
+        `${bestWeekday.weekdayName}曜日は人件費率が${bestWeekday.laborRate.toFixed(
+          1
+        )}%で良好です。この曜日の配置バランスを他の曜日の参考にできます。`
+      );
+    }
+
+    if (messages.length === 0) {
+      messages.push(
+        "対象期間の売上とシフトを登録すると、曜日ごとの人件費率をもとに改善ポイントを表示します。"
+      );
+    }
+
+    return messages;
+  }, [weekdayAnalysis]);
 
   const handleCreateSale = async (e: FormEvent) => {
     e.preventDefault();
 
     if (!saleForm.sale_date) {
-      setSaleMessage("売上日を入力してください");
+      setMessage("日付を入力してください");
       return;
     }
 
-    if (!saleForm.amount) {
-      setSaleMessage("売上金額を入力してください");
+    if (!saleForm.amount || Number(saleForm.amount) <= 0) {
+      setMessage("売上金額を入力してください");
       return;
     }
 
     try {
-      setSaleMessage("");
+      setMessage("");
 
       await api.post("/sales/", {
         sale_date: saleForm.sale_date,
-        amount: Number(saleForm.amount || 0),
-        customer_count: Number(saleForm.customer_count || 0),
-        memo: saleForm.memo,
+        amount: Number(saleForm.amount),
       });
 
-      setSaleMessage("売上を登録しました");
+      setMessage("売上を登録しました");
 
-      setSaleForm((prev) => ({
-        ...prev,
+      setSaleForm({
+        sale_date: getTodayDate(),
         amount: "",
-        customer_count: "",
-        memo: "",
-      }));
+      });
 
-      await loadSalesData();
+      await fetchData();
     } catch (error: any) {
       console.error("売上登録失敗:", error);
+      console.error("レスポンス:", error.response?.data);
 
-      if (error.response?.status === 400 || error.response?.status === 409) {
-        setSaleMessage("同じ日付の売上がすでに登録されています");
-        return;
+      setMessage(formatApiError(error, "売上登録に失敗しました"));
+    }
+  };
+
+  const handleDeleteSale = async (sale: Sale) => {
+    const ok = window.confirm(
+      `${sale.sale_date} の売上 ${formatCurrency(
+        sale.amount
+      )} を削除しますか？`
+    );
+
+    if (!ok) return;
+
+    try {
+      setMessage("");
+
+      try {
+        await api.delete(`/sales/${sale.id}`);
+      } catch (firstError: any) {
+        const status = firstError.response?.status;
+
+        if (
+          status === 404 ||
+          status === 405 ||
+          status === 307 ||
+          status === 308
+        ) {
+          await api.delete(`/sales/${sale.id}/`);
+        } else {
+          throw firstError;
+        }
       }
 
-      setSaleMessage(formatApiError(error, "売上登録に失敗しました"));
+      setMessage("売上を削除しました");
+      await fetchData();
+    } catch (error: any) {
+      console.error("売上削除失敗:", error);
+      console.error("レスポンス:", error.response?.data);
+
+      setMessage(formatApiError(error, "売上削除に失敗しました"));
     }
   };
 
   return (
     <div className="owner-sales-page">
-      <OwnerHamburgerMenu />
-
       <section className="owner-sales-hero">
         <div>
-          <p className="owner-sales-label">SALES MANAGEMENT</p>
+          <p className="owner-sales-label">Sales Analysis</p>
           <h2>売上管理</h2>
           <p>
-            日別売上を登録し、月間売上・人件費・人件費率を確認できます。
-            このページはオーナー専用です。
+            週ごと・月ごとに売上と人件費率を確認できます。
+            AIサポートが人件費が高い曜日を見つけて改善ポイントを表示します。
           </p>
-        </div>
-
-        <div className="owner-sales-period-card">
-          <span>対象期間</span>
-          <strong>{selectedMonthText}</strong>
-          <small>第{week}週</small>
         </div>
       </section>
 
       <section className="owner-sales-filter-section">
-        <div className="owner-section-title-row">
-          <div>
-            <h3>集計期間</h3>
-            <p>確認したい年月・週を選択してください。</p>
-          </div>
+        <div className="owner-sales-period-tabs">
+          <button
+            type="button"
+            className={periodMode === "week" ? "active" : ""}
+            onClick={() => setPeriodMode("week")}
+          >
+            週ごと
+          </button>
 
           <button
             type="button"
-            className="owner-sales-refresh-button"
-            onClick={loadSalesData}
+            className={periodMode === "month" ? "active" : ""}
+            onClick={() => setPeriodMode("month")}
           >
-            再読み込み
+            月ごと
           </button>
         </div>
 
-        <div className="owner-sales-filter-grid">
-          <label>
-            年
-            <input
-              type="number"
-              value={year}
-              onChange={(e) => setYear(Number(e.target.value))}
-              min="2020"
-              max="2100"
-            />
-          </label>
-
-          <label>
-            月
-            <select
-              value={month}
-              onChange={(e) => setMonth(Number(e.target.value))}
-            >
-              {Array.from({ length: 12 }, (_, index) => index + 1).map((m) => (
-                <option key={m} value={m}>
-                  {m}月
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            週
-            <input
-              type="number"
-              value={week}
-              onChange={(e) => setWeek(Number(e.target.value))}
-              min="1"
-              max="53"
-            />
-          </label>
+        <div className="owner-sales-period-inputs">
+          {periodMode === "week" ? (
+            <label>
+              対象週
+              <input
+                type="date"
+                value={targetDate}
+                onChange={(e) => setTargetDate(e.target.value)}
+              />
+            </label>
+          ) : (
+            <label>
+              対象月
+              <input
+                type="month"
+                value={targetMonth}
+                onChange={(e) => setTargetMonth(e.target.value)}
+              />
+            </label>
+          )}
         </div>
+
+        <p className="owner-sales-period-label">{periodLabel}</p>
       </section>
 
       <section className="owner-sales-summary-grid">
-        <article className="owner-sales-summary-card owner-sales-summary-blue">
-          <span>月間売上</span>
-          <strong>{formatYen(monthlyDashboard?.total_sales)}</strong>
-          <p>{selectedMonthText} の売上合計</p>
-        </article>
+        <div className="owner-sales-summary-card">
+          <span>対象期間の売上</span>
+          <strong>{formatCurrency(totalSales)}</strong>
+        </div>
 
-        <article className="owner-sales-summary-card owner-sales-summary-green">
-          <span>月間人件費</span>
-          <strong>{formatYen(monthlyDashboard?.total_labor_cost)}</strong>
-          <p>登録シフトから計算</p>
-        </article>
+        <div className="owner-sales-summary-card">
+          <span>対象期間の人件費</span>
+          <strong>{formatCurrency(totalLaborCost)}</strong>
+        </div>
 
-        <article className="owner-sales-summary-card owner-sales-summary-orange">
-          <span>人件費率</span>
-          <strong>{formatPercent(monthlyDashboard?.labor_cost_rate)}</strong>
-          <p>売上に対する人件費の割合</p>
-        </article>
+        <div className="owner-sales-summary-card">
+          <span>対象期間の人件費率</span>
+          <strong>{laborCostRate.toFixed(1)}%</strong>
+        </div>
+      </section>
 
-        <article className="owner-sales-summary-card owner-sales-summary-dark">
-          <span>概算利益</span>
-          <strong>{formatYen(monthlyProfit)}</strong>
-          <p>売上 - 人件費</p>
-        </article>
+      <section className={`owner-sales-ai-section ${isAiOpen ? "open" : ""}`}>
+        <button
+          type="button"
+          className="owner-sales-ai-toggle"
+          onClick={() => setIsAiOpen((prev) => !prev)}
+        >
+          <span>
+            <small>AI Support</small>
+            <strong>AIサポート</strong>
+          </span>
+
+          <em>{isAiOpen ? "閉じる" : "開く"}</em>
+        </button>
+
+        {isAiOpen && (
+          <div className="owner-sales-ai-list">
+            {aiSupportMessages.map((text, index) => (
+              <div key={index} className="owner-sales-ai-message">
+                <strong>{index + 1}</strong>
+                <p>{text}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="owner-sales-section">
+        <div className="owner-section-title-row">
+          <div>
+            <h3>曜日別 売上・人件費分析</h3>
+            <p>
+              対象期間内で、曜日ごとに人件費が高くなっていないか確認できます。
+            </p>
+          </div>
+        </div>
+
+        <div className="owner-weekday-analysis-grid">
+          {weekdayAnalysis.map((item) => (
+            <article
+              key={item.weekdayIndex}
+              className={`owner-weekday-card ${item.status}`}
+            >
+              <div className="owner-weekday-card-header">
+                <span>{item.weekdayName}</span>
+                <strong>{item.statusLabel}</strong>
+              </div>
+
+              <dl>
+                <div>
+                  <dt>売上</dt>
+                  <dd>{formatCurrency(item.sales)}</dd>
+                </div>
+
+                <div>
+                  <dt>人件費</dt>
+                  <dd>{formatCurrency(item.laborCost)}</dd>
+                </div>
+
+                <div>
+                  <dt>人件費率</dt>
+                  <dd>
+                    {item.sales > 0 ? `${item.laborRate.toFixed(1)}%` : "-"}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>シフト数</dt>
+                  <dd>{item.shiftCount}件</dd>
+                </div>
+              </dl>
+
+              <p>{item.advice}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="owner-sales-section">
         <div className="owner-section-title-row">
           <div>
             <h3>売上登録</h3>
-            <p>日付・売上金額・客数・メモを入力してください。</p>
+            <p>日付と売上金額を入力してください。</p>
           </div>
         </div>
 
         <form className="owner-sales-form" onSubmit={handleCreateSale}>
           <label>
-            売上日
+            日付
             <input
               type="date"
               value={saleForm.sale_date}
@@ -367,123 +692,103 @@ export default function OwnerSalesPage() {
                 })
               }
               min="0"
-              placeholder="例：150000"
+              placeholder="例：85000"
               required
             />
           </label>
 
-          <label>
-            客数
-            <input
-              type="number"
-              value={saleForm.customer_count}
-              onChange={(e) =>
-                setSaleForm({
-                  ...saleForm,
-                  customer_count: e.target.value,
-                })
-              }
-              min="0"
-              placeholder="例：320"
-            />
-          </label>
-
-          <label>
-            メモ
-            <input
-              type="text"
-              value={saleForm.memo}
-              onChange={(e) =>
-                setSaleForm({
-                  ...saleForm,
-                  memo: e.target.value,
-                })
-              }
-              placeholder="例：雨天・イベント日など"
-            />
-          </label>
+          <div className="owner-sales-preview">
+            <span>この日の人件費</span>
+            <strong>{formatCurrency(selectedDateLaborCost)}</strong>
+            <small>人件費率 {selectedDateLaborRate.toFixed(1)}%</small>
+          </div>
 
           <button type="submit">売上を登録</button>
         </form>
 
-        {saleMessage && <p className="owner-sales-message">{saleMessage}</p>}
-        {errorMessage && <p className="owner-sales-error">{errorMessage}</p>}
+        {message && <p className="owner-sales-message">{message}</p>}
       </section>
 
       <section className="owner-sales-section">
         <div className="owner-section-title-row">
           <div>
-            <h3>週間集計</h3>
-            <p>選択した週の売上・人件費・利益を確認できます。</p>
+            <h3>売上一覧</h3>
+            <p>対象期間内の売上を確認できます。</p>
           </div>
+
+          <button
+            type="button"
+            className="owner-sales-refresh-button"
+            onClick={fetchData}
+          >
+            再読み込み
+          </button>
         </div>
 
         {loading ? (
           <div className="owner-sales-loading">読み込み中...</div>
-        ) : weeklyDashboard ? (
-          <div className="owner-sales-weekly-grid">
-            <article>
-              <span>週間売上</span>
-              <strong>{formatYen(weeklyDashboard.total_sales)}</strong>
-            </article>
-
-            <article>
-              <span>週間人件費</span>
-              <strong>{formatYen(weeklyDashboard.total_labor_cost)}</strong>
-            </article>
-
-            <article>
-              <span>週間人件費率</span>
-              <strong>{formatPercent(weeklyDashboard.labor_cost_rate)}</strong>
-            </article>
-
-            <article>
-              <span>週間利益</span>
-              <strong>{formatYen(weeklyDashboard.profit)}</strong>
-            </article>
-          </div>
-        ) : (
-          <div className="owner-sales-empty">
-            この週の集計データはまだありません。
-          </div>
-        )}
-      </section>
-
-      <section className="owner-sales-section">
-        <div className="owner-section-title-row">
-          <div>
-            <h3>曜日別集計</h3>
-            <p>曜日ごとの売上・人件費率を確認できます。</p>
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="owner-sales-loading">読み込み中...</div>
-        ) : weekdayDashboard.length === 0 ? (
-          <div className="owner-sales-empty">
-            曜日別データはまだありません。
-          </div>
         ) : (
           <div className="owner-sales-table-wrap">
             <table className="owner-sales-table">
               <thead>
                 <tr>
+                  <th>日付</th>
                   <th>曜日</th>
                   <th>売上</th>
-                  <th>人件費</th>
+                  <th>その日の人件費</th>
                   <th>人件費率</th>
+                  <th>操作</th>
                 </tr>
               </thead>
 
               <tbody>
-                {weekdayDashboard.map((item) => (
-                  <tr key={item.weekday}>
-                    <td>{item.weekday}</td>
-                    <td>{formatYen(item.total_sales)}</td>
-                    <td>{formatYen(item.total_labor_cost)}</td>
-                    <td>{formatPercent(item.labor_cost_rate)}</td>
+                {sortedSales.length === 0 ? (
+                  <tr>
+                    <td colSpan={6}>対象期間の売上がまだ登録されていません</td>
                   </tr>
-                ))}
+                ) : (
+                  sortedSales.map((sale) => {
+                    const dailyShifts = filteredShifts.filter(
+                      (shift) => shift.work_date === sale.sale_date
+                    );
+
+                    const dailyLaborCost = dailyShifts.reduce((sum, shift) => {
+                      return sum + calculateShiftCost(shift, users);
+                    }, 0);
+
+                    const dailyRate =
+                      sale.amount > 0
+                        ? (dailyLaborCost / sale.amount) * 100
+                        : 0;
+
+                    const dailyStatus = getRateStatus(dailyRate, sale.amount);
+
+                    return (
+                      <tr key={sale.id}>
+                        <td>{sale.sale_date}</td>
+                        <td>{weekdayNames[getWeekdayIndex(sale.sale_date)]}</td>
+                        <td>{formatCurrency(sale.amount)}</td>
+                        <td>{formatCurrency(dailyLaborCost)}</td>
+                        <td>
+                          <span
+                            className={`owner-sales-rate ${dailyStatus.status}`}
+                          >
+                            {dailyRate.toFixed(1)}%
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className="owner-sales-delete-button"
+                            onClick={() => handleDeleteSale(sale)}
+                          >
+                            削除
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
