@@ -30,13 +30,19 @@ export default function App() {
           <Route path="/owner/ownerdashboard" element={<OwnerDashboard />} />
 
           <Route path="/owner/shifts" element={<OwnerShiftsPage />} />
+
+          {/* シフト表 */}
           <Route path="/owner/timeline" element={<OwnerShiftsPage />} />
 
+          {/* 従業員管理 */}
           <Route path="/owner/employees" element={<OwnerEmployeesPage />} />
+
+          {/* 売上管理 */}
           <Route path="/owner/sales" element={<OwnerSalesPage />} />
 
-          <Route path="/print-shift" element={<ShiftPrintPage />} />
+          {/* 印刷 */}
           <Route path="/owner/print/shifts" element={<ShiftPrintPage />} />
+          <Route path="/print-shift" element={<ShiftPrintPage />} />
         </Route>
 
         <Route
