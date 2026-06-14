@@ -5,6 +5,7 @@ import RequireRole from "./components/RequireRole";
 import LoginPage from "./pages/LoginPage";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import ManagerDashboard from "./pages/ManagerDashboard";
+import OwnerDashboard from "./pages/OwnerDashboard";
 import PasswordChangePage from "./pages/PasswordChangePage";
 import ShiftPrintPage from "./pages/ShiftPrintPage";
 
@@ -24,7 +25,7 @@ export default function App() {
         <Route element={<RequireRole allowedRoles={["manager", "owner"]} />}>
           <Route path="/manager" element={<ManagerDashboard />} />
 
-          <Route path="/owner" element={<Navigate to="/owner/shifts" replace />} />
+          <Route path="/owner" element={<OwnerDashboard />} />
           <Route path="/owner/shifts" element={<OwnerShiftsPage />} />
           <Route path="/owner/employees" element={<OwnerEmployeesPage />} />
 
