@@ -9,8 +9,10 @@ export default function OwnerHamburgerMenu() {
   const loginRole = localStorage.getItem("loginRole");
   const employeeNumber = localStorage.getItem("employeeNumber");
 
-  const isOwnerOrManager =
-    loginRole === "owner" || loginRole === "manager" || employeeNumber === "9999";
+  const isOwner = loginRole === "owner" || employeeNumber === "9999";
+  const isManager = loginRole === "manager";
+
+  const isOwnerOrManager = isOwner || isManager;
 
   const handleLogout = () => {
     localStorage.clear();
@@ -22,10 +24,19 @@ export default function OwnerHamburgerMenu() {
     return null;
   }
 
+  const homePath = isOwner ? "/owner" : "/manager";
+  const shiftPath = isOwner ? "/owner/shifts" : "/manager/shifts";
+  const timelinePath = isOwner ? "/owner/timeline" : "/manager/timeline";
+  const employeesPath = isOwner ? "/owner/employees" : "/manager/employees";
+  const printPath = isOwner ? "/owner/print/shifts" : "/manager/print/shifts";
+  const passwordPath = isOwner
+    ? "/owner/change-password"
+    : "/manager/change-password";
+
   return (
     <>
       <header className="owner-hamburger-header">
-        <Link to="/owner/ownerdashboard" className="owner-hamburger-logo">
+        <Link to={homePath} className="owner-hamburger-logo">
           SevenShift Manager
         </Link>
 
@@ -57,31 +68,33 @@ export default function OwnerHamburgerMenu() {
           </button>
         </div>
 
-        <Link to="/owner/ownerdashboard" onClick={() => setOpen(false)}>
+        <Link to={homePath} onClick={() => setOpen(false)}>
           管理メニュー
         </Link>
 
-        <Link to="/owner/shifts" onClick={() => setOpen(false)}>
+        <Link to={shiftPath} onClick={() => setOpen(false)}>
           シフト管理
         </Link>
 
-        <Link to="/owner/timeline" onClick={() => setOpen(false)}>
+        <Link to={timelinePath} onClick={() => setOpen(false)}>
           シフト表
         </Link>
 
-        <Link to="/owner/sales" onClick={() => setOpen(false)}>
-          売上管理
-        </Link>
+        {isOwner && (
+          <Link to="/owner/sales" onClick={() => setOpen(false)}>
+            売上管理
+          </Link>
+        )}
 
-        <Link to="/owner/employees" onClick={() => setOpen(false)}>
+        <Link to={employeesPath} onClick={() => setOpen(false)}>
           従業員管理
         </Link>
 
-        <Link to="/owner/print/shifts" onClick={() => setOpen(false)}>
+        <Link to={printPath} onClick={() => setOpen(false)}>
           印刷
         </Link>
 
-        <Link to="/change-password" onClick={() => setOpen(false)}>
+        <Link to={passwordPath} onClick={() => setOpen(false)}>
           パスワード変更
         </Link>
 
