@@ -32,7 +32,7 @@ def serialize_user(user: User, current_user: User):
         "updated_at": user.updated_at,
     }
 
-    # オーナー・メンテナンスだけ時給を返す
+    # 時給はオーナー・メンテナンスだけ返す
     if can_view_wage(current_user):
         data["hourly_wage"] = user.hourly_wage
 
@@ -70,7 +70,7 @@ def create_user(
         )
 
     try:
-        # 管理者は時給を設定できない
+        # manager は時給を設定できない
         hourly_wage = user.hourly_wage if can_view_wage(current_user) else 0
 
         new_user = User(
@@ -90,6 +90,7 @@ def create_user(
     except Exception as error:
         db.rollback()
         print("ユーザー作成に失敗しました:", error)
+
         raise HTTPException(
             status_code=500,
             detail="ユーザー作成に失敗しました",
@@ -141,8 +142,8 @@ def update_user(
         user.email = "9999" if is_maintenance_user(user) else user_data.email
         user.role = "owner" if is_maintenance_user(user) else user_data.role
 
-        # 管理者は時給を変更できない
-        # オーナー・メンテナンスだけ時給変更OK
+        # 時給変更は owner・9999 だけ許可
+        # manager が hourly_wage を送ってきても無視する
         if can_view_wage(current_user):
             user.hourly_wage = user_data.hourly_wage
 
@@ -154,6 +155,7 @@ def update_user(
     except Exception as error:
         db.rollback()
         print("ユーザー更新に失敗しました:", error)
+
         raise HTTPException(
             status_code=500,
             detail="ユーザー更新に失敗しました",
@@ -198,6 +200,7 @@ def delete_user(
     except Exception as error:
         db.rollback()
         print("ユーザー削除に失敗しました:", error)
+
         raise HTTPException(
             status_code=500,
             detail="ユーザー削除に失敗しました",
@@ -218,7 +221,7 @@ def change_password(
             detail="ユーザーが見つかりません",
         )
 
-    # 本人、オーナー、メンテナンスだけ変更可能
+    # 今の段階では、本人・owner・9999 のみ変更可能
     if (
         current_user.id != user.id
         and current_user.role != "owner"
@@ -247,6 +250,7 @@ def change_password(
     except Exception as error:
         db.rollback()
         print("パスワード変更に失敗しました:", error)
+
         raise HTTPException(
             status_code=500,
             detail="パスワード変更に失敗しました",
