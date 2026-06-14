@@ -5,7 +5,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from auth_deps import require_manager_or_owner, require_self_or_manager_or_owner
+from auth_deps import get_current_user, require_manager_or_owner, require_self_or_manager_or_owner
 from database import get_db
 from models import Notification, Shift, User
 from schemas import ShiftCreate, ShiftResponse, ShiftUpdate
@@ -48,7 +48,7 @@ def create_notification(
 @router.get("/", response_model=List[ShiftResponse])
 def get_shifts(
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_manager_or_owner),
+    current_user: User = Depends(get_current_user),
 ):
     return (
         db.query(Shift)
