@@ -1,27 +1,30 @@
-import type { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 
 type RequireRoleProps = {
   allowedRoles: string[];
-  children: ReactNode;
 };
 
-export default function RequireRole({ allowedRoles, children }: RequireRoleProps) {
-  const loginUserId = localStorage.getItem("loginUserId");
+export default function RequireRole({ allowedRoles }: RequireRoleProps) {
+  const accessToken = localStorage.getItem("accessToken");
   const loginRole = localStorage.getItem("loginRole");
   const employeeNumber = localStorage.getItem("employeeNumber");
+  const loginUserId = localStorage.getItem("loginUserId");
 
-  if (!loginUserId || !loginRole) {
+  const isLoggedIn = Boolean(accessToken && loginRole && loginUserId);
+
+  if (!isLoggedIn) {
     return <Navigate to="/" replace />;
   }
 
+  // メンテナンス用 9999 は全画面OK
   if (employeeNumber === "9999") {
-    return <>{children}</>;
+    return <Outlet />;
   }
 
-  if (!allowedRoles.includes(loginRole)) {
+  if (!loginRole || !allowedRoles.includes(loginRole)) {
+    localStorage.clear();
     return <Navigate to="/" replace />;
   }
 
-  return <>{children}</>;
+  return <Outlet />;
 }
