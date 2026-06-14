@@ -1,352 +1,253 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from sqlalchemy import text
-from security import hash_password
 
+from auth_deps import get_current_user, require_manager_or_owner
 from database import get_db
-from models import User, Shift
-from schemas import (
-    UserCreate,
-    UserResponse,
-    UserUpdate,
-    LoginRequest,
-    PasswordChangeRequest,
-)
+from models import User
+from schemas import PasswordChangeRequest, UserCreate, UserUpdate
+from security import hash_password, verify_password
+
 
 router = APIRouter(
     prefix="/users",
-    tags=["users"]
+    tags=["users"],
 )
 
 
-@router.get("/", response_model=list[UserResponse])
-def get_users(db: Session = Depends(get_db)):
-    users = db.query(User).order_by(User.id).all()
-    return users
+def is_maintenance_user(user: User):
+    return user.email == "9999"
 
-@router.post("/login")
-def login_user(
-    login_data: LoginRequest,
-    db: Session = Depends(get_db)
-):
-    employee_number = login_data.employee_number.strip()
-    password = login_data.password.strip()
 
-    if not employee_number:
-        raise HTTPException(
-            status_code=400,
-            detail="従業員番号を入力してください"
-        )
+def can_view_wage(current_user: User):
+    return current_user.role == "owner" or is_maintenance_user(current_user)
 
-    if not password:
-        raise HTTPException(
-            status_code=400,
-            detail="パスワードを入力してください"
-        )
 
-    if len(password) != 4 or not password.isdigit():
-        raise HTTPException(
-            status_code=400,
-            detail="パスワードは4桁の数字で入力してください"
-        )
-
-    user = (
-        db.query(User)
-        .filter(User.email == employee_number)
-        .first()
-    )
-
-    if user is None:
-        raise HTTPException(
-            status_code=401,
-            detail="従業員番号またはパスワードが違います"
-        )
-
-    if user.password != password:
-        raise HTTPException(
-            status_code=401,
-            detail="従業員番号またはパスワードが違います"
-        )
-
-    return {
+def serialize_user(user: User, current_user: User):
+    data = {
         "id": user.id,
         "name": user.name,
-        "employee_number": user.email,
+        "email": user.email,
         "role": user.role,
-        "hourly_wage": user.hourly_wage,
+        "created_at": user.created_at,
+        "updated_at": user.updated_at,
     }
 
+    # オーナー・メンテナンスだけ時給を返す
+    if can_view_wage(current_user):
+        data["hourly_wage"] = user.hourly_wage
 
-@router.put("/change-password")
-def change_password(
-    password_data: PasswordChangeRequest,
-    db: Session = Depends(get_db)
+    return data
+
+
+@router.get("/")
+def get_users(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    current_password = password_data.current_password.strip()
-    new_password = password_data.new_password.strip()
+    users = db.query(User).order_by(User.id).all()
 
-    if len(current_password) != 4 or not current_password.isdigit():
-        raise HTTPException(
-            status_code=400,
-            detail="現在のパスワードは4桁の数字で入力してください"
-        )
-
-    if len(new_password) != 4 or not new_password.isdigit():
-        raise HTTPException(
-            status_code=400,
-            detail="新しいパスワードは4桁の数字で入力してください"
-        )
-
-    user = (
-        db.query(User)
-        .filter(User.id == password_data.user_id)
-        .first()
-    )
-
-    if user is None:
-        raise HTTPException(
-            status_code=404,
-            detail="ユーザーが見つかりません"
-        )
-
-    if user.password != current_password:
-        raise HTTPException(
-            status_code=400,
-            detail="現在のパスワードが違います"
-        )
-
-    user.password = new_password
-
-    db.commit()
-    db.refresh(user)
-
-    return {
-        "message": "パスワードを変更しました"
-    }
+    return [serialize_user(user, current_user) for user in users]
 
 
-@router.post("/", response_model=UserResponse)
+@router.post("/")
 def create_user(
     user: UserCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager_or_owner),
 ):
-    clean_name = user.name.strip()
-    clean_email = user.email.strip()
-    clean_role = user.role.strip()
+    existing_user = db.query(User).filter(User.email == user.email).first()
 
-    if not clean_email:
+    if existing_user:
         raise HTTPException(
             status_code=400,
-            detail="従業員番号を入力してください"
+            detail="この従業員番号はすでに使われています",
         )
 
-    if not clean_name:
+    if user.email == "9999":
         raise HTTPException(
             status_code=400,
-            detail="名前を入力してください"
+            detail="9999はメンテナンス用のため作成できません",
         )
-
-    existing_email = (
-        db.query(User)
-        .filter(User.email == clean_email)
-        .first()
-    )
-
-    if existing_email:
-        raise HTTPException(
-            status_code=400,
-            detail="この従業員番号はすでに登録されています"
-        )
-
-    existing_name = (
-        db.query(User)
-        .filter(User.name == clean_name)
-        .first()
-    )
-
-    if existing_name:
-        raise HTTPException(
-            status_code=400,
-            detail="同じ名前の従業員はすでに登録されています"
-        )
-
-    new_user = User(
-        name=user.name,
-        email=user.email,
-        password=hash_password(user.password),
-        role=user.role,
-        hourly_wage=user.hourly_wage,
-    )
-
-    db.add(new_user)
 
     try:
-        db.commit()
-        db.refresh(new_user)
-    except IntegrityError:
-        db.rollback()
-        raise HTTPException(
-            status_code=400,
-            detail="この従業員番号はすでに登録されています"
+        # 管理者は時給を設定できない
+        hourly_wage = user.hourly_wage if can_view_wage(current_user) else 0
+
+        new_user = User(
+            name=user.name,
+            email=user.email,
+            password=hash_password(user.password),
+            role=user.role,
+            hourly_wage=hourly_wage,
         )
 
-    return new_user
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+
+        return serialize_user(new_user, current_user)
+
+    except Exception as error:
+        db.rollback()
+        print("ユーザー作成に失敗しました:", error)
+        raise HTTPException(
+            status_code=500,
+            detail="ユーザー作成に失敗しました",
+        )
 
 
-@router.put("/{user_id}", response_model=UserResponse)
+@router.put("/{user_id}")
 def update_user(
     user_id: int,
     user_data: UserUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager_or_owner),
 ):
-    user = (
-        db.query(User)
-        .filter(User.id == user_id)
-        .first()
-    )
+    user = db.query(User).filter(User.id == user_id).first()
 
     if user is None:
         raise HTTPException(
             status_code=404,
-            detail="ユーザーが見つかりません"
+            detail="ユーザーが見つかりません",
         )
 
-    clean_name = user_data.name.strip()
-    clean_email = user_data.email.strip()
-    clean_role = user_data.role.strip()
-
-    if not clean_email:
+    if is_maintenance_user(user) and user_data.email != "9999":
         raise HTTPException(
             status_code=400,
-            detail="従業員番号を入力してください"
+            detail="メンテナンス用アカウントの従業員番号は変更できません",
         )
 
-    if not clean_name:
+    if not is_maintenance_user(user) and user_data.email == "9999":
         raise HTTPException(
             status_code=400,
-            detail="名前を入力してください"
+            detail="9999はメンテナンス用のため使用できません",
         )
 
-    duplicated_email = (
+    existing_email_user = (
         db.query(User)
-        .filter(User.email == clean_email)
+        .filter(User.email == user_data.email)
         .filter(User.id != user_id)
         .first()
     )
 
-    if duplicated_email:
+    if existing_email_user:
         raise HTTPException(
             status_code=400,
-            detail="この従業員番号はすでに使われています"
+            detail="この従業員番号はすでに使われています",
         )
-
-    duplicated_name = (
-        db.query(User)
-        .filter(User.name == clean_name)
-        .filter(User.id != user_id)
-        .first()
-    )
-
-    if duplicated_name:
-        raise HTTPException(
-            status_code=400,
-            detail="同じ名前の従業員はすでに登録されています"
-        )
-
-    user.name = clean_name
-    user.email = clean_email
-    user.role = clean_role
-    user.hourly_wage = user_data.hourly_wage
 
     try:
+        user.name = user_data.name
+        user.email = "9999" if is_maintenance_user(user) else user_data.email
+        user.role = "owner" if is_maintenance_user(user) else user_data.role
+
+        # 管理者は時給を変更できない
+        # オーナー・メンテナンスだけ時給変更OK
+        if can_view_wage(current_user):
+            user.hourly_wage = user_data.hourly_wage
+
         db.commit()
         db.refresh(user)
-    except IntegrityError:
-        db.rollback()
-        raise HTTPException(
-            status_code=400,
-            detail="従業員情報の更新に失敗しました。従業員番号が重複している可能性があります"
-        )
 
-    return user
+        return serialize_user(user, current_user)
+
+    except Exception as error:
+        db.rollback()
+        print("ユーザー更新に失敗しました:", error)
+        raise HTTPException(
+            status_code=500,
+            detail="ユーザー更新に失敗しました",
+        )
 
 
 @router.delete("/{user_id}")
 def delete_user(
     user_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager_or_owner),
 ):
-    user = (
-        db.query(User)
-        .filter(User.id == user_id)
-        .first()
-    )
+    user = db.query(User).filter(User.id == user_id).first()
 
     if user is None:
         raise HTTPException(
             status_code=404,
-            detail="ユーザーが見つかりません"
+            detail="ユーザーが見つかりません",
+        )
+
+    if is_maintenance_user(user):
+        raise HTTPException(
+            status_code=400,
+            detail="メンテナンス用アカウントは削除できません",
         )
 
     if user.role == "owner":
         raise HTTPException(
             status_code=400,
-            detail="オーナーは削除できません"
+            detail="オーナーは削除できません",
         )
 
     try:
-        target_shift_ids = [
-            row[0]
-            for row in db.execute(
-                text("""
-                    SELECT id
-                    FROM shifts
-                    WHERE user_id = :user_id
-                       OR created_by = :user_id
-                """),
-                {"user_id": user_id}
-            ).fetchall()
-        ]
-
-        if target_shift_ids:
-            db.execute(
-                text("""
-                    DELETE FROM notifications
-                    WHERE related_shift_id = ANY(:shift_ids)
-                """),
-                {"shift_ids": target_shift_ids}
-            )
-
-        db.execute(
-            text("""
-                DELETE FROM shift_requests
-                WHERE user_id = :user_id
-            """),
-            {"user_id": user_id}
-        )
-
-        db.query(Shift).filter(Shift.user_id == user_id).delete(
-            synchronize_session=False
-        )
-
-        db.query(Shift).filter(Shift.created_by == user_id).delete(
-            synchronize_session=False
-        )
-
         db.delete(user)
         db.commit()
 
-    except Exception as e:
-        db.rollback()
-        print("ユーザー削除エラー:", repr(e))
+        return {
+            "message": "ユーザーを削除しました",
+            "user_id": user_id,
+        }
 
+    except Exception as error:
+        db.rollback()
+        print("ユーザー削除に失敗しました:", error)
         raise HTTPException(
             status_code=500,
-            detail=f"ユーザー削除中にエラーが発生しました: {str(e)}"
+            detail="ユーザー削除に失敗しました",
         )
 
-    return {
-        "message": "ユーザーを削除しました",
-        "user_id": user_id
-    }
+
+@router.post("/change-password")
+def change_password(
+    request: PasswordChangeRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    user = db.query(User).filter(User.id == request.user_id).first()
+
+    if user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="ユーザーが見つかりません",
+        )
+
+    # 本人、オーナー、メンテナンスだけ変更可能
+    if (
+        current_user.id != user.id
+        and current_user.role != "owner"
+        and not is_maintenance_user(current_user)
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="このユーザーのパスワードは変更できません",
+        )
+
+    if not verify_password(request.current_password, user.password):
+        raise HTTPException(
+            status_code=400,
+            detail="現在のパスワードが違います",
+        )
+
+    try:
+        user.password = hash_password(request.new_password)
+
+        db.commit()
+
+        return {
+            "message": "パスワードを変更しました",
+        }
+
+    except Exception as error:
+        db.rollback()
+        print("パスワード変更に失敗しました:", error)
+        raise HTTPException(
+            status_code=500,
+            detail="パスワード変更に失敗しました",
+        )
