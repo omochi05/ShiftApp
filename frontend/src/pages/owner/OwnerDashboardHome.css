@@ -1,225 +1,27 @@
 .owner-home {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  min-height: 100vh;
+  padding: 28px;
+
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.12), transparent 36%),
+    #f1f5f9;
+
+  color: #111827;
+  box-sizing: border-box;
 }
 
-.owner-home-hero {
-  padding: 26px;
-
-  background: linear-gradient(135deg, #111827, #2563eb) !important;
-  color: #ffffff !important;
-
-  border: 1px solid #1f2937;
-  border-radius: 24px;
-  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.18);
-}
-
-.owner-home-label {
-  margin: 0 0 8px;
-
-  color: #bfdbfe !important;
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.owner-home-hero h2 {
-  margin: 0 0 10px;
-
-  color: #ffffff !important;
-  font-size: 32px;
-  font-weight: 900;
-}
-
-.owner-home-hero p {
-  max-width: 760px;
-  margin: 0;
-
-  color: #e5e7eb !important;
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 1.8;
-}
-
-.owner-home-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.owner-home-card {
-  min-height: 158px;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 18px;
-
-  padding: 22px;
-
-  background: #ffffff !important;
-  color: #111827 !important;
-
-  border: 1px solid #e5e7eb;
-  border-radius: 22px;
-
-  text-decoration: none;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
-
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  overflow: hidden;
-  position: relative;
-}
-
-.owner-home-card::before {
-  content: "";
-
-  position: absolute;
-  inset: 0 auto 0 0;
-
-  width: 8px;
-  background: #3b82f6;
-}
-
-.owner-home-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.16);
-}
-
-.owner-home-card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.owner-home-card span {
-  color: #111827 !important;
-  font-size: 22px;
-  font-weight: 900;
-}
-
-.owner-home-card strong {
-  width: 34px;
-  height: 34px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  color: #ffffff !important;
-  background: #111827 !important;
-
-  border-radius: 999px;
-
-  font-size: 18px;
-  font-weight: 900;
-}
-
-.owner-home-card p {
-  margin: 0;
-
-  color: #6b7280 !important;
-  font-size: 14px;
-  font-weight: 800;
-  line-height: 1.6;
-}
-
-.owner-home-card-green::before {
-  background: #22c55e;
-}
-
-.owner-home-card-purple::before {
-  background: #8b5cf6;
-}
-
-.owner-home-card-orange::before {
-  background: #f97316;
-}
-
-.owner-home-card-cyan::before {
-  background: #06b6d4;
-}
-
-.owner-home-card-pink::before {
-  background: #ec4899;
-}
-
-.owner-home-card-gray::before {
-  background: #6b7280;
-}
-
-.owner-home-card-green strong {
-  background: #16a34a !important;
-}
-
-.owner-home-card-purple strong {
-  background: #7c3aed !important;
-}
-
-.owner-home-card-orange strong {
-  background: #ea580c !important;
-}
-
-.owner-home-card-cyan strong {
-  background: #0891b2 !important;
-}
-
-.owner-home-card-pink strong {
-  background: #db2777 !important;
-}
-
-.owner-home-card-gray strong {
-  background: #374151 !important;
-}
-
-@media screen and (max-width: 960px) {
-  .owner-home-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media screen and (max-width: 560px) {
-  .owner-home {
-    gap: 16px;
-  }
-
-  .owner-home-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .owner-home-hero {
-    padding: 22px;
-    border-radius: 22px;
-  }
-
-  .owner-home-hero h2 {
-    font-size: 27px;
-  }
-
-  .owner-home-hero p {
-    font-size: 14px;
-  }
-
-  .owner-home-card {
-    min-height: 136px;
-    padding: 20px;
-    border-radius: 20px;
-  }
-
-  .owner-home-card span {
-    font-size: 21px;
-  }
+.owner-home * {
+  box-sizing: border-box;
 }
 
 /* =========================
-   Owner Dashboard Menu Bar
+   メニューバー
 ========================= */
 
 .owner-menu-bar {
-  margin-bottom: 24px;
+  width: min(1500px, 100%);
+  margin: 0 auto 24px;
   padding: 14px;
 
   display: flex;
@@ -227,7 +29,7 @@
   flex-wrap: wrap;
   align-items: center;
 
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.96);
   border: 1px solid #e5e7eb;
   border-radius: 22px;
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
@@ -261,6 +63,227 @@
   color: #ffffff;
 }
 
+/* =========================
+   ヘッダー
+========================= */
+
+.owner-home-hero {
+  width: min(1500px, 100%);
+  margin: 0 auto 28px;
+  padding: 34px 28px;
+
+  text-align: center;
+
+  background: linear-gradient(135deg, #111827 0%, #2563eb 100%);
+  color: #ffffff;
+
+  border-radius: 34px;
+  box-shadow: 0 18px 44px rgba(37, 99, 235, 0.22);
+}
+
+.owner-home-label {
+  margin: 0 0 10px;
+
+  color: rgba(255, 255, 255, 0.86);
+
+  font-size: 14px;
+  font-weight: 1000;
+  letter-spacing: 0.18em;
+}
+
+.owner-home-hero h1 {
+  margin: 0 0 14px;
+
+  font-size: 34px;
+  font-weight: 1000;
+  letter-spacing: -0.04em;
+}
+
+.owner-home-hero p {
+  margin: 0;
+
+  color: rgba(255, 255, 255, 0.92);
+
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.7;
+}
+
+/* =========================
+   カード
+========================= */
+
+.owner-home-grid {
+  width: min(1500px, 100%);
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 26px;
+}
+
+.owner-home-card {
+  min-height: 210px;
+  padding: 28px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  position: relative;
+  overflow: hidden;
+
+  background: #ffffff;
+  color: #111827;
+
+  border: none;
+  border-left: 10px solid #22c55e;
+  border-radius: 30px;
+
+  text-align: left;
+  text-decoration: none;
+
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.1);
+  cursor: pointer;
+}
+
+.owner-home-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.14);
+}
+
+.owner-home-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.owner-home-card-top span {
+  color: #111827;
+
+  font-size: 13px;
+  font-weight: 1000;
+  letter-spacing: 0.2em;
+}
+
+.owner-home-card-top strong {
+  width: 52px;
+  height: 52px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 999px;
+
+  background: #22c55e;
+  color: #ffffff;
+
+  font-size: 24px;
+  font-weight: 1000;
+}
+
+.owner-home-card h2 {
+  margin: 20px 0 12px;
+
+  color: #111827;
+
+  font-size: 34px;
+  font-weight: 1000;
+  letter-spacing: -0.04em;
+}
+
+.owner-home-card p {
+  margin: 0;
+
+  color: #6b7280;
+
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.7;
+}
+
+.owner-home-card-green {
+  border-left-color: #22c55e;
+}
+
+.owner-home-card-green .owner-home-card-top strong {
+  background: #22c55e;
+}
+
+.owner-home-card-purple {
+  border-left-color: #7c3aed;
+}
+
+.owner-home-card-purple .owner-home-card-top strong {
+  background: #7c3aed;
+}
+
+.owner-home-card-orange {
+  border-left-color: #ea580c;
+}
+
+.owner-home-card-orange .owner-home-card-top strong {
+  background: #ea580c;
+}
+
+.owner-home-card-cyan {
+  border-left-color: #0891b2;
+}
+
+.owner-home-card-cyan .owner-home-card-top strong {
+  background: #0891b2;
+}
+
+.owner-home-card-gray {
+  border-left-color: #6b7280;
+}
+
+.owner-home-card-gray .owner-home-card-top strong {
+  background: #374151;
+}
+
+.owner-home-card-red {
+  border-left-color: #ef4444;
+}
+
+.owner-home-card-red .owner-home-card-top strong {
+  background: #ef4444;
+}
+
+.owner-home-card-dark {
+  border-left-color: #111827;
+}
+
+.owner-home-card-dark .owner-home-card-top strong {
+  background: #111827;
+}
+
+/* =========================
+   スマホ対応
+========================= */
+
+@media screen and (max-width: 980px) {
+  .owner-home {
+    padding: 18px;
+  }
+
+  .owner-home-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .owner-home-card {
+    min-height: 190px;
+    padding: 24px;
+    border-radius: 26px;
+  }
+
+  .owner-home-card h2 {
+    font-size: 28px;
+  }
+}
+
 @media screen and (max-width: 640px) {
   .owner-menu-bar {
     display: grid;
@@ -276,5 +299,34 @@
   .owner-menu-bar button {
     margin-left: 0;
     grid-column: 1 / -1;
+  }
+
+  .owner-home-hero {
+    padding: 28px 20px;
+    border-radius: 28px;
+  }
+
+  .owner-home-hero h1 {
+    font-size: 28px;
+  }
+
+  .owner-home-hero p {
+    font-size: 14px;
+  }
+
+  .owner-home-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .owner-home-card {
+    min-height: 170px;
+  }
+
+  .owner-home-card h2 {
+    font-size: 26px;
+  }
+
+  .owner-home-card p {
+    font-size: 14px;
   }
 }
