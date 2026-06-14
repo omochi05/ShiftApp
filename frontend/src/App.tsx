@@ -8,10 +8,11 @@ import ManagerDashboard from "./pages/ManagerDashboard";
 import PasswordChangePage from "./pages/PasswordChangePage";
 import ShiftPrintPage from "./pages/ShiftPrintPage";
 
-import OwnerDashboard from "./pages/owner/OwnerDashboardHome";
+import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import OwnerEmployeesPage from "./pages/owner/OwnerEmployeesPage";
 import OwnerSalesPage from "./pages/owner/OwnerSalesPage";
 import OwnerShiftsPage from "./pages/owner/OwnerShiftsPage";
+import OwnerShiftTimeline from "./pages/owner/OwnerShiftTimeline";
 
 export default function App() {
   return (
@@ -30,17 +31,10 @@ export default function App() {
           <Route path="/owner/ownerdashboard" element={<OwnerDashboard />} />
 
           <Route path="/owner/shifts" element={<OwnerShiftsPage />} />
-
-          {/* シフト表 */}
-          <Route path="/owner/timeline" element={<OwnerShiftsPage />} />
-
-          {/* 従業員管理 */}
+          <Route path="/owner/timeline" element={<OwnerShiftTimeline />} />
           <Route path="/owner/employees" element={<OwnerEmployeesPage />} />
-
-          {/* 売上管理 */}
           <Route path="/owner/sales" element={<OwnerSalesPage />} />
 
-          {/* 印刷 */}
           <Route path="/owner/print/shifts" element={<ShiftPrintPage />} />
           <Route path="/print-shift" element={<ShiftPrintPage />} />
         </Route>
