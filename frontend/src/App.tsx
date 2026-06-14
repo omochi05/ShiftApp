@@ -5,7 +5,7 @@ import RequireRole from "./components/RequireRole";
 import LoginPage from "./pages/LoginPage";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import ManagerDashboard from "./pages/ManagerDashboard";
-import ChangePasswordPage from "./pages/ChangePasswordPage";
+import PasswordChangePage from "./pages/PasswordChangePage";
 import ShiftPrintPage from "./pages/ShiftPrintPage";
 
 import OwnerEmployeesPage from "./pages/owner/OwnerEmployeesPage";
@@ -40,7 +40,7 @@ export default function App() {
             <RequireRole allowedRoles={["owner", "manager", "employee"]} />
           }
         >
-          <Route path="/change-password" element={<ChangePasswordPage />} />
+          <Route path="/change-password" element={<PasswordChangePage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
