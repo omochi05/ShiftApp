@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+
 import OwnerHamburgerMenu from "../../components/OwnerHamburgerMenu";
 import "./OwnerDashboardHome.css";
 
@@ -42,7 +43,7 @@ const menuCards = [
     title: "パスワード変更",
     label: "SECURITY",
     description: "ログインパスワードを変更できます。",
-    to: "/change-password",
+    to: "/owner/change-password",
     color: "red",
   },
 ];
@@ -58,6 +59,7 @@ export default function OwnerDashboardHome() {
   const handleLogout = () => {
     localStorage.clear();
     sessionStorage.clear();
+
     navigate("/");
   };
 

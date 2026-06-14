@@ -49,6 +49,7 @@ export default function App() {
             path="/owner/ownerdashboard"
             element={<OwnerDashboardHome />}
           />
+
           <Route path="/owner/shifts" element={<OwnerShiftsPage />} />
           <Route path="/owner/timeline" element={<OwnerShiftTimelinePage />} />
           <Route path="/owner/sales" element={<OwnerSalesPage />} />
