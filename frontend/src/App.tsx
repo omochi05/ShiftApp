@@ -10,7 +10,6 @@ import ShiftPrintPage from "./pages/ShiftPrintPage";
 
 import OwnerDashboard from "./pages/owner/OwnerDashboardHome";
 import OwnerEmployeesPage from "./pages/owner/OwnerEmployeesPage";
-import OwnerSalesPage from "./pages/owner/OwnerSalesPage";
 import OwnerShiftsPage from "./pages/owner/OwnerShiftsPage";
 
 export default function App() {
@@ -25,14 +24,10 @@ export default function App() {
 
         <Route element={<RequireRole allowedRoles={["manager", "owner"]} />}>
           <Route path="/manager" element={<ManagerDashboard />} />
-
           <Route path="/owner" element={<OwnerDashboard />} />
           <Route path="/owner/ownerdashboard" element={<OwnerDashboard />} />
-
           <Route path="/owner/shifts" element={<OwnerShiftsPage />} />
           <Route path="/owner/employees" element={<OwnerEmployeesPage />} />
-          <Route path="/owner/sales" element={<OwnerSalesPage />} />
-
           <Route path="/print-shift" element={<ShiftPrintPage />} />
         </Route>
 
