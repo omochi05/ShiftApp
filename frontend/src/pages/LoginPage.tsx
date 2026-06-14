@@ -22,19 +22,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const clearLoginStorage = () => {
-    localStorage.removeItem("accessToken");
-
-    localStorage.removeItem("loginUserId");
-    localStorage.removeItem("loginName");
-    localStorage.removeItem("loginRole");
-    localStorage.removeItem("employeeNumber");
-
-    localStorage.removeItem("ownerLogin");
-    localStorage.removeItem("ownerId");
-    localStorage.removeItem("ownerName");
-    localStorage.removeItem("ownerNumber");
-
-    sessionStorage.removeItem("loginPassed");
+    localStorage.clear();
+    sessionStorage.clear();
   };
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
@@ -69,10 +58,9 @@ export default function LoginPage() {
       localStorage.setItem("employeeNumber", res.data.employee_number);
       localStorage.setItem("loginRole", res.data.role);
 
-      // URL直接入力対策用：ログイン成功したタブだけ通す
       sessionStorage.setItem("loginPassed", "true");
 
-      // 既存のオーナー判定コードとの互換用
+      // 既存コードとの互換用
       if (res.data.role === "owner" || res.data.employee_number === "9999") {
         localStorage.setItem("ownerLogin", "true");
         localStorage.setItem("ownerId", String(res.data.id));
@@ -81,7 +69,7 @@ export default function LoginPage() {
       }
 
       if (res.data.employee_number === "9999") {
-        navigate("/employee");
+        navigate("/owner");
         return;
       }
 

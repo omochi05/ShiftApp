@@ -1,174 +1,230 @@
 .manager-page {
   min-height: 100vh;
-  padding: 32px;
+  padding: 24px;
 
-  background: #f3f4f6;
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.13), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.12), transparent 36%),
+    #f1f5f9;
+
   color: #111827;
+  box-sizing: border-box;
 }
 
-.manager-header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
-  gap: 24px;
-  align-items: stretch;
+.manager-page * {
+  box-sizing: border-box;
+}
 
-  padding: 44px;
+.manager-hero {
+  width: min(1480px, 100%);
+  margin: 0 auto 28px;
+  padding: 38px 28px;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 24px;
+  align-items: center;
 
   background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
   color: #ffffff;
 
-  border-radius: 42px;
-  box-shadow: 0 20px 45px rgba(37, 99, 235, 0.22);
+  border-radius: 34px;
+  box-shadow: 0 18px 44px rgba(37, 99, 235, 0.22);
 }
 
 .manager-label {
-  margin: 0 0 12px;
+  margin: 0 0 10px;
 
-  font-size: 15px;
-  font-weight: 900;
+  color: rgba(255, 255, 255, 0.88);
+
+  font-size: 14px;
+  font-weight: 1000;
   letter-spacing: 0.18em;
 }
 
-.manager-header h1 {
-  margin: 0 0 16px;
+.manager-hero h1 {
+  margin: 0 0 14px;
 
-  font-size: 54px;
-  font-weight: 900;
-  line-height: 1.1;
+  color: #ffffff;
+
+  font-size: 42px;
+  font-weight: 1000;
+  letter-spacing: -0.04em;
 }
 
-.manager-header span {
-  display: block;
-  max-width: 760px;
+.manager-hero p {
+  margin: 0;
 
-  font-size: 20px;
-  font-weight: 800;
+  color: rgba(255, 255, 255, 0.94);
+
+  font-size: 16px;
+  font-weight: 900;
   line-height: 1.8;
 }
 
 .manager-user-card {
-  padding: 24px;
+  padding: 28px;
 
   display: grid;
-  align-content: center;
   gap: 8px;
 
   background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.32);
   border-radius: 28px;
-  backdrop-filter: blur(12px);
 }
 
-.manager-user-card span {
+.manager-user-card span,
+.manager-user-card small {
+  color: rgba(255, 255, 255, 0.88);
+
   font-size: 13px;
   font-weight: 900;
-  letter-spacing: 0.12em;
 }
 
 .manager-user-card strong {
-  font-size: 28px;
-  font-weight: 900;
-}
+  color: #ffffff;
 
-.manager-user-card small {
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 28px;
+  font-weight: 1000;
 }
 
 .manager-menu-grid {
-  margin-top: 28px;
+  width: min(1480px, 100%);
+  margin: 0 auto;
 
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
+  gap: 24px;
 }
 
 .manager-menu-card {
-  min-height: 190px;
-  padding: 26px;
+  min-height: 230px;
+  padding: 28px;
 
-  display: grid;
-  align-content: center;
-  gap: 10px;
-
-  border: none;
-  border-radius: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 
   background: #ffffff;
   color: #111827;
 
-  text-align: left;
-  box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
+  border: none;
+  border-top: 10px solid #22c55e;
+  border-radius: 30px;
 
+  text-align: left;
+  text-decoration: none;
+
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.1);
   cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
 .manager-menu-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.14);
+  transform: translateY(-3px);
+  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.14);
 }
 
-.manager-menu-card span {
+.manager-menu-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.manager-menu-card-top span {
+  color: #111827;
+
   font-size: 13px;
+  font-weight: 1000;
+  letter-spacing: 0.2em;
+}
+
+.manager-menu-card-top strong {
+  width: 52px;
+  height: 52px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 999px;
+
+  background: #22c55e;
+  color: #ffffff;
+
+  font-size: 24px;
+  font-weight: 1000;
+}
+
+.manager-menu-card h2 {
+  margin: 22px 0 12px;
+
+  color: #111827;
+
+  font-size: 34px;
+  font-weight: 1000;
+  letter-spacing: -0.04em;
+}
+
+.manager-menu-card p {
+  margin: 0;
+
+  color: #6b7280;
+
+  font-size: 16px;
   font-weight: 900;
-  letter-spacing: 0.16em;
+  line-height: 1.7;
 }
 
-.manager-menu-card strong {
-  font-size: 28px;
-  font-weight: 900;
+.manager-menu-card-green {
+  border-top-color: #22c55e;
 }
 
-.manager-menu-card small {
-  color: #4b5563;
-
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 1.6;
+.manager-menu-card-green .manager-menu-card-top strong {
+  background: #22c55e;
 }
 
-.manager-green {
-  border-top: 8px solid #22c55e;
+.manager-menu-card-purple {
+  border-top-color: #7c3aed;
 }
 
-.manager-purple {
-  border-top: 8px solid #8b5cf6;
+.manager-menu-card-purple .manager-menu-card-top strong {
+  background: #7c3aed;
 }
 
-.manager-cyan {
-  border-top: 8px solid #06b6d4;
+.manager-menu-card-cyan {
+  border-top-color: #0891b2;
 }
 
-.manager-gray {
-  border-top: 8px solid #6b7280;
+.manager-menu-card-cyan .manager-menu-card-top strong {
+  background: #0891b2;
 }
 
-.manager-red {
-  border-top: 8px solid #ef4444;
+.manager-menu-card-gray {
+  border-top-color: #6b7280;
 }
 
-.manager-dark {
-  border-top: 8px solid #111827;
+.manager-menu-card-gray .manager-menu-card-top strong {
+  background: #374151;
 }
 
-@media screen and (max-width: 900px) {
-  .manager-page {
-    padding: 18px;
-  }
+.manager-menu-card-red {
+  border-top-color: #ef4444;
+}
 
-  .manager-header {
+.manager-menu-card-red .manager-menu-card-top strong {
+  background: #ef4444;
+}
+
+.manager-menu-card-dark {
+  border-top-color: #111827;
+}
+
+.manager-menu-card-dark .manager-menu-card-top strong {
+  background: #111827;
+}
+
+@media screen and (max-width: 980px) {
+  .manager-hero {
     grid-template-columns: 1fr;
-    padding: 34px 24px;
-    border-radius: 34px;
-  }
-
-  .manager-header h1 {
-    font-size: 42px;
-  }
-
-  .manager-header span {
-    font-size: 17px;
   }
 
   .manager-menu-grid {
@@ -176,213 +232,40 @@
   }
 }
 
-@media screen and (max-width: 560px) {
+@media screen and (max-width: 640px) {
   .manager-page {
-    padding: 12px;
+    padding: 14px;
   }
 
-  .manager-header {
+  .manager-hero {
     padding: 30px 20px;
-    border-radius: 30px;
+    border-radius: 28px;
   }
 
-  .manager-header h1 {
-    font-size: 36px;
+  .manager-hero h1 {
+    font-size: 32px;
   }
 
-  .manager-header span {
-    font-size: 15px;
+  .manager-hero p {
+    font-size: 14px;
   }
 
   .manager-menu-grid {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 16px;
   }
 
   .manager-menu-card {
-    min-height: 150px;
+    min-height: 170px;
     padding: 22px;
     border-radius: 24px;
   }
 
-  .manager-menu-card strong {
-    font-size: 24px;
-  }
-}
-
-/* =========================
-   管理者画面：オーナー・管理者一覧
-========================= */
-
-.manager-role-section {
-  margin-top: 28px;
-  padding: 28px;
-
-  background: #ffffff;
-  border-radius: 32px;
-  box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
-}
-
-.manager-role-title {
-  margin-bottom: 20px;
-
-  display: flex;
-  justify-content: space-between;
-  gap: 18px;
-  align-items: center;
-}
-
-.manager-role-title p {
-  margin: 0 0 8px;
-
-  color: #2563eb;
-
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: 0.16em;
-}
-
-.manager-role-title h2 {
-  margin: 0 0 8px;
-
-  color: #111827;
-
-  font-size: 30px;
-  font-weight: 900;
-}
-
-.manager-role-title span {
-  display: block;
-
-  color: #6b7280;
-
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 1.6;
-}
-
-.manager-role-title button {
-  min-width: 150px;
-  padding: 13px 16px;
-
-  border: none;
-  border-radius: 16px;
-
-  background: #2563eb;
-  color: #ffffff;
-
-  font-size: 14px;
-  font-weight: 900;
-
-  cursor: pointer;
-}
-
-.manager-role-message {
-  margin: 0 0 16px;
-  padding: 14px 16px;
-
-  background: #fef2f2;
-  color: #b91c1c;
-
-  border-radius: 16px;
-
-  font-size: 14px;
-  font-weight: 900;
-  text-align: center;
-}
-
-.manager-role-loading,
-.manager-role-empty {
-  padding: 34px 18px;
-
-  background: #f9fafb;
-  color: #4b5563;
-
-  border-radius: 22px;
-
-  font-size: 15px;
-  font-weight: 900;
-  text-align: center;
-}
-
-.manager-role-table-wrap {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.manager-role-table {
-  width: 100%;
-  min-width: 720px;
-
-  border-collapse: collapse;
-}
-
-.manager-role-table th,
-.manager-role-table td {
-  padding: 18px 20px;
-
-  border-bottom: 1px solid #e5e7eb;
-
-  color: #111827;
-
-  font-size: 15px;
-  font-weight: 900;
-  text-align: left;
-}
-
-.manager-role-table th {
-  background: #f9fafb;
-  color: #6b7280;
-
-  font-size: 13px;
-  letter-spacing: 0.08em;
-}
-
-.manager-role-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  min-width: 92px;
-  padding: 8px 12px;
-
-  border-radius: 999px;
-
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.manager-role-owner {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.manager-role-manager {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-@media screen and (max-width: 560px) {
-  .manager-role-section {
-    padding: 20px;
-    border-radius: 26px;
+  .manager-menu-card h2 {
+    font-size: 26px;
   }
 
-  .manager-role-title {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
-  .manager-role-title h2 {
-    font-size: 24px;
-  }
-
-  .manager-role-title button {
-    width: 100%;
-  }
-
-  .manager-role-table th,
-  .manager-role-table td {
-    padding: 15px 16px;
+  .manager-menu-card p {
+    font-size: 14px;
   }
 }
