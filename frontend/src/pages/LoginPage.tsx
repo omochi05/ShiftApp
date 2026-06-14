@@ -58,7 +58,7 @@ export default function LoginPage() {
 
       const res = await api.post<LoginResponse>("/auth/login", {
         employee_number: trimmedEmployeeNumber,
-        password: password,
+        password,
       });
 
       localStorage.setItem("accessToken", res.data.access_token);
@@ -67,7 +67,6 @@ export default function LoginPage() {
       localStorage.setItem("employeeNumber", res.data.employee_number);
       localStorage.setItem("loginRole", res.data.role);
 
-      // 既存のオーナー判定コードと互換性を残す
       if (res.data.role === "owner" || res.data.employee_number === "9999") {
         localStorage.setItem("ownerLogin", "true");
         localStorage.setItem("ownerId", String(res.data.id));
@@ -104,49 +103,103 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="login-page">
-      <div className="login-card">
-        <div className="login-brand">
-          <div className="login-brand-mark">7</div>
+    <main className="seven-login-page">
+      <section className="seven-login-left">
+        <div className="seven-brand-card">
+          <div className="seven-color-lines">
+            <span className="seven-line-green" />
+            <span className="seven-line-orange" />
+            <span className="seven-line-red" />
+          </div>
 
-          <div className="login-brand-text">
-            <p>SevenShift Manager</p>
-            <h1>ログイン</h1>
+          <p className="seven-brand-label">SEVENSHIFT MANAGER</p>
+
+          <h1>
+            シフト管理を
+            <br />
+            もっと見やすく。
+          </h1>
+
+          <p className="seven-brand-description">
+            オーナー・管理者・従業員が、それぞれの役割に合わせて
+            シフト確認、給与確認、通知確認を行える管理システムです。
+          </p>
+
+          <div className="seven-feature-list">
+            <div>
+              <strong>シフト確認</strong>
+              <span>週ごとの勤務予定を確認</span>
+            </div>
+
+            <div>
+              <strong>通知</strong>
+              <span>変更や登録をすぐ確認</span>
+            </div>
+
+            <div>
+              <strong>権限管理</strong>
+              <span>役割ごとに画面を制御</span>
+            </div>
           </div>
         </div>
+      </section>
 
-        <form className="login-form" onSubmit={handleLogin}>
-          <label>
-            従業員番号
-            <input
-              type="text"
-              value={employeeNumber}
-              onChange={(e) => setEmployeeNumber(e.target.value)}
-              placeholder="例：001"
-              autoComplete="username"
+      <section className="seven-login-right">
+        <div className="seven-login-card">
+          <div className="seven-login-header">
+            <div className="seven-mini-mark">
+              <span />
+              <span />
+              <span />
+            </div>
+
+            <div>
+              <p>LOGIN</p>
+              <h2>ログイン</h2>
+            </div>
+          </div>
+
+          <form onSubmit={handleLogin}>
+            <label className="seven-form-field">
+              従業員番号
+              <input
+                type="text"
+                value={employeeNumber}
+                onChange={(e) => setEmployeeNumber(e.target.value)}
+                placeholder="例：001"
+                autoComplete="username"
+                disabled={loading}
+              />
+            </label>
+
+            <label className="seven-form-field">
+              パスワード
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="パスワード"
+                autoComplete="current-password"
+                disabled={loading}
+              />
+            </label>
+
+            {message && <p className="seven-login-message">{message}</p>}
+
+            <button
+              type="submit"
+              className="seven-login-button"
               disabled={loading}
-            />
-          </label>
+            >
+              {loading ? "ログイン中..." : "ログイン"}
+            </button>
+          </form>
 
-          <label>
-            パスワード
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="パスワード"
-              autoComplete="current-password"
-              disabled={loading}
-            />
-          </label>
-
-          {message && <p className="login-message">{message}</p>}
-
-          <button type="submit" disabled={loading}>
-            {loading ? "ログイン中..." : "ログイン"}
-          </button>
-        </form>
-      </div>
-    </div>
+          <p className="seven-login-note">
+            従業員番号とパスワードを入力してください。
+          </p>
+        </div>
+      </section>
+    </main>
   );
 }
