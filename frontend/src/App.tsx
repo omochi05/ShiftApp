@@ -28,7 +28,6 @@ export default function App() {
           <Route path="/owner" element={<OwnerDashboard />} />
           <Route path="/owner/shifts" element={<OwnerShiftsPage />} />
           <Route path="/owner/employees" element={<OwnerEmployeesPage />} />
-
           <Route path="/print-shift" element={<ShiftPrintPage />} />
         </Route>
 
