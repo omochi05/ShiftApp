@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import User
 from schemas import OwnerLoginRequest, OwnerLoginResponse
-from security import verify_password
+from security import create_access_token, verify_password
 
 
 router = APIRouter(
@@ -14,7 +14,7 @@ router = APIRouter(
 
 
 @router.post("/login", response_model=OwnerLoginResponse)
-def owner_login(
+def login(
     login_data: OwnerLoginRequest,
     db: Session = Depends(get_db),
 ):
@@ -36,15 +36,19 @@ def owner_login(
             detail="従業員番号またはパスワードが違います",
         )
 
-    if user.role != "owner":
-        raise HTTPException(
-            status_code=403,
-            detail="オーナーのみログインできます",
-        )
+    access_token = create_access_token(
+        {
+            "user_id": user.id,
+            "employee_number": user.email,
+            "role": user.role,
+        }
+    )
 
     return OwnerLoginResponse(
         id=user.id,
         name=user.name,
         employee_number=user.email,
         role=user.role,
+        access_token=access_token,
+        token_type="bearer",
     )

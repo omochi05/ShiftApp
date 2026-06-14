@@ -5,9 +5,10 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from auth_deps import require_manager_or_owner, require_self_or_manager_or_owner
 from database import get_db
-from models import Shift, Notification
-from schemas import ShiftCreate, ShiftUpdate, ShiftResponse
+from models import Notification, Shift, User
+from schemas import ShiftCreate, ShiftResponse, ShiftUpdate
 
 
 router = APIRouter(
@@ -45,7 +46,10 @@ def create_notification(
 
 
 @router.get("/", response_model=List[ShiftResponse])
-def get_shifts(db: Session = Depends(get_db)):
+def get_shifts(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager_or_owner),
+):
     return (
         db.query(Shift)
         .order_by(Shift.work_date, Shift.start_time, Shift.user_id)
@@ -57,6 +61,7 @@ def get_shifts(db: Session = Depends(get_db)):
 def create_shift(
     shift: ShiftCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager_or_owner),
 ):
     try:
         db_shift = Shift(
@@ -65,7 +70,7 @@ def create_shift(
             start_time=shift.start_time,
             end_time=shift.end_time,
             break_minutes=shift.break_minutes,
-            created_by=shift.created_by,
+            created_by=current_user.id,
         )
 
         db.add(db_shift)
@@ -82,7 +87,7 @@ def create_shift(
             ),
             notification_type="shift_confirmed",
             related_shift_id=db_shift.id,
-            created_by=shift.created_by,
+            created_by=current_user.id,
         )
 
         db.commit()
@@ -95,7 +100,7 @@ def create_shift(
         print("シフト作成または通知作成に失敗しました:", error)
         raise HTTPException(
             status_code=500,
-            detail=f"シフト作成に失敗しました: {error}",
+            detail="シフト作成に失敗しました",
         )
 
 
@@ -104,6 +109,7 @@ def update_shift(
     shift_id: int,
     shift: ShiftUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager_or_owner),
 ):
     db_shift = db.query(Shift).filter(Shift.id == shift_id).first()
 
@@ -124,7 +130,7 @@ def update_shift(
         db_shift.start_time = shift.start_time
         db_shift.end_time = shift.end_time
         db_shift.break_minutes = shift.break_minutes
-        db_shift.created_by = shift.created_by
+        db_shift.created_by = current_user.id
 
         db.flush()
 
@@ -139,7 +145,7 @@ def update_shift(
             ),
             notification_type="shift_changed",
             related_shift_id=db_shift.id,
-            created_by=shift.created_by,
+            created_by=current_user.id,
         )
 
         if old_user_id != db_shift.user_id:
@@ -154,7 +160,7 @@ def update_shift(
                 ),
                 notification_type="shift_changed",
                 related_shift_id=db_shift.id,
-                created_by=shift.created_by,
+                created_by=current_user.id,
             )
 
         db.commit()
@@ -167,7 +173,7 @@ def update_shift(
         print("シフト更新または通知作成に失敗しました:", error)
         raise HTTPException(
             status_code=500,
-            detail=f"シフト更新に失敗しました: {error}",
+            detail="シフト更新に失敗しました",
         )
 
 
@@ -175,6 +181,7 @@ def update_shift(
 def delete_shift(
     shift_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager_or_owner),
 ):
     db_shift = db.query(Shift).filter(Shift.id == shift_id).first()
 
@@ -196,7 +203,7 @@ def delete_shift(
             ),
             notification_type="shift_deleted",
             related_shift_id=None,
-            created_by=db_shift.created_by,
+            created_by=current_user.id,
         )
 
         db.delete(db_shift)
@@ -212,7 +219,7 @@ def delete_shift(
         print("シフト削除または通知作成に失敗しました:", error)
         raise HTTPException(
             status_code=500,
-            detail=f"シフト削除に失敗しました: {error}",
+            detail="シフト削除に失敗しました",
         )
 
 
@@ -220,6 +227,7 @@ def delete_shift(
 def get_shifts_by_user(
     user_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_self_or_manager_or_owner),
 ):
     return (
         db.query(Shift)
@@ -235,6 +243,7 @@ def get_shifts_by_user_and_month(
     year: int,
     month: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_self_or_manager_or_owner),
 ):
     last_day = calendar.monthrange(year, month)[1]
 

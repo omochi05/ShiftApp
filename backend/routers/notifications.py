@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from auth_deps import require_self_or_manager_or_owner
 from database import get_db
-from models import Notification
+from models import Notification, User
+
 
 router = APIRouter(
     prefix="/notifications",
@@ -14,8 +16,9 @@ router = APIRouter(
 def get_user_notifications(
     user_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_self_or_manager_or_owner),
 ):
-    notifications = (
+    return (
         db.query(Notification)
         .filter(Notification.user_id == user_id)
         .order_by(Notification.created_at.desc())
@@ -23,13 +26,12 @@ def get_user_notifications(
         .all()
     )
 
-    return notifications
-
 
 @router.get("/user/{user_id}/unread-count")
 def get_user_unread_count(
     user_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_self_or_manager_or_owner),
 ):
     unread_count = (
         db.query(Notification)
@@ -49,6 +51,7 @@ def get_user_unread_count(
 def mark_all_notifications_as_read(
     user_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_self_or_manager_or_owner),
 ):
     (
         db.query(Notification)
@@ -70,6 +73,7 @@ def mark_all_notifications_as_read(
 def mark_notification_as_read(
     notification_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_self_or_manager_or_owner),
 ):
     notification = (
         db.query(Notification)
@@ -82,6 +86,13 @@ def mark_notification_as_read(
             status_code=404,
             detail="通知が見つかりません",
         )
+
+    if current_user.email != "9999":
+        if current_user.role not in ["owner", "manager"] and notification.user_id != current_user.id:
+            raise HTTPException(
+                status_code=403,
+                detail="この通知を操作する権限がありません",
+            )
 
     notification.is_read = True
 

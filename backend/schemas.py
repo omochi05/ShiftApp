@@ -59,6 +59,8 @@ class OwnerLoginResponse(BaseModel):
     name: str
     employee_number: str
     role: str
+    access_token: str
+    token_type: str = "bearer"
 
 
 # =========================
