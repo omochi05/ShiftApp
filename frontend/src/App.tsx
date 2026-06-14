@@ -23,15 +23,11 @@ export default function App() {
 
         <Route element={<RequireRole allowedRoles={["manager", "owner"]} />}>
           <Route path="/manager" element={<ManagerDashboard />} />
-        </Route>
 
-        <Route element={<RequireRole allowedRoles={["owner"]} />}>
           <Route path="/owner" element={<Navigate to="/owner/shifts" replace />} />
-          <Route path="/owner/employees" element={<OwnerEmployeesPage />} />
           <Route path="/owner/shifts" element={<OwnerShiftsPage />} />
-        </Route>
+          <Route path="/owner/employees" element={<OwnerEmployeesPage />} />
 
-        <Route element={<RequireRole allowedRoles={["owner", "manager"]} />}>
           <Route path="/print-shift" element={<ShiftPrintPage />} />
         </Route>
 
