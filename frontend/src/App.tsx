@@ -8,11 +8,11 @@ import ManagerDashboard from "./pages/ManagerDashboard";
 import PasswordChangePage from "./pages/PasswordChangePage";
 import ShiftPrintPage from "./pages/ShiftPrintPage";
 
-import OwnerDashboard from "./pages/owner/OwnerDashboardHome";
+import OwnerDashboardHome from "./pages/owner/OwnerDashboardHome";
 import OwnerEmployeesPage from "./pages/owner/OwnerEmployeesPage";
 import OwnerSalesPage from "./pages/owner/OwnerSalesPage";
+import OwnerShiftTimelinePage from "./pages/owner/OwnerShiftTimelinePage";
 import OwnerShiftsPage from "./pages/owner/OwnerShiftsPage";
-import OwnerShiftTimeline from "./pages/owner/OwnerShiftTimelinePage";
 
 export default function App() {
   return (
@@ -27,11 +27,11 @@ export default function App() {
         <Route element={<RequireRole allowedRoles={["manager", "owner"]} />}>
           <Route path="/manager" element={<ManagerDashboard />} />
 
-          <Route path="/owner" element={<OwnerDashboard />} />
-          <Route path="/owner/ownerdashboard" element={<OwnerDashboard />} />
+          <Route path="/owner" element={<OwnerDashboardHome />} />
+          <Route path="/owner/ownerdashboard" element={<OwnerDashboardHome />} />
 
           <Route path="/owner/shifts" element={<OwnerShiftsPage />} />
-          <Route path="/owner/timeline" element={<OwnerShiftTimeline />} />
+          <Route path="/owner/timeline" element={<OwnerShiftTimelinePage />} />
           <Route path="/owner/sales" element={<OwnerSalesPage />} />
           <Route path="/owner/employees" element={<OwnerEmployeesPage />} />
 
