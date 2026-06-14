@@ -35,15 +35,17 @@ export default function LoginPage() {
     localStorage.removeItem("ownerNumber");
   };
 
-  const handleLogin = async (e: FormEvent) => {
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!employeeNumber.trim()) {
+    const trimmedEmployeeNumber = employeeNumber.trim();
+
+    if (!trimmedEmployeeNumber) {
       setMessage("従業員番号を入力してください");
       return;
     }
 
-    if (!password.trim()) {
+    if (!password) {
       setMessage("パスワードを入力してください");
       return;
     }
@@ -55,7 +57,7 @@ export default function LoginPage() {
       clearLoginStorage();
 
       const res = await api.post<LoginResponse>("/auth/login", {
-        employee_number: employeeNumber.trim(),
+        employee_number: trimmedEmployeeNumber,
         password: password,
       });
 
@@ -65,7 +67,7 @@ export default function LoginPage() {
       localStorage.setItem("employeeNumber", res.data.employee_number);
       localStorage.setItem("loginRole", res.data.role);
 
-      // 既存コードとの互換用
+      // 既存のオーナー判定コードと互換性を残す
       if (res.data.role === "owner" || res.data.employee_number === "9999") {
         localStorage.setItem("ownerLogin", "true");
         localStorage.setItem("ownerId", String(res.data.id));
@@ -102,12 +104,12 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="login-page">
-      <section className="login-card">
+    <div className="login-page">
+      <div className="login-card">
         <div className="login-brand">
           <div className="login-brand-mark">7</div>
 
-          <div>
+          <div className="login-brand-text">
             <p>SevenShift Manager</p>
             <h1>ログイン</h1>
           </div>
@@ -122,6 +124,7 @@ export default function LoginPage() {
               onChange={(e) => setEmployeeNumber(e.target.value)}
               placeholder="例：001"
               autoComplete="username"
+              disabled={loading}
             />
           </label>
 
@@ -133,6 +136,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="パスワード"
               autoComplete="current-password"
+              disabled={loading}
             />
           </label>
 
@@ -142,7 +146,7 @@ export default function LoginPage() {
             {loading ? "ログイン中..." : "ログイン"}
           </button>
         </form>
-      </section>
-    </main>
+      </div>
+    </div>
   );
 }
