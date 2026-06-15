@@ -43,14 +43,16 @@ def verify_password(plain_password: str, stored_password: str) -> bool:
         return False
 
     try:
-        # bcryptは72バイト超えで例外になるので、先にFalseで止める
+        # bcrypt は「入力された平文パスワード」が72バイト超えだと例外になる
+        # ここで False にして 500 を防ぐ
         if len(plain_password.encode("utf-8")) > 72:
             return False
 
+        # DBにbcryptハッシュが入っている場合
         if is_password_hashed(stored_password):
             return pwd_context.verify(plain_password, stored_password)
 
-        # 旧データ対策：平文で保存されていたパスワードも一時的に認証する
+        # 旧データ対策：DBに平文で保存されていた場合
         return plain_password == stored_password
 
     except Exception as error:
