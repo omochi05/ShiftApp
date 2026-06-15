@@ -10,7 +10,9 @@ type User = {
   name: string;
   email: string;
   role: string;
-  hourly_wage: number;
+  hourly_wage?: number | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 };
 
 type EmployeeForm = {
@@ -47,6 +49,29 @@ function getRoleLabel(user: User) {
   return "従業員";
 }
 
+function getEmployeeNumberValue(user: User) {
+  const value = Number(user.email);
+
+  if (Number.isNaN(value)) {
+    return 999999;
+  }
+
+  return value;
+}
+
+function sortUsersByEmployeeNumber(users: User[]) {
+  return [...users].sort((a, b) => {
+    const aNumber = getEmployeeNumberValue(a);
+    const bNumber = getEmployeeNumberValue(b);
+
+    if (aNumber !== bNumber) {
+      return aNumber - bNumber;
+    }
+
+    return a.id - b.id;
+  });
+}
+
 function formatApiError(error: any, fallbackMessage: string) {
   const detail = error.response?.data?.detail;
 
@@ -67,7 +92,10 @@ function formatApiError(error: any, fallbackMessage: string) {
 
 export default function OwnerEmployeesPage() {
   const loginRole = localStorage.getItem("loginRole");
-  const canViewWage = loginRole === "owner";
+  const employeeNumber = localStorage.getItem("employeeNumber");
+
+  const canViewWage = loginRole === "owner" || employeeNumber === "9999";
+  const canCreateOwner = loginRole === "owner" || employeeNumber === "9999";
 
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,30 +112,7 @@ export default function OwnerEmployeesPage() {
     useState<EmployeeForm>(initialEmployeeForm);
 
   const visibleUsers = useMemo(() => {
-    return [...users].sort((a, b) => {
-      if (a.email === "9999") {
-        return -1;
-      }
-
-      if (b.email === "9999") {
-        return 1;
-      }
-
-      const roleOrder: Record<string, number> = {
-        owner: 1,
-        manager: 2,
-        employee: 3,
-      };
-
-      const roleA = roleOrder[a.role] ?? 99;
-      const roleB = roleOrder[b.role] ?? 99;
-
-      if (roleA !== roleB) {
-        return roleA - roleB;
-      }
-
-      return a.id - b.id;
-    });
+    return sortUsersByEmployeeNumber(users);
   }, [users]);
 
   const fetchUsers = async () => {
@@ -147,6 +152,11 @@ export default function OwnerEmployeesPage() {
       return;
     }
 
+    if (!canCreateOwner && newEmployee.role === "owner") {
+      setMessage("管理者はオーナーを作成できません");
+      return;
+    }
+
     try {
       setMessage("");
 
@@ -177,7 +187,7 @@ export default function OwnerEmployeesPage() {
       employee_number: user.email,
       name: user.name,
       role: user.role,
-      hourly_wage: String(user.hourly_wage || 0),
+      hourly_wage: String(user.hourly_wage ?? ""),
     });
 
     setMessage("");
@@ -188,7 +198,7 @@ export default function OwnerEmployeesPage() {
     setEditEmployee(initialEmployeeForm);
   };
 
-  const handleUpdateEmployee = async (user: User) => {
+  const handleUpdateEmployee = async (userId: number) => {
     if (!editEmployee.employee_number.trim()) {
       setMessage("従業員番号を入力してください");
       return;
@@ -199,30 +209,38 @@ export default function OwnerEmployeesPage() {
       return;
     }
 
-    if (isMaintenanceUser(user) && editEmployee.employee_number !== "9999") {
-      setMessage("メンテナンス用アカウントの従業員番号は変更できません");
+    const targetUser = users.find((user) => user.id === userId);
+
+    if (!targetUser) {
+      setMessage("更新対象のユーザーが見つかりません");
       return;
     }
 
-    if (!isMaintenanceUser(user) && editEmployee.employee_number === "9999") {
+    if (isMaintenanceUser(targetUser)) {
+      setMessage("メンテナンス用アカウントはこの画面では編集できません");
+      return;
+    }
+
+    if (editEmployee.employee_number.trim() === "9999") {
       setMessage("9999はメンテナンス用のため使用できません");
+      return;
+    }
+
+    if (!canCreateOwner && editEmployee.role === "owner") {
+      setMessage("管理者はオーナー権限を付与できません");
       return;
     }
 
     try {
       setMessage("");
 
-      await api.put(`/users/${user.id}`, {
+      await api.put(`/users/${userId}`, {
         name: editEmployee.name.trim(),
-        email: isMaintenanceUser(user)
-          ? "9999"
-          : editEmployee.employee_number.trim(),
-        role: isMaintenanceUser(user) ? "owner" : editEmployee.role,
-
-        // 管理者画面では時給を表示・編集しないが、既存値は壊さない
+        email: editEmployee.employee_number.trim(),
+        role: editEmployee.role,
         hourly_wage: canViewWage
           ? Number(editEmployee.hourly_wage || 0)
-          : Number(user.hourly_wage || 0),
+          : Number(targetUser.hourly_wage || 0),
       });
 
       setMessage("ユーザー情報を更新しました");
@@ -237,19 +255,21 @@ export default function OwnerEmployeesPage() {
     }
   };
 
-  const handleDeleteUser = async (user: User) => {
-    if (isMaintenanceUser(user)) {
+  const handleDeleteUser = async (userId: number) => {
+    const targetUser = users.find((user) => user.id === userId);
+
+    if (!targetUser) {
+      setMessage("削除対象のユーザーが見つかりません");
+      return;
+    }
+
+    if (isMaintenanceUser(targetUser)) {
       setMessage("メンテナンス用アカウントは削除できません");
       return;
     }
 
-    if (user.role === "owner") {
-      setMessage("オーナーは画面から削除できません");
-      return;
-    }
-
     const ok = window.confirm(
-      `${user.name}（${user.email}）を削除しますか？\nこのユーザーのシフトや関連データも削除される可能性があります。`
+      `${targetUser.name}（${targetUser.email}）を削除しますか？\nこのユーザーのシフトや関連データも削除される可能性があります。`
     );
 
     if (!ok) {
@@ -259,7 +279,7 @@ export default function OwnerEmployeesPage() {
     try {
       setMessage("");
 
-      await api.delete(`/users/${user.id}`);
+      await api.delete(`/users/${userId}`);
 
       setMessage("ユーザーを削除しました");
 
@@ -281,10 +301,8 @@ export default function OwnerEmployeesPage() {
           <p className="owner-employees-label">Employees</p>
           <h2>従業員管理</h2>
           <p>
-            従業員・管理者・オーナーの確認、権限の変更を行います。
-            {canViewWage
-              ? " オーナーは時給も確認・編集できます。"
-              : " 管理者画面では時給は表示されません。"}
+            従業員・管理者・オーナーの確認、時給や権限の変更を行います。
+            一覧は従業員番号が小さい順に表示されます。
           </p>
         </div>
 
@@ -298,10 +316,7 @@ export default function OwnerEmployeesPage() {
         <div className="owner-section-title-row">
           <div>
             <h3>ユーザー追加</h3>
-            <p>
-              従業員番号・名前・権限を入力してください。
-              {canViewWage && " オーナーは時給も設定できます。"}
-            </p>
+            <p>従業員番号・名前・権限を入力してください。</p>
           </div>
         </div>
 
@@ -351,7 +366,7 @@ export default function OwnerEmployeesPage() {
             >
               <option value="employee">従業員</option>
               <option value="manager">管理者</option>
-              <option value="owner">オーナー</option>
+              {canCreateOwner && <option value="owner">オーナー</option>}
             </select>
           </label>
 
@@ -383,7 +398,7 @@ export default function OwnerEmployeesPage() {
         <div className="owner-section-title-row">
           <div>
             <h3>ユーザー一覧</h3>
-            <p>登録済みのユーザーを確認できます。</p>
+            <p>登録済みのユーザーを従業員番号の小さい順に表示します。</p>
           </div>
 
           <button
@@ -397,6 +412,10 @@ export default function OwnerEmployeesPage() {
 
         {loading ? (
           <div className="owner-employees-loading">読み込み中...</div>
+        ) : visibleUsers.length === 0 ? (
+          <div className="owner-employees-empty">
+            登録済みユーザーがいません。
+          </div>
         ) : (
           <div className="owner-employees-table-wrap">
             <table className="owner-employees-table">
@@ -411,140 +430,130 @@ export default function OwnerEmployeesPage() {
               </thead>
 
               <tbody>
-                {visibleUsers.length === 0 ? (
-                  <tr>
-                    <td colSpan={canViewWage ? 5 : 4}>
-                      ユーザーがまだ登録されていません
-                    </td>
-                  </tr>
-                ) : (
-                  visibleUsers.map((user) => {
-                    const isEditing = editingEmployeeId === user.id;
-                    const isMaintenance = isMaintenanceUser(user);
+                {visibleUsers.map((user) => {
+                  const isEditing = editingEmployeeId === user.id;
+                  const maintenance = isMaintenanceUser(user);
 
-                    return (
-                      <tr key={user.id}>
-                        <td>
-                          {isEditing && !isMaintenance ? (
-                            <input
-                              type="text"
-                              value={editEmployee.employee_number}
-                              onChange={(e) =>
-                                setEditEmployee({
-                                  ...editEmployee,
-                                  employee_number: e.target.value,
-                                })
-                              }
-                            />
-                          ) : (
-                            user.email
-                          )}
-                        </td>
-
-                        <td>
-                          {isEditing ? (
-                            <input
-                              type="text"
-                              value={editEmployee.name}
-                              onChange={(e) =>
-                                setEditEmployee({
-                                  ...editEmployee,
-                                  name: e.target.value,
-                                })
-                              }
-                            />
-                          ) : (
-                            user.name
-                          )}
-                        </td>
-
-                        <td>
-                          {isEditing && !isMaintenance ? (
-                            <select
-                              value={editEmployee.role}
-                              onChange={(e) =>
-                                setEditEmployee({
-                                  ...editEmployee,
-                                  role: e.target.value,
-                                })
-                              }
-                            >
-                              <option value="employee">従業員</option>
-                              <option value="manager">管理者</option>
-                              <option value="owner">オーナー</option>
-                            </select>
-                          ) : (
-                            getRoleLabel(user)
-                          )}
-                        </td>
-
-                        {canViewWage && (
-                          <td>
-                            {isEditing ? (
-                              <input
-                                type="number"
-                                value={editEmployee.hourly_wage}
-                                onChange={(e) =>
-                                  setEditEmployee({
-                                    ...editEmployee,
-                                    hourly_wage: e.target.value,
-                                  })
-                                }
-                                min="0"
-                              />
-                            ) : (
-                              `${Number(
-                                user.hourly_wage || 0
-                              ).toLocaleString()}円`
-                            )}
-                          </td>
+                  return (
+                    <tr key={user.id}>
+                      <td>
+                        {isEditing && !maintenance ? (
+                          <input
+                            type="text"
+                            value={editEmployee.employee_number}
+                            onChange={(e) =>
+                              setEditEmployee({
+                                ...editEmployee,
+                                employee_number: e.target.value,
+                              })
+                            }
+                          />
+                        ) : (
+                          user.email
                         )}
+                      </td>
 
+                      <td>
+                        {isEditing && !maintenance ? (
+                          <input
+                            type="text"
+                            value={editEmployee.name}
+                            onChange={(e) =>
+                              setEditEmployee({
+                                ...editEmployee,
+                                name: e.target.value,
+                              })
+                            }
+                          />
+                        ) : (
+                          user.name
+                        )}
+                      </td>
+
+                      <td>
+                        {isEditing && !maintenance ? (
+                          <select
+                            value={editEmployee.role}
+                            onChange={(e) =>
+                              setEditEmployee({
+                                ...editEmployee,
+                                role: e.target.value,
+                              })
+                            }
+                          >
+                            <option value="employee">従業員</option>
+                            <option value="manager">管理者</option>
+                            {canCreateOwner && (
+                              <option value="owner">オーナー</option>
+                            )}
+                          </select>
+                        ) : (
+                          getRoleLabel(user)
+                        )}
+                      </td>
+
+                      {canViewWage && (
                         <td>
-                          {isEditing ? (
-                            <div className="owner-table-actions">
-                              <button
-                                type="button"
-                                className="owner-table-save-button"
-                                onClick={() => handleUpdateEmployee(user)}
-                              >
-                                保存
-                              </button>
-
-                              <button
-                                type="button"
-                                className="owner-table-cancel-button"
-                                onClick={handleCancelEditEmployee}
-                              >
-                                キャンセル
-                              </button>
-                            </div>
+                          {isEditing && !maintenance ? (
+                            <input
+                              type="number"
+                              value={editEmployee.hourly_wage}
+                              onChange={(e) =>
+                                setEditEmployee({
+                                  ...editEmployee,
+                                  hourly_wage: e.target.value,
+                                })
+                              }
+                              min="0"
+                            />
                           ) : (
-                            <div className="owner-table-actions">
-                              <button
-                                type="button"
-                                className="owner-table-edit-button"
-                                onClick={() => handleStartEditEmployee(user)}
-                              >
-                                編集
-                              </button>
-
-                              {!isMaintenance && user.role !== "owner" && (
-                                <button
-                                  type="button"
-                                  className="owner-table-delete-button"
-                                  onClick={() => handleDeleteUser(user)}
-                                >
-                                  削除
-                                </button>
-                              )}
-                            </div>
+                            `${Number(user.hourly_wage || 0).toLocaleString()}円`
                           )}
                         </td>
-                      </tr>
-                    );
-                  })
-                )}
+                      )}
+
+                      <td>
+                        {maintenance ? (
+                          <span className="owner-employees-locked">
+                            保護中
+                          </span>
+                        ) : isEditing ? (
+                          <div className="owner-employees-actions">
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateEmployee(user.id)}
+                            >
+                              保存
+                            </button>
+                            <button
+                              type="button"
+                              className="owner-employees-secondary-button"
+                              onClick={handleCancelEditEmployee}
+                            >
+                              キャンセル
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="owner-employees-actions">
+                            <button
+                              type="button"
+                              onClick={() => handleStartEditEmployee(user)}
+                            >
+                              編集
+                            </button>
+                            <button
+                              type="button"
+                              className="owner-employees-danger-button"
+                              onClick={() => handleDeleteUser(user.id)}
+                            >
+                              削除
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
