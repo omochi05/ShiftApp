@@ -81,16 +81,21 @@ class ShiftTemplate(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
+    template_group_id = Column(String, nullable=False, index=True)
+    template_name = Column(String, nullable=False, default="テンプレート")
+
+    week_start = Column(Date, nullable=True)
+    week_end = Column(Date, nullable=True)
+
     weekday = Column(Integer, nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     start_time = Column(Time, nullable=False)
     end_time = Column(Time, nullable=False)
     break_minutes = Column(Integer, nullable=False, default=0)
-    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
 
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
-
 
 class MonthlyShiftTemplate(Base):
     __tablename__ = "monthly_shift_templates"

@@ -1,18 +1,22 @@
 from datetime import timedelta
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from auth_deps import get_current_user, require_manager_or_owner
 from database import get_db
-from models import Notification, Shift, ShiftTemplate
+from models import Notification, Shift, ShiftTemplate, User
 from schemas import (
     ApplyShiftTemplateRequest,
     CreateTemplateFromWeekRequest,
-    ShiftResponse,
     ShiftTemplateCreate,
+    ShiftTemplateGroupResponse,
     ShiftTemplateResponse,
     ShiftTemplateUpdate,
 )
+
 
 router = APIRouter(
     prefix="/shift-templates",
@@ -20,39 +24,95 @@ router = APIRouter(
 )
 
 
-def format_time(value):
-    return str(value)[:5]
+def get_week_end(week_start_date):
+    return week_start_date + timedelta(days=6)
 
 
-def create_notification(
-    db: Session,
-    user_id: int,
-    title: str,
-    message: str,
-    notification_type: str,
-    related_shift_id: int | None = None,
-    created_by: int | None = None,
-):
-    notification = Notification(
-        user_id=user_id,
-        title=title,
-        message=message,
-        notification_type=notification_type,
-        related_shift_id=related_shift_id,
-        is_read=False,
-    )
-
-    if hasattr(notification, "created_by"):
-        notification.created_by = created_by
-
-    db.add(notification)
+def serialize_shift(shift: Shift):
+    return {
+        "id": shift.id,
+        "user_id": shift.user_id,
+        "work_date": shift.work_date,
+        "start_time": shift.start_time,
+        "end_time": shift.end_time,
+        "break_minutes": shift.break_minutes,
+        "created_by": getattr(shift, "created_by", None),
+        "created_at": getattr(shift, "created_at", None),
+        "updated_at": getattr(shift, "updated_at", None),
+    }
 
 
 @router.get("/", response_model=list[ShiftTemplateResponse])
-def get_shift_templates(db: Session = Depends(get_db)):
+def get_shift_templates(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     templates = (
         db.query(ShiftTemplate)
-        .order_by(ShiftTemplate.weekday, ShiftTemplate.start_time)
+        .order_by(
+            ShiftTemplate.week_start.desc().nullslast(),
+            ShiftTemplate.template_name,
+            ShiftTemplate.weekday,
+            ShiftTemplate.start_time,
+        )
+        .all()
+    )
+
+    return templates
+
+
+@router.get("/groups", response_model=list[ShiftTemplateGroupResponse])
+def get_shift_template_groups(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    rows = (
+        db.query(
+            ShiftTemplate.template_group_id,
+            ShiftTemplate.template_name,
+            ShiftTemplate.week_start,
+            ShiftTemplate.week_end,
+            func.count(ShiftTemplate.id).label("count"),
+        )
+        .group_by(
+            ShiftTemplate.template_group_id,
+            ShiftTemplate.template_name,
+            ShiftTemplate.week_start,
+            ShiftTemplate.week_end,
+        )
+        .order_by(
+            ShiftTemplate.week_start.desc().nullslast(),
+            ShiftTemplate.template_name,
+        )
+        .all()
+    )
+
+    return [
+        {
+            "template_group_id": row.template_group_id,
+            "template_name": row.template_name,
+            "week_start": row.week_start,
+            "week_end": row.week_end,
+            "count": row.count,
+        }
+        for row in rows
+    ]
+
+
+@router.get("/group/{template_group_id}", response_model=list[ShiftTemplateResponse])
+def get_shift_template_items(
+    template_group_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    templates = (
+        db.query(ShiftTemplate)
+        .filter(ShiftTemplate.template_group_id == template_group_id)
+        .order_by(
+            ShiftTemplate.weekday,
+            ShiftTemplate.start_time,
+            ShiftTemplate.user_id,
+        )
         .all()
     )
 
@@ -63,15 +123,17 @@ def get_shift_templates(db: Session = Depends(get_db)):
 def create_shift_template(
     template: ShiftTemplateCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager_or_owner),
 ):
     if template.weekday < 0 or template.weekday > 6:
-        raise HTTPException(
-            status_code=400,
-            detail="weekday は 0〜6 で指定してください",
-        )
+        raise HTTPException(status_code=400, detail="曜日が不正です")
 
-    existing = (
+    template_group_id = template.template_group_id or str(uuid4())
+    template_name = template.template_name or "テンプレート"
+
+    existing_template = (
         db.query(ShiftTemplate)
+        .filter(ShiftTemplate.template_group_id == template_group_id)
         .filter(ShiftTemplate.weekday == template.weekday)
         .filter(ShiftTemplate.user_id == template.user_id)
         .filter(ShiftTemplate.start_time == template.start_time)
@@ -79,14 +141,18 @@ def create_shift_template(
         .first()
     )
 
-    if existing:
+    if existing_template:
         raise HTTPException(
             status_code=400,
-            detail="同じ曜日・従業員・時間のテンプレートはすでに存在します",
+            detail="同じテンプレートがすでに登録されています",
         )
 
     try:
         new_template = ShiftTemplate(
+            template_group_id=template_group_id,
+            template_name=template_name,
+            week_start=template.week_start,
+            week_end=template.week_end,
             weekday=template.weekday,
             user_id=template.user_id,
             start_time=template.start_time,
@@ -103,53 +169,73 @@ def create_shift_template(
 
     except Exception as error:
         db.rollback()
-        print("テンプレート作成に失敗しました:", error)
+        print("テンプレート作成に失敗しました:", repr(error))
+
         raise HTTPException(
             status_code=500,
-            detail=f"テンプレート作成に失敗しました: {error}",
+            detail=f"テンプレート作成に失敗しました: {str(error)}",
         )
 
 
-# /from-week と /apply は /{template_id} より上に置く
 @router.post("/from-week", response_model=list[ShiftTemplateResponse])
 def create_templates_from_week(
     request: CreateTemplateFromWeekRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager_or_owner),
 ):
     week_start = request.week_start_date
-    week_end = week_start + timedelta(days=6)
+    week_end = get_week_end(week_start)
 
-    week_shifts = (
+    shifts = (
         db.query(Shift)
         .filter(Shift.work_date >= week_start)
         .filter(Shift.work_date <= week_end)
-        .order_by(Shift.work_date, Shift.start_time)
+        .order_by(Shift.work_date, Shift.start_time, Shift.user_id)
         .all()
     )
 
-    if len(week_shifts) == 0:
+    if len(shifts) == 0:
         raise HTTPException(
             status_code=400,
             detail="この週にはテンプレート化できるシフトがありません",
         )
 
+    template_group_id = str(uuid4())
+    template_name = request.template_name or f"{week_start}〜{week_end} テンプレート"
+
     created_templates = []
+    template_keys = set()
 
     try:
-        # 既存テンプレートを全削除して、この週を新しい固定テンプレートにする
-        db.query(ShiftTemplate).delete(synchronize_session=False)
+        for shift in shifts:
+            # Python weekday: 月=0, 火=1 ... 日=6
+            # アプリ側: 日=0, 月=1 ... 土=6
+            python_weekday = shift.work_date.weekday()
+            app_weekday = 0 if python_weekday == 6 else python_weekday + 1
 
-        for shift in week_shifts:
-            # Python weekday: 月=0, 火=1, ... 日=6
-            # アプリ側: 日=0, 月=1, ... 土=6
-            app_weekday = (shift.work_date.weekday() + 1) % 7
+            key = (
+                app_weekday,
+                shift.user_id,
+                shift.start_time,
+                shift.end_time,
+                shift.break_minutes or 0,
+            )
+
+            if key in template_keys:
+                continue
+
+            template_keys.add(key)
 
             new_template = ShiftTemplate(
+                template_group_id=template_group_id,
+                template_name=template_name,
+                week_start=week_start,
+                week_end=week_end,
                 weekday=app_weekday,
                 user_id=shift.user_id,
                 start_time=shift.start_time,
                 end_time=shift.end_time,
-                break_minutes=shift.break_minutes,
+                break_minutes=shift.break_minutes or 0,
                 created_by=request.created_by,
             )
 
@@ -165,21 +251,26 @@ def create_templates_from_week(
 
     except Exception as error:
         db.rollback()
-        print("週シフトからテンプレート作成に失敗しました:", error)
+        print("週テンプレート化に失敗しました:", repr(error))
+
         raise HTTPException(
             status_code=500,
-            detail=f"週シフトからテンプレート作成に失敗しました: {error}",
+            detail=f"週テンプレート化に失敗しました: {str(error)}",
         )
 
 
-@router.post("/apply", response_model=list[ShiftResponse])
+@router.post("/apply")
 def apply_shift_templates(
     request: ApplyShiftTemplateRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager_or_owner),
 ):
+    week_start = request.week_start_date
+
     templates = (
         db.query(ShiftTemplate)
-        .order_by(ShiftTemplate.weekday, ShiftTemplate.start_time)
+        .filter(ShiftTemplate.template_group_id == request.template_group_id)
+        .order_by(ShiftTemplate.weekday, ShiftTemplate.start_time, ShiftTemplate.user_id)
         .all()
     )
 
@@ -190,30 +281,30 @@ def apply_shift_templates(
         )
 
     created_shifts = []
+    skipped_count = 0
 
     try:
         for template in templates:
-            # template.weekday は 日=0, 月=1, ... 土=6
-            # week_start_date は月曜日なので、月=0, 火=1, ... 日=6 に変換する
+            # template.weekday は 日=0, 月=1 ... 土=6
             days_from_monday = 6 if template.weekday == 0 else template.weekday - 1
-
-            target_date = request.week_start_date + timedelta(days=days_from_monday)
+            work_date = week_start + timedelta(days=days_from_monday)
 
             existing_shift = (
                 db.query(Shift)
                 .filter(Shift.user_id == template.user_id)
-                .filter(Shift.work_date == target_date)
+                .filter(Shift.work_date == work_date)
                 .filter(Shift.start_time == template.start_time)
                 .filter(Shift.end_time == template.end_time)
                 .first()
             )
 
             if existing_shift:
+                skipped_count += 1
                 continue
 
             new_shift = Shift(
                 user_id=template.user_id,
-                work_date=target_date,
+                work_date=work_date,
                 start_time=template.start_time,
                 end_time=template.end_time,
                 break_minutes=template.break_minutes,
@@ -223,20 +314,16 @@ def apply_shift_templates(
             db.add(new_shift)
             db.flush()
 
-            create_notification(
-                db=db,
-                user_id=new_shift.user_id,
-                title="新しいシフトが登録されました",
-                message=(
-                    f"{new_shift.work_date} "
-                    f"{format_time(new_shift.start_time)}〜{format_time(new_shift.end_time)} "
-                    "のシフトが登録されました。"
-                ),
+            notification = Notification(
+                user_id=template.user_id,
+                title="シフトが追加されました",
+                message=f"{work_date} のシフトが追加されました",
                 notification_type="shift_confirmed",
                 related_shift_id=new_shift.id,
-                created_by=request.created_by,
+                is_read=False,
             )
 
+            db.add(notification)
             created_shifts.append(new_shift)
 
         db.commit()
@@ -244,14 +331,20 @@ def apply_shift_templates(
         for shift in created_shifts:
             db.refresh(shift)
 
-        return created_shifts
+        return {
+            "message": "テンプレートを反映しました",
+            "created_count": len(created_shifts),
+            "skipped_count": skipped_count,
+            "shifts": [serialize_shift(shift) for shift in created_shifts],
+        }
 
     except Exception as error:
         db.rollback()
-        print("テンプレート反映に失敗しました:", error)
+        print("テンプレート反映に失敗しました:", repr(error))
+
         raise HTTPException(
             status_code=500,
-            detail=f"テンプレート反映に失敗しました: {error}",
+            detail=f"テンプレート反映に失敗しました: {str(error)}",
         )
 
 
@@ -260,6 +353,7 @@ def update_shift_template(
     template_id: int,
     template: ShiftTemplateUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager_or_owner),
 ):
     existing_template = (
         db.query(ShiftTemplate)
@@ -274,28 +368,17 @@ def update_shift_template(
         )
 
     if template.weekday < 0 or template.weekday > 6:
-        raise HTTPException(
-            status_code=400,
-            detail="weekday は 0〜6 で指定してください",
-        )
-
-    duplicated = (
-        db.query(ShiftTemplate)
-        .filter(ShiftTemplate.id != template_id)
-        .filter(ShiftTemplate.weekday == template.weekday)
-        .filter(ShiftTemplate.user_id == template.user_id)
-        .filter(ShiftTemplate.start_time == template.start_time)
-        .filter(ShiftTemplate.end_time == template.end_time)
-        .first()
-    )
-
-    if duplicated:
-        raise HTTPException(
-            status_code=400,
-            detail="同じ曜日・従業員・時間のテンプレートはすでに存在します",
-        )
+        raise HTTPException(status_code=400, detail="曜日が不正です")
 
     try:
+        existing_template.template_group_id = (
+            template.template_group_id or existing_template.template_group_id
+        )
+        existing_template.template_name = (
+            template.template_name or existing_template.template_name
+        )
+        existing_template.week_start = template.week_start
+        existing_template.week_end = template.week_end
         existing_template.weekday = template.weekday
         existing_template.user_id = template.user_id
         existing_template.start_time = template.start_time
@@ -310,10 +393,11 @@ def update_shift_template(
 
     except Exception as error:
         db.rollback()
-        print("テンプレート更新に失敗しました:", error)
+        print("テンプレート更新に失敗しました:", repr(error))
+
         raise HTTPException(
             status_code=500,
-            detail=f"テンプレート更新に失敗しました: {error}",
+            detail=f"テンプレート更新に失敗しました: {str(error)}",
         )
 
 
@@ -321,6 +405,7 @@ def update_shift_template(
 def delete_shift_template(
     template_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager_or_owner),
 ):
     template = (
         db.query(ShiftTemplate)
@@ -345,8 +430,54 @@ def delete_shift_template(
 
     except Exception as error:
         db.rollback()
-        print("テンプレート削除に失敗しました:", error)
+        print("テンプレート削除に失敗しました:", repr(error))
+
         raise HTTPException(
             status_code=500,
-            detail=f"テンプレート削除に失敗しました: {error}",
+            detail=f"テンプレート削除に失敗しました: {str(error)}",
+        )
+
+
+@router.delete("/group/{template_group_id}")
+def delete_shift_template_group(
+    template_group_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager_or_owner),
+):
+    templates = (
+        db.query(ShiftTemplate)
+        .filter(ShiftTemplate.template_group_id == template_group_id)
+        .all()
+    )
+
+    if len(templates) == 0:
+        raise HTTPException(
+            status_code=404,
+            detail="テンプレートが見つかりません",
+        )
+
+    try:
+        deleted_count = len(templates)
+
+        (
+            db.query(ShiftTemplate)
+            .filter(ShiftTemplate.template_group_id == template_group_id)
+            .delete(synchronize_session=False)
+        )
+
+        db.commit()
+
+        return {
+            "message": "テンプレートを削除しました",
+            "template_group_id": template_group_id,
+            "deleted_count": deleted_count,
+        }
+
+    except Exception as error:
+        db.rollback()
+        print("テンプレート削除に失敗しました:", repr(error))
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"テンプレート削除に失敗しました: {str(error)}",
         )

@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "../../api/client";
 import ShiftTimeline from "../../components/ShiftTimeline";
 import OwnerHamburgerMenu from "../../components/OwnerHamburgerMenu";
-import MonthlyShiftTemplatePanel from "../../components/MonthlyShiftTemplatePanel";
 import "./OwnerShiftTimelinePage.css";
 
 type User = {
@@ -33,6 +32,21 @@ type ShiftForTimeline = {
   end_time: string;
   break_minutes: number;
   created_by?: number | null;
+};
+
+type ShiftTemplateGroup = {
+  template_group_id: string;
+  template_name: string;
+  week_start?: string | null;
+  week_end?: string | null;
+  count: number;
+};
+
+type ApplyTemplateResponse = {
+  message: string;
+  created_count: number;
+  skipped_count: number;
+  shifts: Shift[];
 };
 
 const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
@@ -162,16 +176,28 @@ function getUserName(userId: number, users: User[]) {
 export default function OwnerShiftTimelinePage() {
   const [users, setUsers] = useState<User[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
+  const [templateGroups, setTemplateGroups] = useState<ShiftTemplateGroup[]>([]);
 
   const [targetDate, setTargetDate] = useState(getTodayDate());
+  const [templateName, setTemplateName] = useState("");
+  const [selectedTemplateGroupId, setSelectedTemplateGroupId] = useState("");
 
   const [loading, setLoading] = useState(true);
+  const [templateLoading, setTemplateLoading] = useState(false);
   const [message, setMessage] = useState("");
 
   const ownerName =
     localStorage.getItem("ownerName") ||
     localStorage.getItem("loginName") ||
     "オーナー";
+
+  const currentUserId = Number(localStorage.getItem("loginUserId") || 0);
+
+  const selectedTemplate = useMemo(() => {
+    return templateGroups.find(
+      (template) => template.template_group_id === selectedTemplateGroupId
+    );
+  }, [templateGroups, selectedTemplateGroupId]);
 
   const weekDays = useMemo(() => {
     const monday = getMonday(targetDate);
@@ -243,12 +269,21 @@ export default function OwnerShiftTimelinePage() {
     setShifts(res.data);
   };
 
+  const fetchTemplateGroups = async () => {
+    const res = await api.get<ShiftTemplateGroup[]>("/shift-templates/groups");
+    setTemplateGroups(res.data);
+
+    if (!selectedTemplateGroupId && res.data.length > 0) {
+      setSelectedTemplateGroupId(res.data[0].template_group_id);
+    }
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
       setMessage("");
 
-      await Promise.all([fetchUsers(), fetchShifts()]);
+      await Promise.all([fetchUsers(), fetchShifts(), fetchTemplateGroups()]);
     } catch (error: any) {
       console.error("シフト表データ取得失敗:", error);
       setMessage(formatApiError(error, "シフト表データの取得に失敗しました"));
@@ -259,6 +294,7 @@ export default function OwnerShiftTimelinePage() {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const goPrevWeek = () => {
@@ -277,6 +313,129 @@ export default function OwnerShiftTimelinePage() {
     setTargetDate(getTodayDate());
   };
 
+  const handleSaveWeekAsTemplate = async () => {
+    if (!weekStart || !weekEnd) {
+      setMessage("対象週を取得できませんでした");
+      return;
+    }
+
+    if (weeklyShifts.length === 0) {
+      setMessage("この週には保存できるシフトがありません");
+      return;
+    }
+
+    const displayName =
+      templateName.trim() || `${weekStart}〜${weekEnd} テンプレート`;
+
+    const ok = window.confirm(
+      `${weekStart}〜${weekEnd} のシフトを「${displayName}」として保存しますか？\n保存したテンプレートは削除するまで残ります。`
+    );
+
+    if (!ok) return;
+
+    try {
+      setTemplateLoading(true);
+      setMessage("");
+
+      const res = await api.post("/shift-templates/from-week", {
+        week_start_date: weekStart,
+        created_by: currentUserId || null,
+        template_name: displayName,
+      });
+
+      setTemplateName("");
+
+      await fetchTemplateGroups();
+
+      if (res.data.length > 0 && res.data[0].template_group_id) {
+        setSelectedTemplateGroupId(res.data[0].template_group_id);
+      }
+
+      setMessage(`週テンプレートを保存しました。保存件数：${res.data.length}件`);
+    } catch (error: any) {
+      console.error("テンプレート保存失敗:", error);
+      console.error("レスポンス:", error.response?.data);
+
+      setMessage(formatApiError(error, "テンプレート保存に失敗しました"));
+    } finally {
+      setTemplateLoading(false);
+    }
+  };
+
+  const handleApplyTemplate = async () => {
+    if (!weekStart || !weekEnd) {
+      setMessage("対象週を取得できませんでした");
+      return;
+    }
+
+    if (!selectedTemplateGroupId || !selectedTemplate) {
+      setMessage("反映するテンプレートを選択してください");
+      return;
+    }
+
+    const ok = window.confirm(
+      `「${selectedTemplate.template_name}」を ${weekStart}〜${weekEnd} に反映しますか？\n既に同じシフトがある場合はスキップされます。`
+    );
+
+    if (!ok) return;
+
+    try {
+      setTemplateLoading(true);
+      setMessage("");
+
+      const res = await api.post<ApplyTemplateResponse>("/shift-templates/apply", {
+        week_start_date: weekStart,
+        created_by: currentUserId || null,
+        template_group_id: selectedTemplateGroupId,
+      });
+
+      setMessage(
+        `テンプレートを反映しました。作成：${res.data.created_count}件 / スキップ：${res.data.skipped_count}件`
+      );
+
+      await Promise.all([fetchShifts(), fetchTemplateGroups()]);
+    } catch (error: any) {
+      console.error("テンプレート反映失敗:", error);
+      console.error("レスポンス:", error.response?.data);
+
+      setMessage(formatApiError(error, "テンプレート反映に失敗しました"));
+    } finally {
+      setTemplateLoading(false);
+    }
+  };
+
+  const handleDeleteTemplate = async () => {
+    if (!selectedTemplateGroupId || !selectedTemplate) {
+      setMessage("削除するテンプレートを選択してください");
+      return;
+    }
+
+    const ok = window.confirm(
+      `「${selectedTemplate.template_name}」を削除しますか？`
+    );
+
+    if (!ok) return;
+
+    try {
+      setTemplateLoading(true);
+      setMessage("");
+
+      await api.delete(`/shift-templates/group/${selectedTemplateGroupId}`);
+
+      setSelectedTemplateGroupId("");
+      setMessage("テンプレートを削除しました");
+
+      await fetchTemplateGroups();
+    } catch (error: any) {
+      console.error("テンプレート削除失敗:", error);
+      console.error("レスポンス:", error.response?.data);
+
+      setMessage(formatApiError(error, "テンプレート削除に失敗しました"));
+    } finally {
+      setTemplateLoading(false);
+    }
+  };
+
   return (
     <div className="owner-shift-timeline-page">
       <OwnerHamburgerMenu />
@@ -285,8 +444,8 @@ export default function OwnerShiftTimelinePage() {
         <p>SHIFT TABLE</p>
         <h1>シフト表</h1>
         <span>
-          週ごとのシフトを確認できます。月テンプレートを使うと、
-          6月・7月のように月全体のシフトを保存して反映できます。
+          週ごとのシフトを確認できます。6/1〜6/7 のような週を保存し、
+          作りたい週にテンプレートとして反映できます。
         </span>
       </section>
 
@@ -319,6 +478,66 @@ export default function OwnerShiftTimelinePage() {
             </button>
           </div>
         </div>
+
+        <div className="owner-shift-template-box">
+          <div className="owner-shift-template-save">
+            <label>
+              この週をテンプレートとして保存
+              <input
+                type="text"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                placeholder={`${weekStart}〜${weekEnd} テンプレート`}
+              />
+            </label>
+
+            <button
+              type="button"
+              onClick={handleSaveWeekAsTemplate}
+              disabled={templateLoading || weeklyShifts.length === 0}
+            >
+              {templateLoading ? "処理中..." : "テンプレート保存"}
+            </button>
+          </div>
+
+          <div className="owner-shift-template-apply">
+            <label>
+              テンプレートを選択
+              <select
+                value={selectedTemplateGroupId}
+                onChange={(e) => setSelectedTemplateGroupId(e.target.value)}
+              >
+                <option value="">保存したテンプレートを選択</option>
+
+                {templateGroups.map((template) => (
+                  <option
+                    key={template.template_group_id}
+                    value={template.template_group_id}
+                  >
+                    {template.template_name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <button
+              type="button"
+              onClick={handleApplyTemplate}
+              disabled={templateLoading || !selectedTemplateGroupId}
+            >
+              {templateLoading ? "反映中..." : "テンプレートを反映"}
+            </button>
+
+            <button
+              type="button"
+              className="owner-shift-template-delete-button"
+              onClick={handleDeleteTemplate}
+              disabled={templateLoading || !selectedTemplateGroupId}
+            >
+              削除
+            </button>
+          </div>
+        </div>
       </section>
 
       <section className="owner-shift-summary-row">
@@ -337,8 +556,6 @@ export default function OwnerShiftTimelinePage() {
           <strong>{workingEmployeeCount}人</strong>
         </div>
       </section>
-
-      <MonthlyShiftTemplatePanel onApplied={fetchData} />
 
       {message && <p className="owner-shift-message">{message}</p>}
 
