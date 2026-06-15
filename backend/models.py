@@ -1,8 +1,22 @@
-from sqlalchemy import Column, Integer, String, Date, Time, TIMESTAMP, ForeignKey, Numeric
+from datetime import datetime
+
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    Time,
+    TIMESTAMP,
+)
+
 from sqlalchemy.sql import func
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Time
-from sqlalchemy import Column, Integer, String, Date, Time, DateTime, ForeignKey, Boolean, Text
-from database import Base, datetime
+
+from database import Base
 
 
 class User(Base):
@@ -27,9 +41,9 @@ class Shift(Base):
     start_time = Column(Time, nullable=False)
     end_time = Column(Time, nullable=False)
     break_minutes = Column(Integer, default=0)
-    created_by = Column(Integer, ForeignKey("users.id"))
-    created_at = Column(TIMESTAMP)
-    updated_at = Column(TIMESTAMP)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
 
 class ShiftSalaryView(Base):
@@ -49,6 +63,7 @@ class ShiftSalaryView(Base):
     night_rate = Column(Numeric)
     salary_target_amount = Column(Numeric)
 
+
 class Sale(Base):
     __tablename__ = "sales"
 
@@ -58,20 +73,24 @@ class Sale(Base):
     customer_count = Column(Integer, default=0)
     memo = Column(String)
     created_at = Column(TIMESTAMP, server_default=func.now())
-    updated_at = Column(TIMESTAMP, server_default=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+
 
 class ShiftTemplate(Base):
     __tablename__ = "shift_templates"
 
     id = Column(Integer, primary_key=True, index=True)
+
     weekday = Column(Integer, nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     start_time = Column(Time, nullable=False)
     end_time = Column(Time, nullable=False)
     break_minutes = Column(Integer, nullable=False, default=0)
     created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
 
 class MonthlyShiftTemplate(Base):
     __tablename__ = "monthly_shift_templates"
@@ -90,18 +109,31 @@ class MonthlyShiftTemplate(Base):
     end_time = Column(Time, nullable=False)
     break_minutes = Column(Integer, default=0)
 
-    created_by = Column(Integer, nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 
 class Notification(Base):
     __tablename__ = "notifications"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
     title = Column(String(255), nullable=False)
     message = Column(Text, nullable=False)
     notification_type = Column(String(50), nullable=False, default="shift")
-    related_shift_id = Column(Integer, nullable=True)
+
+    related_shift_id = Column(
+        Integer,
+        ForeignKey("shifts.id"),
+        nullable=True,
+    )
+
     is_read = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
