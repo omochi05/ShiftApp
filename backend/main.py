@@ -9,6 +9,7 @@ from routers import shifts
 from routers import shift_templates
 from routers import users
 from routers import notifications
+from routers import monthly_shift_templates
 
 app = FastAPI()
 
@@ -35,6 +36,7 @@ app.include_router(shifts.router)
 app.include_router(shift_templates.router)
 app.include_router(users.router)
 app.include_router(notifications.router)
+app.include_router(monthly_shift_templates.router)
 
 
 @app.get("/")

@@ -232,3 +232,45 @@ class ApplyShiftTemplateRequest(BaseModel):
 class CreateTemplateFromWeekRequest(BaseModel):
     week_start_date: date
     created_by: int | None = None
+
+# =========================
+# Monthly Shift Templates
+# =========================
+
+class MonthlyTemplateGroupResponse(BaseModel):
+    template_group_id: str
+    template_name: str
+    source_year: int
+    source_month: int
+    count: int
+
+
+class MonthlyShiftTemplateResponse(BaseModel):
+    id: int
+    template_group_id: str
+    template_name: str
+    source_year: int
+    source_month: int
+    day: int
+    user_id: int
+    start_time: time
+    end_time: time
+    break_minutes: int
+    created_by: int | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class CreateMonthlyTemplateFromMonthRequest(BaseModel):
+    source_year: int
+    source_month: int
+    template_name: str | None = None
+    created_by: int | None = None
+
+
+class ApplyMonthlyTemplateRequest(BaseModel):
+    template_group_id: str
+    target_year: int
+    target_month: int
+    created_by: int | None = None

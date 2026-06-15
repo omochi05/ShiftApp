@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
+
 import { api } from "../../api/client";
-import "./OwnerShiftsPage.css";
 import OwnerHamburgerMenu from "../../components/OwnerHamburgerMenu";
+import MonthlyShiftTemplatePanel from "../../components/MonthlyShiftTemplatePanel";
+import "./OwnerShiftsPage.css";
 
 type User = {
   id: number;
@@ -49,6 +51,7 @@ function getTodayDate() {
   const yyyy = today.getFullYear();
   const mm = String(today.getMonth() + 1).padStart(2, "0");
   const dd = String(today.getDate()).padStart(2, "0");
+
   return `${yyyy}-${mm}-${dd}`;
 }
 
@@ -99,6 +102,16 @@ function getRoleLabel(role: string) {
   return "従業員";
 }
 
+function getEmployeeNumberValue(user: User) {
+  const value = Number(user.email);
+
+  if (Number.isNaN(value)) {
+    return 999999;
+  }
+
+  return value;
+}
+
 function formatApiError(error: any, fallbackMessage: string) {
   const detail = error.response?.data?.detail;
 
@@ -135,42 +148,32 @@ export default function OwnerShiftsPage() {
   });
 
   const [editingShiftId, setEditingShiftId] = useState<number | null>(null);
+
   const [editShiftForm, setEditShiftForm] = useState<ShiftForm>({
     ...initialShiftForm,
     work_date: getTodayDate(),
   });
 
-  /**
-   * シフト登録対象。
-   * 管理者画面から入った場合でも、
-   * オーナー・管理者・従業員を全員シフトに登録できる。
-   */
   const shiftUsers = useMemo(() => {
     return users
-        .filter(
+      .filter(
         (user) =>
-            user.email !== "9999" &&
-            (user.role === "owner" ||
+          user.email !== "9999" &&
+          (user.role === "owner" ||
             user.role === "manager" ||
             user.role === "employee")
-        )
-        .sort((a, b) => {
-        const roleOrder: Record<string, number> = {
-            owner: 1,
-            manager: 2,
-            employee: 3,
-        };
+      )
+      .sort((a, b) => {
+        const aNumber = getEmployeeNumberValue(a);
+        const bNumber = getEmployeeNumberValue(b);
 
-        const roleA = roleOrder[a.role] ?? 99;
-        const roleB = roleOrder[b.role] ?? 99;
-
-        if (roleA !== roleB) {
-            return roleA - roleB;
+        if (aNumber !== bNumber) {
+          return aNumber - bNumber;
         }
 
         return a.id - b.id;
-        });
-    }, [users]);
+      });
+  }, [users]);
 
   const monthlyShifts = useMemo(() => {
     return shifts.filter((shift) => shift.work_date.startsWith(targetMonth));
@@ -333,68 +336,63 @@ export default function OwnerShiftsPage() {
     return "";
   };
 
-const handleCreateShift = async (e: FormEvent) => {
+  const handleCreateShift = async (e: FormEvent) => {
     e.preventDefault();
 
     const errorMessage = validateShiftForm(shiftForm);
+
     if (errorMessage) {
-        setMessage(errorMessage);
-        return;
+      setMessage(errorMessage);
+      return;
     }
 
     try {
-        setMessage("");
+      setMessage("");
 
-        await api.post("/shifts/", {
+      await api.post("/shifts/", {
         user_id: Number(shiftForm.user_id),
         work_date: shiftForm.work_date,
         start_time: shiftForm.start_time,
         end_time: shiftForm.end_time,
         break_minutes: Number(shiftForm.break_minutes || 0),
         created_by: Number(localStorage.getItem("loginUserId") || 0) || null,
-        });
+      });
 
-        setMessage("シフトを作成しました");
+      setMessage("シフトを作成しました");
 
-        setShiftForm({
+      setShiftForm({
         ...initialShiftForm,
         work_date: shiftForm.work_date,
-        });
+      });
 
-        const createdUserId = Number(shiftForm.user_id);
-        setOpenedEmployeeIds((prev) =>
+      const createdUserId = Number(shiftForm.user_id);
+
+      setOpenedEmployeeIds((prev) =>
         prev.includes(createdUserId) ? prev : [...prev, createdUserId]
-        );
+      );
 
-        try {
-        await fetchData({ showLoading: false });
-        } catch (reloadError) {
-        console.error("シフト作成後の再読み込み失敗:", reloadError);
-        setMessage(
-            "シフトは作成しましたが、再読み込みに失敗しました。画面を更新してください。"
-        );
-        }
+      await fetchData({ showLoading: false });
     } catch (error: any) {
-        console.error("シフト作成失敗:", error);
-        console.error("レスポンス:", error.response?.data);
+      console.error("シフト作成失敗:", error);
+      console.error("レスポンス:", error.response?.data);
 
-        setMessage(formatApiError(error, "シフト作成に失敗しました"));
+      setMessage(formatApiError(error, "シフト作成に失敗しました"));
     }
-};
+  };
 
-    const handleStartEditShift = (shift: Shift) => {
-        setEditingShiftId(shift.id);
+  const handleStartEditShift = (shift: Shift) => {
+    setEditingShiftId(shift.id);
 
-        setEditShiftForm({
-        user_id: String(shift.user_id),
-        work_date: shift.work_date,
-        start_time: shift.start_time.slice(0, 5),
-        end_time: shift.end_time.slice(0, 5),
-        break_minutes: String(shift.break_minutes || 0),
-        });
+    setEditShiftForm({
+      user_id: String(shift.user_id),
+      work_date: shift.work_date,
+      start_time: shift.start_time.slice(0, 5),
+      end_time: shift.end_time.slice(0, 5),
+      break_minutes: String(shift.break_minutes || 0),
+    });
 
-        setMessage("");
-    };
+    setMessage("");
+  };
 
   const handleCancelEditShift = () => {
     setEditingShiftId(null);
@@ -406,43 +404,37 @@ const handleCreateShift = async (e: FormEvent) => {
   };
 
   const handleUpdateShift = async (shiftId: number) => {
-  const errorMessage = validateShiftForm(editShiftForm);
-  if (errorMessage) {
-    setMessage(errorMessage);
-    return;
-  }
+    const errorMessage = validateShiftForm(editShiftForm);
 
-  try {
-    setMessage("");
-
-    await api.put(`/shifts/${shiftId}`, {
-      user_id: Number(editShiftForm.user_id),
-      work_date: editShiftForm.work_date,
-      start_time: editShiftForm.start_time,
-      end_time: editShiftForm.end_time,
-      break_minutes: Number(editShiftForm.break_minutes || 0),
-      created_by: Number(localStorage.getItem("loginUserId") || 0) || null,
-    });
-
-    setMessage("シフトを更新しました");
-
-    handleCancelEditShift();
+    if (errorMessage) {
+      setMessage(errorMessage);
+      return;
+    }
 
     try {
-      await fetchData({ showLoading: false });
-    } catch (reloadError) {
-      console.error("シフト更新後の再読み込み失敗:", reloadError);
-      setMessage(
-        "シフトは更新しましたが、再読み込みに失敗しました。画面を更新してください。"
-      );
-    }
-  } catch (error: any) {
-    console.error("シフト更新失敗:", error);
-    console.error("レスポンス:", error.response?.data);
+      setMessage("");
 
-    setMessage(formatApiError(error, "シフト更新に失敗しました"));
-  }
-};
+      await api.put(`/shifts/${shiftId}`, {
+        user_id: Number(editShiftForm.user_id),
+        work_date: editShiftForm.work_date,
+        start_time: editShiftForm.start_time,
+        end_time: editShiftForm.end_time,
+        break_minutes: Number(editShiftForm.break_minutes || 0),
+        created_by: Number(localStorage.getItem("loginUserId") || 0) || null,
+      });
+
+      setMessage("シフトを更新しました");
+
+      handleCancelEditShift();
+
+      await fetchData({ showLoading: false });
+    } catch (error: any) {
+      console.error("シフト更新失敗:", error);
+      console.error("レスポンス:", error.response?.data);
+
+      setMessage(formatApiError(error, "シフト更新に失敗しました"));
+    }
+  };
 
   const deleteShiftById = async (shiftId: number) => {
     try {
@@ -506,15 +498,30 @@ const handleCreateShift = async (e: FormEvent) => {
       setDeleting(true);
       setMessage("");
 
+      let successCount = 0;
+      let failedCount = 0;
+
       for (const shiftId of selectedMonthlyShiftIds) {
-        await deleteShiftById(shiftId);
+        try {
+          await deleteShiftById(shiftId);
+          successCount += 1;
+        } catch (error) {
+          console.error("一括削除中の個別削除失敗:", error);
+          failedCount += 1;
+        }
       }
 
       setSelectedShiftIds((prev) =>
         prev.filter((id) => !selectedMonthlyShiftIds.includes(id))
       );
 
-      setMessage(`シフトを${selectedMonthlyShiftIds.length}件削除しました`);
+      if (failedCount === 0) {
+        setMessage(`シフトを${successCount}件削除しました`);
+      } else {
+        setMessage(
+          `シフト削除：${successCount}件成功、${failedCount}件失敗しました`
+        );
+      }
 
       await fetchData({ showLoading: false });
     } catch (error: any) {
@@ -530,6 +537,7 @@ const handleCreateShift = async (e: FormEvent) => {
   return (
     <div className="owner-shifts-page">
       <OwnerHamburgerMenu />
+
       <section className="owner-shifts-hero">
         <div>
           <p className="owner-shifts-label">Shift Management</p>
@@ -550,6 +558,7 @@ const handleCreateShift = async (e: FormEvent) => {
             onChange={(e) => {
               setTargetMonth(e.target.value);
               setEditingShiftId(null);
+              setSelectedShiftIds([]);
             }}
           />
         </label>
@@ -582,6 +591,10 @@ const handleCreateShift = async (e: FormEvent) => {
         </div>
       </section>
 
+      <MonthlyShiftTemplatePanel
+        onApplied={() => fetchData({ showLoading: false })}
+      />
+
       <section className="owner-shifts-section">
         <div className="owner-shifts-section-title">
           <div>
@@ -604,6 +617,7 @@ const handleCreateShift = async (e: FormEvent) => {
               required
             >
               <option value="">選択してください</option>
+
               {shiftUsers.map((user) => (
                 <option key={user.id} value={user.id}>
                   {user.name}（{getRoleLabel(user.role)} / {user.email}）
@@ -831,6 +845,7 @@ const handleCreateShift = async (e: FormEvent) => {
                                           <option value="">
                                             選択してください
                                           </option>
+
                                           {shiftUsers.map((user) => (
                                             <option
                                               key={user.id}
