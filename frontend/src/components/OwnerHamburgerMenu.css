@@ -1,325 +1,177 @@
-.owner-home {
-  min-height: 100vh;
-  padding: 24px;
-
-  background:
-    radial-gradient(circle at top left, rgba(37, 99, 235, 0.13), transparent 34%),
-    radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.12), transparent 36%),
-    #f1f5f9;
-
-  color: #111827;
-  box-sizing: border-box;
-}
-
-.owner-home * {
-  box-sizing: border-box;
-}
-
-/* =========================
-   ヘッダー：管理メニュー
-========================= */
-
-.owner-home-hero {
-  width: min(1480px, 100%);
-  margin: 0 auto 28px;
-  padding: 38px 28px;
-
-  text-align: center;
-
-  background: linear-gradient(135deg, #111827 0%, #2563eb 100%) !important;
-  color: #ffffff !important;
-
-  border-radius: 34px;
-  box-shadow: 0 18px 44px rgba(37, 99, 235, 0.22);
-}
-
-.owner-home-label {
-  margin: 0 0 10px;
-
-  color: rgba(255, 255, 255, 0.88) !important;
-
-  font-size: 14px;
-  font-weight: 1000;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.owner-home-hero h1,
-.owner-home-hero h2 {
-  margin: 0 0 14px;
-
-  color: #ffffff !important;
-
-  font-size: 38px;
-  font-weight: 1000;
-  letter-spacing: -0.04em;
-  line-height: 1.2;
-}
-
-.owner-home-hero p {
-  margin: 0;
-
-  color: rgba(255, 255, 255, 0.94) !important;
-
-  font-size: 16px;
-  font-weight: 900;
-  line-height: 1.8;
-}
-
-/* =========================
-   カード
-========================= */
-
-.owner-home-grid {
-  width: min(1480px, 100%);
-  margin: 0 auto;
-
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
-}
-
-.owner-home-card {
-  min-height: 230px;
-  padding: 28px;
-
+.owner-hamburger-header {
+  position: sticky;
+  top: 0;
+  z-index: 900;
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
 
-  position: relative;
-  overflow: hidden;
-
-  background: #ffffff;
-  color: #111827;
-
-  border: none;
-  border-left: 10px solid #22c55e;
-  border-radius: 30px;
-
-  text-align: left;
+.owner-hamburger-logo {
+  color: #1e3a8a !important;
+  font-size: 20px;
+  font-weight: 1000;
   text-decoration: none;
+  letter-spacing: 0.02em;
+}
 
-  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.1);
+.owner-hamburger-button {
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  border-radius: 14px;
+  background: #2563eb;
   cursor: pointer;
 }
 
-.owner-home-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.14);
-}
-
-.owner-home-card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
-
-.owner-home-card-top span {
-  color: #111827;
-
-  font-size: 13px;
-  font-weight: 1000;
-  letter-spacing: 0.2em;
-}
-
-.owner-home-card-top strong {
-  width: 52px;
-  height: 52px;
-
-  display: grid;
-  place-items: center;
-
+.owner-hamburger-button span {
+  width: 24px;
+  height: 3px;
+  display: block;
   border-radius: 999px;
+  background: #ffffff;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
 
-  background: #22c55e;
-  color: #ffffff;
+.owner-hamburger-button.is-open span:nth-child(1) {
+  transform: translateY(9px) rotate(45deg);
+}
 
+.owner-hamburger-button.is-open span:nth-child(2) {
+  opacity: 0;
+}
+
+.owner-hamburger-button.is-open span:nth-child(3) {
+  transform: translateY(-9px) rotate(-45deg);
+}
+
+.owner-hamburger-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 998;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.owner-hamburger-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 999;
+  width: min(360px, 86vw);
+  height: 100vh;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: linear-gradient(180deg, #172554 0%, #1d4ed8 100%);
+  box-shadow: -18px 0 40px rgba(15, 23, 42, 0.28);
+  transform: translateX(110%);
+  transition: transform 0.25s ease;
+}
+
+.owner-hamburger-menu.is-open {
+  transform: translateX(0);
+}
+
+.owner-hamburger-menu-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.24);
+}
+
+.owner-hamburger-menu-head strong {
+  color: #ffffff !important;
   font-size: 24px;
   font-weight: 1000;
 }
 
-.owner-home-card h2 {
-  margin: 22px 0 12px;
-
-  color: #111827;
-
-  font-size: 34px;
-  font-weight: 1000;
-  letter-spacing: -0.04em;
-}
-
-.owner-home-card p {
-  margin: 0;
-
-  color: #6b7280;
-
-  font-size: 16px;
+.owner-hamburger-menu-head button {
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff !important;
+  font-size: 28px;
   font-weight: 900;
-  line-height: 1.7;
+  cursor: pointer;
 }
 
-.owner-home-card-green {
-  border-left-color: #22c55e;
+.owner-hamburger-menu a {
+  display: block;
+  padding: 15px 16px;
+  border-radius: 14px;
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 17px;
+  font-weight: 900;
+  text-decoration: none;
 }
 
-.owner-home-card-green .owner-home-card-top strong {
-  background: #22c55e;
+.owner-hamburger-menu a:hover {
+  background: rgba(255, 255, 255, 0.22);
 }
 
-.owner-home-card-purple {
-  border-left-color: #7c3aed;
-}
-
-.owner-home-card-purple .owner-home-card-top strong {
-  background: #7c3aed;
-}
-
-.owner-home-card-orange {
-  border-left-color: #ea580c;
-}
-
-.owner-home-card-orange .owner-home-card-top strong {
-  background: #ea580c;
-}
-
-.owner-home-card-cyan {
-  border-left-color: #0891b2;
-}
-
-.owner-home-card-cyan .owner-home-card-top strong {
-  background: #0891b2;
-}
-
-.owner-home-card-gray {
-  border-left-color: #6b7280;
-}
-
-.owner-home-card-gray .owner-home-card-top strong {
-  background: #374151;
-}
-
-.owner-home-card-red {
-  border-left-color: #ef4444;
-}
-
-.owner-home-card-red .owner-home-card-top strong {
+.owner-hamburger-logout {
+  margin-top: auto;
+  width: 100%;
+  min-height: 52px;
+  border: none;
+  border-radius: 16px;
   background: #ef4444;
+  color: #ffffff !important;
+  font-size: 17px;
+  font-weight: 1000;
+  cursor: pointer;
 }
 
-.owner-home-card-dark {
-  border-left-color: #111827;
+/* 管理メニュー上部カードの文字を白に固定 */
+.owner-home-hero,
+.owner-home-hero p,
+.owner-home-hero h1,
+.owner-home-hero h2,
+.owner-home-hero span,
+.owner-home-label {
+  color: #ffffff !important;
 }
 
-.owner-home-card-dark .owner-home-card-top strong {
-  background: #111827;
+.owner-home-hero h1 {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  text-shadow: none;
 }
-
-/* 古い上部メニューバーは非表示 */
-.owner-menu-bar {
-  display: none !important;
-}
-
-/* =========================
-   タブレット
-========================= */
-
-@media screen and (max-width: 980px) {
-  .owner-home {
-    padding: 18px;
-  }
-
-  .owner-home-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px;
-  }
-
-  .owner-home-card {
-    min-height: 190px;
-    padding: 24px;
-    border-radius: 26px;
-  }
-
-  .owner-home-card h2 {
-    font-size: 28px;
-  }
-}
-
-/* =========================
-   スマホ
-========================= */
 
 @media screen and (max-width: 640px) {
-  .owner-home {
-    padding: 14px;
+  .owner-hamburger-header {
+    padding: 12px 14px;
   }
 
-  .owner-home-hero {
-    width: 100%;
-    margin: 0 auto 20px;
-    padding: 30px 20px;
-
-    background: linear-gradient(135deg, #111827 0%, #2563eb 100%) !important;
-    color: #ffffff !important;
-
-    border-radius: 28px;
-    text-align: center;
+  .owner-hamburger-logo {
+    font-size: 18px;
   }
 
-  .owner-home-label {
-    color: rgba(255, 255, 255, 0.88) !important;
-
-    font-size: 12px;
-    letter-spacing: 0.16em;
+  .owner-hamburger-menu {
+    width: 88vw;
+    padding: 20px;
   }
 
-  .owner-home-hero h1,
-  .owner-home-hero h2 {
-    color: #ffffff !important;
-
-    font-size: 30px;
-    line-height: 1.25;
+  .owner-hamburger-menu a {
+    font-size: 18px;
+    padding: 16px;
   }
-
-  .owner-home-hero p {
-    color: rgba(255, 255, 255, 0.94) !important;
-
-    font-size: 14px;
-    line-height: 1.8;
-  }
-
-  .owner-home-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
-  }
-
-  .owner-home-card {
-    min-height: 170px;
-    padding: 22px;
-    border-radius: 24px;
-  }
-
-  .owner-home-card h2 {
-    font-size: 26px;
-  }
-
-  .owner-home-card p {
-    font-size: 14px;
-  }
-
-  .owner-home-card-top strong {
-    width: 48px;
-    height: 48px;
-    font-size: 22px;
-  }
-}
-
-/* スマホ表示でも管理メニューの文字を白にする */
-.owner-menu-hero,
-.owner-menu-hero p,
-.owner-menu-hero h1,
-.owner-menu-hero h2,
-.owner-menu-hero span {
-  color: #ffffff !important;
 }
