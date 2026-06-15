@@ -297,3 +297,70 @@
     font-size: 17px;
   }
 }
+
+/* =========================
+   メンテナンス用アカウント専用：画面切り替え
+========================= */
+
+.maintenance-switch-box {
+  margin-bottom: 18px;
+  padding: 18px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #111827 0%, #2563eb 100%);
+  color: #ffffff;
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.2);
+}
+
+.maintenance-switch-box p {
+  margin: 0 0 6px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 12px;
+  font-weight: 1000;
+  letter-spacing: 0.14em;
+}
+
+.maintenance-switch-box h3 {
+  margin: 0 0 14px;
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 1000;
+}
+
+.maintenance-switch-buttons {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.maintenance-switch-buttons button {
+  min-height: 50px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 1000;
+  cursor: pointer;
+  text-align: left;
+}
+
+.maintenance-switch-buttons button:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+@media screen and (max-width: 640px) {
+  .maintenance-switch-box {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .maintenance-switch-box h3 {
+    font-size: 20px;
+  }
+
+  .maintenance-switch-buttons button {
+    min-height: 48px;
+    font-size: 15px;
+  }
+}

@@ -9,15 +9,22 @@ export default function OwnerHamburgerMenu() {
   const loginRole = localStorage.getItem("loginRole");
   const employeeNumber = localStorage.getItem("employeeNumber");
 
-  const isOwner = loginRole === "owner" || employeeNumber === "9999";
+  const isMaintenance = employeeNumber === "9999";
+  const isOwner = loginRole === "owner" || isMaintenance;
   const isManager = loginRole === "manager";
 
-  const isOwnerOrManager = isOwner || isManager;
+  const isOwnerOrManager = isOwner || isManager || isMaintenance;
 
   const handleLogout = () => {
     localStorage.clear();
     sessionStorage.clear();
     navigate("/");
+  };
+
+  const handleMaintenanceSwitch = (path: string, role: string) => {
+    localStorage.setItem("loginRole", role);
+    setOpen(false);
+    navigate(path);
   };
 
   if (!isOwnerOrManager) {
@@ -38,7 +45,9 @@ export default function OwnerHamburgerMenu() {
       <header className="owner-hamburger-header">
         <Link to={homePath} className="owner-hamburger-logo">
           <span className="owner-hamburger-logo-mark">7</span>
-          <span className="owner-hamburger-logo-text">SevenShift Manager</span>
+          <span className="owner-hamburger-logo-text">
+            SevenShift Manager
+          </span>
         </Link>
 
         <button
@@ -68,6 +77,36 @@ export default function OwnerHamburgerMenu() {
             ×
           </button>
         </div>
+
+        {isMaintenance && (
+          <section className="maintenance-switch-box">
+            <p>メンテナンス用</p>
+            <h3>画面切り替え</h3>
+
+            <div className="maintenance-switch-buttons">
+              <button
+                type="button"
+                onClick={() => handleMaintenanceSwitch("/owner", "owner")}
+              >
+                オーナー画面
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleMaintenanceSwitch("/manager", "manager")}
+              >
+                管理者画面
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleMaintenanceSwitch("/employee", "employee")}
+              >
+                従業員画面
+              </button>
+            </div>
+          </section>
+        )}
 
         <Link to={homePath} onClick={() => setOpen(false)}>
           管理メニュー
