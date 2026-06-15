@@ -18,10 +18,21 @@ function getHomePath() {
   const role = localStorage.getItem("loginRole");
   const employeeNumber = localStorage.getItem("employeeNumber");
 
-  if (employeeNumber === "9999") return "/owner";
-  if (role === "owner") return "/owner";
-  if (role === "manager") return "/manager";
-  if (role === "employee") return "/employee";
+  if (employeeNumber === "9999") {
+    return "/owner";
+  }
+
+  if (role === "owner") {
+    return "/owner";
+  }
+
+  if (role === "manager") {
+    return "/manager";
+  }
+
+  if (role === "employee") {
+    return "/employee";
+  }
 
   return "/";
 }
@@ -49,6 +60,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LoginRoute />} />
 
+        {/* 従業員専用 */}
         <Route element={<RequireRole allowedRoles={["employee"]} />}>
           <Route path="/employee" element={<EmployeeDashboard />} />
           <Route
@@ -57,6 +69,7 @@ export default function App() {
           />
         </Route>
 
+        {/* 管理者専用 */}
         <Route element={<RequireRole allowedRoles={["manager"]} />}>
           <Route path="/manager" element={<ManagerDashboard />} />
           <Route path="/manager/shifts" element={<OwnerShiftsPage />} />
@@ -69,12 +82,14 @@ export default function App() {
           />
         </Route>
 
+        {/* オーナー専用 */}
         <Route element={<RequireRole allowedRoles={["owner"]} />}>
           <Route path="/owner" element={<OwnerDashboardHome />} />
           <Route
             path="/owner/ownerdashboard"
             element={<OwnerDashboardHome />}
           />
+
           <Route path="/owner/shifts" element={<OwnerShiftsPage />} />
           <Route path="/owner/timeline" element={<OwnerShiftTimelinePage />} />
           <Route path="/owner/sales" element={<OwnerSalesPage />} />
@@ -86,6 +101,7 @@ export default function App() {
           />
         </Route>
 
+        {/* 旧URL対策 */}
         <Route
           element={
             <RequireRole allowedRoles={["owner", "manager", "employee"]} />

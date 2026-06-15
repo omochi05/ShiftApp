@@ -13,6 +13,22 @@ type LoginResponse = {
   token_type: string;
 };
 
+function getHomePath(role: string, employeeNumber: string) {
+  if (employeeNumber === "9999") {
+    return "/owner";
+  }
+
+  if (role === "owner") {
+    return "/owner";
+  }
+
+  if (role === "manager") {
+    return "/manager";
+  }
+
+  return "/employee";
+}
+
 export default function LoginPage() {
   const navigate = useNavigate();
 
@@ -68,22 +84,9 @@ export default function LoginPage() {
         localStorage.setItem("ownerNumber", res.data.employee_number);
       }
 
-      if (res.data.employee_number === "9999") {
-        navigate("/owner");
-        return;
-      }
+      const homePath = getHomePath(res.data.role, res.data.employee_number);
 
-      if (res.data.role === "owner") {
-        navigate("/owner");
-        return;
-      }
-
-      if (res.data.role === "manager") {
-        navigate("/manager");
-        return;
-      }
-
-      navigate("/employee");
+      navigate(homePath, { replace: true });
     } catch (error: any) {
       console.error("ログイン失敗:", error);
 
@@ -115,7 +118,7 @@ export default function LoginPage() {
 
           <div className="seven-login-card-header">
             <h2>ログイン</h2>
-            <span>従業員番号とパスワードを入力してください。</span>
+            <span>従業員番号と4桁のパスワードを入力してください。</span>
           </div>
 
           <form className="seven-login-form" onSubmit={handleLogin}>
@@ -135,11 +138,15 @@ export default function LoginPage() {
               パスワード
               <input
                 type="password"
+                inputMode="numeric"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="パスワード"
+                onChange={(e) =>
+                  setPassword(e.target.value.replace(/\D/g, "").slice(0, 4))
+                }
+                placeholder="数字4桁"
                 autoComplete="current-password"
                 disabled={loading}
+                maxLength={4}
               />
             </label>
 

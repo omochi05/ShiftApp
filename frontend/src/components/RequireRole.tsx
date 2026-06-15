@@ -5,10 +5,21 @@ type RequireRoleProps = {
 };
 
 function getHomePath(role: string | null, employeeNumber: string | null) {
-  if (employeeNumber === "9999") return "/owner";
-  if (role === "owner") return "/owner";
-  if (role === "manager") return "/manager";
-  if (role === "employee") return "/employee";
+  if (employeeNumber === "9999") {
+    return "/owner";
+  }
+
+  if (role === "owner") {
+    return "/owner";
+  }
+
+  if (role === "manager") {
+    return "/manager";
+  }
+
+  if (role === "employee") {
+    return "/employee";
+  }
 
   return "/";
 }
