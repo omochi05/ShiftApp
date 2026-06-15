@@ -152,7 +152,9 @@ function formatApiError(error: any, fallbackMessage: string) {
     return `${fallbackMessage}：${detail.map((d) => d.msg).join(" / ")}`;
   }
 
-  if (detail) return `${fallbackMessage}：${detail}`;
+  if (detail) {
+    return `${fallbackMessage}：${detail}`;
+  }
 
   if (error.response?.status) {
     return `${fallbackMessage}：HTTP ${error.response.status}`;
@@ -164,15 +166,6 @@ function formatApiError(error: any, fallbackMessage: string) {
 function getUserName(userId: number, users: User[]) {
   const user = users.find((item) => item.id === userId);
   return user?.name || "名前未設定";
-}
-
-function sortTemplates(templates: ShiftTemplate[]) {
-  return [...templates].sort((a, b) => {
-    if (a.weekday !== b.weekday) return a.weekday - b.weekday;
-    if (a.start_time < b.start_time) return -1;
-    if (a.start_time > b.start_time) return 1;
-    return a.id - b.id;
-  });
 }
 
 export default function OwnerShiftTimelinePage() {
@@ -245,10 +238,6 @@ export default function OwnerShiftTimelinePage() {
     return removeDuplicateShifts(mappedShifts);
   }, [shifts, users, weekStart, weekEnd]);
 
-  const sortedTemplates = useMemo(() => {
-    return sortTemplates(templates);
-  }, [templates]);
-
   const totalWeeklyMinutes = useMemo(() => {
     return weeklyShifts.reduce((sum, shift) => {
       return sum + getShiftDurationMinutes(shift);
@@ -258,6 +247,8 @@ export default function OwnerShiftTimelinePage() {
   const workingEmployeeCount = useMemo(() => {
     return new Set(weeklyShifts.map((shift) => shift.user_id)).size;
   }, [weeklyShifts]);
+
+  const hasDbTemplate = templates.length > 0;
 
   const fetchUsers = async () => {
     const res = await api.get<User[]>("/users/");
@@ -326,7 +317,7 @@ export default function OwnerShiftTimelinePage() {
     }
 
     const displayName =
-      templateName.trim() || `DBテンプレート ${weekStart}〜${weekEnd}`;
+      templateName.trim() || `シフトテンプレート ${weekStart}〜${weekEnd}`;
 
     const ok = window.confirm(
       `${weekStart}〜${weekEnd} のシフトを「${displayName}」としてDBに保存しますか？\n既存のDBテンプレートは上書きされます。`
@@ -347,10 +338,11 @@ export default function OwnerShiftTimelinePage() {
       setSelectedTemplateId(res.data.length > 0 ? "db-template" : "");
       setTemplateName("");
 
-      setMessage(`DBテンプレートを保存しました。保存件数：${res.data.length}件`);
+      setMessage("この週をテンプレートとして保存しました");
     } catch (error: any) {
       console.error("テンプレート保存失敗:", error);
       console.error("レスポンス:", error.response?.data);
+
       setMessage(formatApiError(error, "テンプレート保存に失敗しました"));
     } finally {
       setTemplateLoading(false);
@@ -363,13 +355,13 @@ export default function OwnerShiftTimelinePage() {
       return;
     }
 
-    if (templates.length === 0) {
-      setMessage("DBに保存されているテンプレートがありません");
+    if (!selectedTemplateId || !hasDbTemplate) {
+      setMessage("反映するテンプレートを選択してください");
       return;
     }
 
     const ok = window.confirm(
-      `DBテンプレート ${templates.length}件を ${weekStart}〜${weekEnd} に反映しますか？\nすでに同じシフトがある場合はスキップされます。`
+      `DBテンプレートを ${weekStart}〜${weekEnd} に反映しますか？\n既に同じシフトがある場合はスキップされます。`
     );
 
     if (!ok) return;
@@ -389,6 +381,7 @@ export default function OwnerShiftTimelinePage() {
     } catch (error: any) {
       console.error("テンプレート反映失敗:", error);
       console.error("レスポンス:", error.response?.data);
+
       setMessage(formatApiError(error, "テンプレート反映に失敗しました"));
     } finally {
       setTemplateLoading(false);
@@ -396,14 +389,12 @@ export default function OwnerShiftTimelinePage() {
   };
 
   const handleDeleteTemplate = async () => {
-    if (templates.length === 0) {
-      setMessage("削除するテンプレートがありません");
+    if (!selectedTemplateId || templates.length === 0) {
+      setMessage("削除するテンプレートを選択してください");
       return;
     }
 
-    const ok = window.confirm(
-      `DBに保存されているテンプレート ${templates.length}件を削除しますか？`
-    );
+    const ok = window.confirm("保存中のDBテンプレートを削除しますか？");
 
     if (!ok) return;
 
@@ -417,10 +408,11 @@ export default function OwnerShiftTimelinePage() {
 
       setTemplates([]);
       setSelectedTemplateId("");
-      setMessage("DBテンプレートを削除しました");
+      setMessage("テンプレートを削除しました");
     } catch (error: any) {
       console.error("テンプレート削除失敗:", error);
       console.error("レスポンス:", error.response?.data);
+
       setMessage(formatApiError(error, "テンプレート削除に失敗しました"));
     } finally {
       setTemplateLoading(false);
@@ -435,7 +427,7 @@ export default function OwnerShiftTimelinePage() {
         <p>SHIFT TABLE</p>
         <h1>シフト表</h1>
         <span>
-          週ごとのシフトを確認できます。保存したDBテンプレートを使って、
+          週ごとのシフトを確認できます。保存したテンプレートを使って、
           固定シフトも簡単に反映できます。
         </span>
       </section>
@@ -473,7 +465,7 @@ export default function OwnerShiftTimelinePage() {
         <div className="owner-shift-template-box">
           <div className="owner-shift-template-save">
             <label>
-              この週をDBテンプレートとして保存
+              この週をテンプレートとして保存
               <input
                 type="text"
                 value={templateName}
@@ -500,10 +492,8 @@ export default function OwnerShiftTimelinePage() {
               >
                 <option value="">保存したテンプレートを選択</option>
 
-                {templates.length > 0 && (
-                  <option value="db-template">
-                    DBテンプレート（{templates.length}件）
-                  </option>
+                {hasDbTemplate && (
+                  <option value="db-template">DBテンプレート</option>
                 )}
               </select>
             </label>
@@ -524,44 +514,13 @@ export default function OwnerShiftTimelinePage() {
               type="button"
               className="owner-shift-template-delete-button"
               onClick={handleDeleteTemplate}
-              disabled={templateLoading || templates.length === 0}
+              disabled={templateLoading || !selectedTemplateId}
             >
               削除
             </button>
           </div>
         </div>
       </section>
-
-      {sortedTemplates.length > 0 && (
-        <section className="owner-shift-template-box">
-          <div>
-            <strong>保存中のDBテンプレート</strong>
-            <p>
-              {sortedTemplates.length}
-              件保存中です。ログアウト後・別端末・再デプロイ後も残ります。
-            </p>
-          </div>
-
-          <div className="owner-shift-template-apply">
-            <select value="db-template" disabled>
-              <option value="db-template">
-                {sortedTemplates
-                  .slice(0, 5)
-                  .map((template) => {
-                    return `${dayNames[template.weekday]} ${getUserName(
-                      template.user_id,
-                      users
-                    )} ${normalizeTime(template.start_time)}〜${normalizeTime(
-                      template.end_time
-                    )}`;
-                  })
-                  .join(" / ")}
-                {sortedTemplates.length > 5 ? " ..." : ""}
-              </option>
-            </select>
-          </div>
-        </section>
-      )}
 
       <section className="owner-shift-summary-row">
         <div>
