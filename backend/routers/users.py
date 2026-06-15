@@ -262,11 +262,6 @@ def change_password(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    パスワード変更は本人だけ許可。
-    現在のパスワード・新しいパスワードは数字4桁のみ。
-    """
-
     if current_user.id != request.user_id:
         raise HTTPException(
             status_code=403,
@@ -284,7 +279,6 @@ def change_password(
     current_password = str(request.current_password or "").strip()
     new_password = str(request.new_password or "").strip()
 
-    # ここが重要：bcrypt検証より先に4桁チェック
     if not current_password.isdigit() or len(current_password) != 4:
         raise HTTPException(
             status_code=400,
