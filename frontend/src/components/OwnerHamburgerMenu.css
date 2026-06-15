@@ -1,315 +1,325 @@
-.owner-hamburger-header {
-  width: min(1480px, calc(100% - 32px));
-  margin: 0 auto 22px;
-  padding: 14px 18px;
+.owner-home {
+  min-height: 100vh;
+  padding: 24px;
 
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-
-  position: sticky;
-  top: 12px;
-  z-index: 80;
-
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(14px);
-
-  border: 1px solid rgba(226, 232, 240, 0.95);
-  border-radius: 26px;
-
-  box-shadow:
-    0 18px 42px rgba(15, 23, 42, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-.owner-hamburger-logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.13), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.12), transparent 36%),
+    #f1f5f9;
 
   color: #111827;
-
-  font-size: 21px;
-  font-weight: 1000;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  text-decoration: none;
+  box-sizing: border-box;
 }
 
-.owner-hamburger-logo::before {
-  content: "7";
+.owner-home * {
+  box-sizing: border-box;
+}
 
-  width: 46px;
-  height: 46px;
+/* =========================
+   ヘッダー：管理メニュー
+========================= */
+
+.owner-home-hero {
+  width: min(1480px, 100%);
+  margin: 0 auto 28px;
+  padding: 38px 28px;
+
+  text-align: center;
+
+  background: linear-gradient(135deg, #111827 0%, #2563eb 100%) !important;
+  color: #ffffff !important;
+
+  border-radius: 34px;
+  box-shadow: 0 18px 44px rgba(37, 99, 235, 0.22);
+}
+
+.owner-home-label {
+  margin: 0 0 10px;
+
+  color: rgba(255, 255, 255, 0.88) !important;
+
+  font-size: 14px;
+  font-weight: 1000;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.owner-home-hero h1,
+.owner-home-hero h2 {
+  margin: 0 0 14px;
+
+  color: #ffffff !important;
+
+  font-size: 38px;
+  font-weight: 1000;
+  letter-spacing: -0.04em;
+  line-height: 1.2;
+}
+
+.owner-home-hero p {
+  margin: 0;
+
+  color: rgba(255, 255, 255, 0.94) !important;
+
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.8;
+}
+
+/* =========================
+   カード
+========================= */
+
+.owner-home-grid {
+  width: min(1480px, 100%);
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.owner-home-card {
+  min-height: 230px;
+  padding: 28px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  position: relative;
+  overflow: hidden;
+
+  background: #ffffff;
+  color: #111827;
+
+  border: none;
+  border-left: 10px solid #22c55e;
+  border-radius: 30px;
+
+  text-align: left;
+  text-decoration: none;
+
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.1);
+  cursor: pointer;
+}
+
+.owner-home-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.14);
+}
+
+.owner-home-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.owner-home-card-top span {
+  color: #111827;
+
+  font-size: 13px;
+  font-weight: 1000;
+  letter-spacing: 0.2em;
+}
+
+.owner-home-card-top strong {
+  width: 52px;
+  height: 52px;
 
   display: grid;
   place-items: center;
 
-  border-radius: 16px;
+  border-radius: 999px;
 
-  background:
-    linear-gradient(#ffffff, #ffffff) padding-box,
-    linear-gradient(135deg, #008044, #f58220, #ef3340) border-box;
-
-  border: 3px solid transparent;
-
-  color: #008044;
+  background: #22c55e;
+  color: #ffffff;
 
   font-size: 24px;
   font-weight: 1000;
-
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
 }
 
-.owner-hamburger-button {
-  width: 58px;
-  height: 58px;
+.owner-home-card h2 {
+  margin: 22px 0 12px;
 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-
-  border: none;
-  border-radius: 20px;
-
-  background: #111827;
-  cursor: pointer;
-
-  box-shadow: 0 14px 26px rgba(15, 23, 42, 0.22);
-}
-
-.owner-hamburger-button:hover {
-  transform: translateY(-1px);
-  background: #1f2937;
-}
-
-.owner-hamburger-button span {
-  width: 28px;
-  height: 4px;
-
-  display: block;
-
-  background: #ffffff;
-  border-radius: 999px;
-}
-
-.owner-hamburger-backdrop {
-  position: fixed;
-  inset: 0;
-
-  background: rgba(15, 23, 42, 0.48);
-  backdrop-filter: blur(3px);
-
-  z-index: 90;
-}
-
-.owner-hamburger-menu {
-  position: fixed;
-  top: 0;
-  right: 0;
-
-  width: min(390px, 88vw);
-  height: 100vh;
-
-  padding: 24px 22px;
-
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-
-  background:
-    radial-gradient(circle at top right, rgba(37, 99, 235, 0.12), transparent 34%),
-    #ffffff;
-
-  box-shadow: -22px 0 60px rgba(15, 23, 42, 0.22);
-
-  transform: translateX(110%);
-  transition: transform 0.22s ease;
-
-  z-index: 100;
-}
-
-.owner-hamburger-menu.is-open {
-  transform: translateX(0);
-}
-
-.owner-hamburger-menu-head {
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.owner-hamburger-menu-head strong {
   color: #111827;
 
-  font-size: 25px;
+  font-size: 34px;
   font-weight: 1000;
   letter-spacing: -0.04em;
 }
 
-.owner-hamburger-menu-head button {
-  width: 50px;
-  height: 50px;
+.owner-home-card p {
+  margin: 0;
 
-  border: none;
-  border-radius: 18px;
-
-  background: #f1f5f9;
-  color: #111827;
-
-  font-size: 30px;
-  font-weight: 1000;
-  line-height: 1;
-
-  cursor: pointer;
-}
-
-.owner-hamburger-menu-head button:hover {
-  background: #e5e7eb;
-}
-
-.owner-hamburger-menu a,
-.owner-hamburger-logout {
-  width: 100%;
-  min-height: 54px;
-  padding: 0 18px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  border: none;
-  border-radius: 18px;
-
-  background: #f8fafc;
-  color: #111827;
+  color: #6b7280;
 
   font-size: 16px;
-  font-weight: 1000;
-  text-decoration: none;
-  text-align: left;
-
-  cursor: pointer;
+  font-weight: 900;
+  line-height: 1.7;
 }
 
-.owner-hamburger-menu a::after {
-  content: "→";
-
-  color: #64748b;
-
-  font-size: 18px;
-  font-weight: 1000;
+.owner-home-card-green {
+  border-left-color: #22c55e;
 }
 
-.owner-hamburger-menu a:hover,
-.owner-hamburger-logout:hover {
-  background: #eef2ff;
-  transform: translateX(-2px);
+.owner-home-card-green .owner-home-card-top strong {
+  background: #22c55e;
 }
 
-.owner-hamburger-menu a:nth-of-type(1) {
-  background: #eff6ff;
+.owner-home-card-purple {
+  border-left-color: #7c3aed;
 }
 
-.owner-hamburger-menu a:nth-of-type(2) {
-  border-left: 6px solid #22c55e;
+.owner-home-card-purple .owner-home-card-top strong {
+  background: #7c3aed;
 }
 
-.owner-hamburger-menu a:nth-of-type(3) {
-  border-left: 6px solid #7c3aed;
+.owner-home-card-orange {
+  border-left-color: #ea580c;
 }
 
-.owner-hamburger-menu a:nth-of-type(4) {
-  border-left: 6px solid #ea580c;
+.owner-home-card-orange .owner-home-card-top strong {
+  background: #ea580c;
 }
 
-.owner-hamburger-menu a:nth-of-type(5) {
-  border-left: 6px solid #0891b2;
+.owner-home-card-cyan {
+  border-left-color: #0891b2;
 }
 
-.owner-hamburger-menu a:nth-of-type(6) {
-  border-left: 6px solid #6b7280;
+.owner-home-card-cyan .owner-home-card-top strong {
+  background: #0891b2;
 }
 
-.owner-hamburger-menu a:nth-of-type(7) {
-  border-left: 6px solid #ef4444;
+.owner-home-card-gray {
+  border-left-color: #6b7280;
 }
 
-.owner-hamburger-logout {
-  margin-top: auto;
+.owner-home-card-gray .owner-home-card-top strong {
+  background: #374151;
+}
 
-  justify-content: center;
+.owner-home-card-red {
+  border-left-color: #ef4444;
+}
 
+.owner-home-card-red .owner-home-card-top strong {
+  background: #ef4444;
+}
+
+.owner-home-card-dark {
+  border-left-color: #111827;
+}
+
+.owner-home-card-dark .owner-home-card-top strong {
   background: #111827;
-  color: #ffffff;
-
-  font-size: 17px;
 }
 
-.owner-hamburger-logout:hover {
-  background: #1f2937;
-  transform: none;
+/* 古い上部メニューバーは非表示 */
+.owner-menu-bar {
+  display: none !important;
 }
+
+/* =========================
+   タブレット
+========================= */
+
+@media screen and (max-width: 980px) {
+  .owner-home {
+    padding: 18px;
+  }
+
+  .owner-home-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .owner-home-card {
+    min-height: 190px;
+    padding: 24px;
+    border-radius: 26px;
+  }
+
+  .owner-home-card h2 {
+    font-size: 28px;
+  }
+}
+
+/* =========================
+   スマホ
+========================= */
 
 @media screen and (max-width: 640px) {
-  .owner-hamburger-header {
-    width: calc(100% - 20px);
-    top: 8px;
-    margin-bottom: 14px;
-    padding: 10px 12px;
-    border-radius: 22px;
+  .owner-home {
+    padding: 14px;
   }
 
-  .owner-hamburger-logo {
-    gap: 10px;
-    font-size: 17px;
+  .owner-home-hero {
+    width: 100%;
+    margin: 0 auto 20px;
+    padding: 30px 20px;
+
+    background: linear-gradient(135deg, #111827 0%, #2563eb 100%) !important;
+    color: #ffffff !important;
+
+    border-radius: 28px;
+    text-align: center;
   }
 
-  .owner-hamburger-logo::before {
-    width: 42px;
-    height: 42px;
+  .owner-home-label {
+    color: rgba(255, 255, 255, 0.88) !important;
 
-    border-radius: 15px;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+  }
 
+  .owner-home-hero h1,
+  .owner-home-hero h2 {
+    color: #ffffff !important;
+
+    font-size: 30px;
+    line-height: 1.25;
+  }
+
+  .owner-home-hero p {
+    color: rgba(255, 255, 255, 0.94) !important;
+
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  .owner-home-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .owner-home-card {
+    min-height: 170px;
+    padding: 22px;
+    border-radius: 24px;
+  }
+
+  .owner-home-card h2 {
+    font-size: 26px;
+  }
+
+  .owner-home-card p {
+    font-size: 14px;
+  }
+
+  .owner-home-card-top strong {
+    width: 48px;
+    height: 48px;
     font-size: 22px;
   }
+}
 
-  .owner-hamburger-button {
-    width: 52px;
-    height: 52px;
-    border-radius: 18px;
-  }
-
-  .owner-hamburger-button span {
-    width: 25px;
-    height: 4px;
-  }
-
-  .owner-hamburger-menu {
-    width: min(340px, 90vw);
-    padding: 20px 18px;
-    gap: 9px;
-  }
-
-  .owner-hamburger-menu-head strong {
-    font-size: 23px;
-  }
-
-  .owner-hamburger-menu a,
-  .owner-hamburger-logout {
-    min-height: 52px;
-    padding: 0 16px;
-
-    border-radius: 16px;
-
-    font-size: 15px;
-  }
+/* スマホ表示でも管理メニューの文字を白にする */
+.owner-menu-hero,
+.owner-menu-hero p,
+.owner-menu-hero h1,
+.owner-menu-hero h2,
+.owner-menu-hero span {
+  color: #ffffff !important;
 }
