@@ -1,14 +1,12 @@
-import calendar
 from datetime import date
-from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from auth_deps import get_current_user, require_manager_or_owner, require_self_or_manager_or_owner
+from auth_deps import get_current_user, require_manager_or_owner
 from database import get_db
-from models import Notification, Shift, User
-from schemas import ShiftCreate, ShiftResponse, ShiftUpdate
+from models import Shift, User
+from schemas import ShiftCreate, ShiftUpdate
 
 
 router = APIRouter(
@@ -17,163 +15,263 @@ router = APIRouter(
 )
 
 
-def format_time(value):
-    return str(value)[:5]
+def is_maintenance_user(user: User):
+    return user.email == "9999"
 
 
-def create_notification(
-    db: Session,
-    user_id: int,
-    title: str,
-    message: str,
-    notification_type: str,
-    related_shift_id: int | None = None,
-    created_by: int | None = None,
-):
-    notification = Notification(
-        user_id=user_id,
-        title=title,
-        message=message,
-        notification_type=notification_type,
-        related_shift_id=related_shift_id,
-        is_read=False,
-    )
-
-    if hasattr(notification, "created_by"):
-        notification.created_by = created_by
-
-    db.add(notification)
+def is_owner_or_maintenance(user: User):
+    return user.role == "owner" or is_maintenance_user(user)
 
 
-@router.get("/", response_model=List[ShiftResponse])
+def is_manager(user: User):
+    return user.role == "manager"
+
+
+def serialize_shift(shift: Shift, user: User | None = None):
+    return {
+        "id": shift.id,
+        "user_id": shift.user_id,
+        "user_name": user.name if user else None,
+        "user_role": user.role if user else None,
+        "work_date": shift.work_date,
+        "start_time": shift.start_time,
+        "end_time": shift.end_time,
+        "break_minutes": shift.break_minutes,
+        "created_by": getattr(shift, "created_by", None),
+        "created_at": getattr(shift, "created_at", None),
+        "updated_at": getattr(shift, "updated_at", None),
+    }
+
+
+def get_target_user_or_404(db: Session, user_id: int):
+    target_user = db.query(User).filter(User.id == user_id).first()
+
+    if target_user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="シフト対象のユーザーが見つかりません",
+        )
+
+    return target_user
+
+
+def check_manager_can_manage_target_user(current_user: User, target_user: User):
+    """
+    管理者は従業員のシフトだけ操作できる。
+    管理者・オーナーのシフトは操作不可。
+    """
+
+    if is_owner_or_maintenance(current_user):
+        return
+
+    if is_manager(current_user) and target_user.role in ["manager", "owner"]:
+        raise HTTPException(
+            status_code=403,
+            detail="管理者は管理者・オーナーのシフトを操作できません",
+        )
+
+
+@router.get("/")
 def get_shifts(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return (
+    """
+    シフト一覧取得。
+
+    従業員画面でもシフト表を表示するため、
+    ログイン済みユーザーなら閲覧可能。
+    """
+
+    shifts = db.query(Shift).order_by(Shift.work_date, Shift.start_time).all()
+
+    result = []
+
+    for shift in shifts:
+        user = db.query(User).filter(User.id == shift.user_id).first()
+        result.append(serialize_shift(shift, user))
+
+    return result
+
+
+@router.get("/user/{user_id}")
+def get_user_shifts(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    特定ユーザーのシフト一覧取得。
+    """
+
+    target_user = get_target_user_or_404(db, user_id)
+
+    shifts = (
         db.query(Shift)
-        .order_by(Shift.work_date, Shift.start_time, Shift.user_id)
+        .filter(Shift.user_id == user_id)
+        .order_by(Shift.work_date, Shift.start_time)
         .all()
     )
 
+    return [serialize_shift(shift, target_user) for shift in shifts]
 
-@router.post("/", response_model=ShiftResponse)
-def create_shift(
-    shift: ShiftCreate,
+
+@router.get("/user/{user_id}/month")
+def get_user_month_shifts(
+    user_id: int,
+    year: int = Query(...),
+    month: int = Query(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_manager_or_owner),
+    current_user: User = Depends(get_current_user),
 ):
-    try:
-        db_shift = Shift(
-            user_id=shift.user_id,
-            work_date=shift.work_date,
-            start_time=shift.start_time,
-            end_time=shift.end_time,
-            break_minutes=shift.break_minutes,
-            created_by=current_user.id,
-        )
+    """
+    特定ユーザーの月別シフト取得。
+    """
 
-        db.add(db_shift)
-        db.flush()
+    target_user = get_target_user_or_404(db, user_id)
 
-        create_notification(
-            db=db,
-            user_id=db_shift.user_id,
-            title="新しいシフトが登録されました",
-            message=(
-                f"{db_shift.work_date} "
-                f"{format_time(db_shift.start_time)}〜{format_time(db_shift.end_time)} "
-                "のシフトが登録されました。"
-            ),
-            notification_type="shift_confirmed",
-            related_shift_id=db_shift.id,
-            created_by=current_user.id,
-        )
+    shifts = (
+        db.query(Shift)
+        .filter(Shift.user_id == user_id)
+        .filter(Shift.work_date >= date(year, month, 1))
+        .all()
+    )
 
-        db.commit()
-        db.refresh(db_shift)
+    filtered_shifts = [
+        shift
+        for shift in shifts
+        if shift.work_date.year == year and shift.work_date.month == month
+    ]
 
-        return db_shift
+    filtered_shifts.sort(key=lambda shift: (shift.work_date, shift.start_time))
 
-    except Exception as error:
-        db.rollback()
-        print("シフト作成または通知作成に失敗しました:", error)
-        raise HTTPException(
-            status_code=500,
-            detail="シフト作成に失敗しました",
-        )
+    return [serialize_shift(shift, target_user) for shift in filtered_shifts]
 
 
-@router.put("/{shift_id}", response_model=ShiftResponse)
-def update_shift(
+@router.get("/{shift_id}")
+def get_shift(
     shift_id: int,
-    shift: ShiftUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_manager_or_owner),
+    current_user: User = Depends(get_current_user),
 ):
-    db_shift = db.query(Shift).filter(Shift.id == shift_id).first()
+    """
+    シフト詳細取得。
+    """
 
-    if db_shift is None:
+    shift = db.query(Shift).filter(Shift.id == shift_id).first()
+
+    if shift is None:
         raise HTTPException(
             status_code=404,
             detail="シフトが見つかりません",
         )
 
-    old_user_id = db_shift.user_id
-    old_work_date = db_shift.work_date
-    old_start_time = db_shift.start_time
-    old_end_time = db_shift.end_time
+    user = db.query(User).filter(User.id == shift.user_id).first()
+
+    return serialize_shift(shift, user)
+
+
+@router.post("/")
+def create_shift(
+    shift_data: ShiftCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager_or_owner),
+):
+    """
+    シフト作成。
+
+    owner / 9999:
+      全員のシフトを作成可能
+
+    manager:
+      employee のシフトだけ作成可能
+    """
+
+    target_user = get_target_user_or_404(db, shift_data.user_id)
+
+    check_manager_can_manage_target_user(current_user, target_user)
 
     try:
-        db_shift.user_id = shift.user_id
-        db_shift.work_date = shift.work_date
-        db_shift.start_time = shift.start_time
-        db_shift.end_time = shift.end_time
-        db_shift.break_minutes = shift.break_minutes
-        db_shift.created_by = current_user.id
-
-        db.flush()
-
-        create_notification(
-            db=db,
-            user_id=db_shift.user_id,
-            title="シフトが変更されました",
-            message=(
-                f"{db_shift.work_date} "
-                f"{format_time(db_shift.start_time)}〜{format_time(db_shift.end_time)} "
-                "のシフトに変更されました。"
-            ),
-            notification_type="shift_changed",
-            related_shift_id=db_shift.id,
-            created_by=current_user.id,
+        new_shift = Shift(
+            user_id=shift_data.user_id,
+            work_date=shift_data.work_date,
+            start_time=shift_data.start_time,
+            end_time=shift_data.end_time,
+            break_minutes=shift_data.break_minutes,
         )
 
-        if old_user_id != db_shift.user_id:
-            create_notification(
-                db=db,
-                user_id=old_user_id,
-                title="シフト担当が変更されました",
-                message=(
-                    f"{old_work_date} "
-                    f"{format_time(old_start_time)}〜{format_time(old_end_time)} "
-                    "のシフト担当から外れました。"
-                ),
-                notification_type="shift_changed",
-                related_shift_id=db_shift.id,
-                created_by=current_user.id,
-            )
+        if hasattr(new_shift, "created_by"):
+            new_shift.created_by = current_user.id
 
+        db.add(new_shift)
         db.commit()
-        db.refresh(db_shift)
+        db.refresh(new_shift)
 
-        return db_shift
+        return serialize_shift(new_shift, target_user)
 
     except Exception as error:
         db.rollback()
-        print("シフト更新または通知作成に失敗しました:", error)
+        print("シフト作成に失敗しました:", repr(error))
+
         raise HTTPException(
             status_code=500,
-            detail="シフト更新に失敗しました",
+            detail=f"シフト作成に失敗しました: {str(error)}",
+        )
+
+
+@router.put("/{shift_id}")
+def update_shift(
+    shift_id: int,
+    shift_data: ShiftUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager_or_owner),
+):
+    """
+    シフト更新。
+
+    owner / 9999:
+      全員のシフトを編集可能
+
+    manager:
+      employee のシフトだけ編集可能
+      manager / owner のシフトは編集不可
+    """
+
+    shift = db.query(Shift).filter(Shift.id == shift_id).first()
+
+    if shift is None:
+        raise HTTPException(
+            status_code=404,
+            detail="シフトが見つかりません",
+        )
+
+    current_target_user = get_target_user_or_404(db, shift.user_id)
+
+    check_manager_can_manage_target_user(current_user, current_target_user)
+
+    new_target_user = get_target_user_or_404(db, shift_data.user_id)
+
+    check_manager_can_manage_target_user(current_user, new_target_user)
+
+    try:
+        shift.user_id = shift_data.user_id
+        shift.work_date = shift_data.work_date
+        shift.start_time = shift_data.start_time
+        shift.end_time = shift_data.end_time
+        shift.break_minutes = shift_data.break_minutes
+
+        db.commit()
+        db.refresh(shift)
+
+        return serialize_shift(shift, new_target_user)
+
+    except Exception as error:
+        db.rollback()
+        print("シフト更新に失敗しました:", repr(error))
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"シフト更新に失敗しました: {str(error)}",
         )
 
 
@@ -183,30 +281,31 @@ def delete_shift(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_manager_or_owner),
 ):
-    db_shift = db.query(Shift).filter(Shift.id == shift_id).first()
+    """
+    シフト削除。
 
-    if db_shift is None:
+    owner / 9999:
+      全員のシフトを削除可能
+
+    manager:
+      employee のシフトだけ削除可能
+      manager / owner のシフトは削除不可
+    """
+
+    shift = db.query(Shift).filter(Shift.id == shift_id).first()
+
+    if shift is None:
         raise HTTPException(
             status_code=404,
             detail="シフトが見つかりません",
         )
 
-    try:
-        create_notification(
-            db=db,
-            user_id=db_shift.user_id,
-            title="シフトが削除されました",
-            message=(
-                f"{db_shift.work_date} "
-                f"{format_time(db_shift.start_time)}〜{format_time(db_shift.end_time)} "
-                "のシフトが削除されました。"
-            ),
-            notification_type="shift_deleted",
-            related_shift_id=None,
-            created_by=current_user.id,
-        )
+    target_user = get_target_user_or_404(db, shift.user_id)
 
-        db.delete(db_shift)
+    check_manager_can_manage_target_user(current_user, target_user)
+
+    try:
+        db.delete(shift)
         db.commit()
 
         return {
@@ -216,45 +315,9 @@ def delete_shift(
 
     except Exception as error:
         db.rollback()
-        print("シフト削除または通知作成に失敗しました:", error)
+        print("シフト削除に失敗しました:", repr(error))
+
         raise HTTPException(
             status_code=500,
-            detail="シフト削除に失敗しました",
+            detail=f"シフト削除に失敗しました: {str(error)}",
         )
-
-
-@router.get("/user/{user_id}", response_model=List[ShiftResponse])
-def get_shifts_by_user(
-    user_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_self_or_manager_or_owner),
-):
-    return (
-        db.query(Shift)
-        .filter(Shift.user_id == user_id)
-        .order_by(Shift.work_date, Shift.start_time)
-        .all()
-    )
-
-
-@router.get("/user/{user_id}/month", response_model=List[ShiftResponse])
-def get_shifts_by_user_and_month(
-    user_id: int,
-    year: int,
-    month: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_self_or_manager_or_owner),
-):
-    last_day = calendar.monthrange(year, month)[1]
-
-    start_date = date(year, month, 1)
-    end_date = date(year, month, last_day)
-
-    return (
-        db.query(Shift)
-        .filter(Shift.user_id == user_id)
-        .filter(Shift.work_date >= start_date)
-        .filter(Shift.work_date <= end_date)
-        .order_by(Shift.work_date, Shift.start_time)
-        .all()
-    )
