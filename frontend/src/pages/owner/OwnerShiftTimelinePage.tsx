@@ -444,8 +444,8 @@ export default function OwnerShiftTimelinePage() {
         <p>SHIFT TABLE</p>
         <h1>シフト表</h1>
         <span>
-          週ごとのシフトを確認できます。6/1〜6/7 のような週を保存し、
-          作りたい週にテンプレートとして反映できます。
+          週ごとのシフトを確認できます。作成済みの週をテンプレートとして保存しておくと、
+          別の週にも同じ曜日構成で簡単に反映できます。
         </span>
       </section>
 
