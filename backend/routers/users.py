@@ -264,7 +264,7 @@ def change_password(
 ):
     """
     パスワード変更は本人だけ許可。
-    新しいパスワードは数字4桁のみ。
+    現在のパスワード・新しいパスワードは数字4桁のみ。
     """
 
     if current_user.id != request.user_id:
@@ -281,28 +281,36 @@ def change_password(
             detail="ユーザーが見つかりません",
         )
 
-    if not verify_password(request.current_password, user.password):
+    current_password = str(request.current_password or "").strip()
+    new_password = str(request.new_password or "").strip()
+
+    # ここが重要：bcrypt検証より先に4桁チェック
+    if not current_password.isdigit() or len(current_password) != 4:
         raise HTTPException(
             status_code=400,
-            detail="現在のパスワードが違います",
+            detail="現在のパスワードは数字4桁で入力してください",
         )
 
-    if not request.new_password.isdigit() or len(request.new_password) != 4:
+    if not new_password.isdigit() or len(new_password) != 4:
         raise HTTPException(
             status_code=400,
             detail="新しいパスワードは数字4桁で入力してください",
         )
 
-    if verify_password(request.new_password, user.password):
+    if current_password == new_password:
         raise HTTPException(
             status_code=400,
             detail="現在のパスワードと同じパスワードは使用できません",
         )
 
-    try:
-        hashed_password = hash_password(request.new_password)
+    if not verify_password(current_password, user.password):
+        raise HTTPException(
+            status_code=400,
+            detail="現在のパスワードが違います",
+        )
 
-        user.password = hashed_password
+    try:
+        user.password = hash_password(new_password)
 
         db.commit()
 

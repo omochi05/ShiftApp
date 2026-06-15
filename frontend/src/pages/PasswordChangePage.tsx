@@ -46,6 +46,10 @@ function normalizePin(value: string) {
   return value.replace(/\D/g, "").slice(0, 4);
 }
 
+function isFourDigitPin(value: string) {
+  return /^\d{4}$/.test(value);
+}
+
 export default function PasswordChangePage() {
   const navigate = useNavigate();
 
@@ -55,7 +59,9 @@ export default function PasswordChangePage() {
   const employeeNumber = localStorage.getItem("employeeNumber") || "";
 
   const isOwnerOrManager =
-    loginRole === "owner" || loginRole === "manager" || employeeNumber === "9999";
+    loginRole === "owner" ||
+    loginRole === "manager" ||
+    employeeNumber === "9999";
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -78,13 +84,28 @@ export default function PasswordChangePage() {
       return;
     }
 
+    if (!isFourDigitPin(currentPassword)) {
+      setMessage("現在のパスワードは数字4桁で入力してください");
+      return;
+    }
+
     if (!newPassword) {
       setMessage("新しいパスワードを入力してください");
       return;
     }
 
-    if (!/^\d{4}$/.test(newPassword)) {
+    if (!isFourDigitPin(newPassword)) {
       setMessage("新しいパスワードは数字4桁で入力してください");
+      return;
+    }
+
+    if (!confirmPassword) {
+      setMessage("確認用パスワードを入力してください");
+      return;
+    }
+
+    if (!isFourDigitPin(confirmPassword)) {
+      setMessage("確認用パスワードは数字4桁で入力してください");
       return;
     }
 
@@ -140,9 +161,12 @@ export default function PasswordChangePage() {
             現在のパスワード
             <input
               type="password"
+              inputMode="numeric"
+              pattern="[0-9]{4}"
+              maxLength={4}
               value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="現在のパスワード"
+              onChange={(e) => setCurrentPassword(normalizePin(e.target.value))}
+              placeholder="現在の数字4桁"
               autoComplete="current-password"
               disabled={loading}
             />
@@ -157,7 +181,7 @@ export default function PasswordChangePage() {
               maxLength={4}
               value={newPassword}
               onChange={(e) => setNewPassword(normalizePin(e.target.value))}
-              placeholder="数字4桁"
+              placeholder="新しい数字4桁"
               autoComplete="new-password"
               disabled={loading}
             />
