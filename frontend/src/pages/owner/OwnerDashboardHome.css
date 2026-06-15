@@ -330,3 +330,20 @@
     font-size: 14px;
   }
 }
+
+/* 管理メニュー上部カードの文字色を白に固定 */
+.owner-home-hero,
+.owner-home-hero p,
+.owner-home-hero h1,
+.owner-home-hero h2,
+.owner-home-hero span,
+.owner-home-label {
+  color: #ffffff !important;
+}
+
+/* スマホで「管理メニュー」が黒くなる対策 */
+.owner-home-hero h1 {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  text-shadow: none;
+}
