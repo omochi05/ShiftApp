@@ -15,18 +15,6 @@ router = APIRouter(
 )
 
 
-def is_maintenance_user(user: User):
-    return user.email == "9999"
-
-
-def is_owner_or_maintenance(user: User):
-    return user.role == "owner" or is_maintenance_user(user)
-
-
-def is_manager(user: User):
-    return user.role == "manager"
-
-
 def serialize_shift(shift: Shift, user: User | None = None):
     return {
         "id": shift.id,
@@ -55,22 +43,6 @@ def get_target_user_or_404(db: Session, user_id: int):
     return target_user
 
 
-def check_manager_can_manage_target_user(current_user: User, target_user: User):
-    """
-    管理者は従業員のシフトだけ操作できる。
-    管理者・オーナーのシフトは操作不可。
-    """
-
-    if is_owner_or_maintenance(current_user):
-        return
-
-    if is_manager(current_user) and target_user.role in ["manager", "owner"]:
-        raise HTTPException(
-            status_code=403,
-            detail="管理者は管理者・オーナーのシフトを操作できません",
-        )
-
-
 @router.get("/")
 def get_shifts(
     db: Session = Depends(get_db),
@@ -79,8 +51,8 @@ def get_shifts(
     """
     シフト一覧取得。
 
-    従業員画面でもシフト表を表示するため、
     ログイン済みユーザーなら閲覧可能。
+    従業員画面でも全体シフト表を表示できるようにする。
     """
 
     shifts = db.query(Shift).order_by(Shift.work_date, Shift.start_time).all()
@@ -180,16 +152,14 @@ def create_shift(
     """
     シフト作成。
 
-    owner / 9999:
+    owner / manager / 9999:
       全員のシフトを作成可能
 
-    manager:
-      employee のシフトだけ作成可能
+    employee:
+      作成不可
     """
 
     target_user = get_target_user_or_404(db, shift_data.user_id)
-
-    check_manager_can_manage_target_user(current_user, target_user)
 
     try:
         new_shift = Shift(
@@ -229,12 +199,11 @@ def update_shift(
     """
     シフト更新。
 
-    owner / 9999:
+    owner / manager / 9999:
       全員のシフトを編集可能
 
-    manager:
-      employee のシフトだけ編集可能
-      manager / owner のシフトは編集不可
+    employee:
+      編集不可
     """
 
     shift = db.query(Shift).filter(Shift.id == shift_id).first()
@@ -245,13 +214,7 @@ def update_shift(
             detail="シフトが見つかりません",
         )
 
-    current_target_user = get_target_user_or_404(db, shift.user_id)
-
-    check_manager_can_manage_target_user(current_user, current_target_user)
-
-    new_target_user = get_target_user_or_404(db, shift_data.user_id)
-
-    check_manager_can_manage_target_user(current_user, new_target_user)
+    target_user = get_target_user_or_404(db, shift_data.user_id)
 
     try:
         shift.user_id = shift_data.user_id
@@ -263,7 +226,7 @@ def update_shift(
         db.commit()
         db.refresh(shift)
 
-        return serialize_shift(shift, new_target_user)
+        return serialize_shift(shift, target_user)
 
     except Exception as error:
         db.rollback()
@@ -284,12 +247,11 @@ def delete_shift(
     """
     シフト削除。
 
-    owner / 9999:
+    owner / manager / 9999:
       全員のシフトを削除可能
 
-    manager:
-      employee のシフトだけ削除可能
-      manager / owner のシフトは削除不可
+    employee:
+      削除不可
     """
 
     shift = db.query(Shift).filter(Shift.id == shift_id).first()
@@ -299,10 +261,6 @@ def delete_shift(
             status_code=404,
             detail="シフトが見つかりません",
         )
-
-    target_user = get_target_user_or_404(db, shift.user_id)
-
-    check_manager_can_manage_target_user(current_user, target_user)
 
     try:
         db.delete(shift)
