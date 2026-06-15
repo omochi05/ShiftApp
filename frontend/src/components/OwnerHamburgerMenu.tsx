@@ -37,7 +37,8 @@ export default function OwnerHamburgerMenu() {
     <>
       <header className="owner-hamburger-header">
         <Link to={homePath} className="owner-hamburger-logo">
-          SevenShift Manager
+          <span className="owner-hamburger-logo-mark">7</span>
+          <span className="owner-hamburger-logo-text">SevenShift Manager</span>
         </Link>
 
         <button
