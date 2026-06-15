@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from auth_deps import get_current_user, require_manager_or_owner
 from database import get_db
-from models import Shift, User
+from models import Notification, Shift, User
 from schemas import ShiftCreate, ShiftUpdate
 
 
@@ -52,7 +52,7 @@ def get_shifts(
     シフト一覧取得。
 
     ログイン済みユーザーなら閲覧可能。
-    従業員画面でも全体シフト表を表示できるようにする。
+    従業員画面でも全体シフト表を表示できる。
     """
 
     shifts = db.query(Shift).order_by(Shift.work_date, Shift.start_time).all()
@@ -252,6 +252,9 @@ def delete_shift(
 
     employee:
       削除不可
+
+    notifications.related_shift_id が shifts.id を参照しているため、
+    先に紐づく通知を削除してからシフトを削除する。
     """
 
     shift = db.query(Shift).filter(Shift.id == shift_id).first()
@@ -263,6 +266,10 @@ def delete_shift(
         )
 
     try:
+        db.query(Notification).filter(
+            Notification.related_shift_id == shift_id
+        ).delete(synchronize_session=False)
+
         db.delete(shift)
         db.commit()
 
