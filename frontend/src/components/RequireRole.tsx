@@ -4,12 +4,20 @@ type RequireRoleProps = {
   allowedRoles: string[];
 };
 
+function getHomePath(role: string | null, employeeNumber: string | null) {
+  if (employeeNumber === "9999") return "/owner";
+  if (role === "owner") return "/owner";
+  if (role === "manager") return "/manager";
+  if (role === "employee") return "/employee";
+
+  return "/";
+}
+
 export default function RequireRole({ allowedRoles }: RequireRoleProps) {
   const accessToken = localStorage.getItem("accessToken");
   const loginRole = localStorage.getItem("loginRole");
-  const employeeNumber = localStorage.getItem("employeeNumber");
   const loginUserId = localStorage.getItem("loginUserId");
-
+  const employeeNumber = localStorage.getItem("employeeNumber");
   const loginPassed = sessionStorage.getItem("loginPassed");
 
   const isLoggedIn = Boolean(
@@ -17,33 +25,18 @@ export default function RequireRole({ allowedRoles }: RequireRoleProps) {
   );
 
   if (!isLoggedIn) {
-    localStorage.removeItem("accessToken");
-
-    localStorage.removeItem("loginUserId");
-    localStorage.removeItem("loginName");
-    localStorage.removeItem("loginRole");
-    localStorage.removeItem("employeeNumber");
-
-    localStorage.removeItem("ownerLogin");
-    localStorage.removeItem("ownerId");
-    localStorage.removeItem("ownerName");
-    localStorage.removeItem("ownerNumber");
-
-    sessionStorage.removeItem("loginPassed");
+    localStorage.clear();
+    sessionStorage.clear();
 
     return <Navigate to="/" replace />;
   }
 
-  // メンテナンス用 9999 は全画面OK
   if (employeeNumber === "9999") {
     return <Outlet />;
   }
 
   if (!loginRole || !allowedRoles.includes(loginRole)) {
-    localStorage.clear();
-    sessionStorage.clear();
-
-    return <Navigate to="/" replace />;
+    return <Navigate to={getHomePath(loginRole, employeeNumber)} replace />;
   }
 
   return <Outlet />;

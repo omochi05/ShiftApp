@@ -14,13 +14,41 @@ import OwnerSalesPage from "./pages/owner/OwnerSalesPage";
 import OwnerShiftTimelinePage from "./pages/owner/OwnerShiftTimelinePage";
 import OwnerShiftsPage from "./pages/owner/OwnerShiftsPage";
 
+function getHomePath() {
+  const role = localStorage.getItem("loginRole");
+  const employeeNumber = localStorage.getItem("employeeNumber");
+
+  if (employeeNumber === "9999") return "/owner";
+  if (role === "owner") return "/owner";
+  if (role === "manager") return "/manager";
+  if (role === "employee") return "/employee";
+
+  return "/";
+}
+
+function LoginRoute() {
+  const accessToken = localStorage.getItem("accessToken");
+  const loginRole = localStorage.getItem("loginRole");
+  const loginUserId = localStorage.getItem("loginUserId");
+  const loginPassed = sessionStorage.getItem("loginPassed");
+
+  const isLoggedIn = Boolean(
+    accessToken && loginRole && loginUserId && loginPassed === "true"
+  );
+
+  if (isLoggedIn) {
+    return <Navigate to={getHomePath()} replace />;
+  }
+
+  return <LoginPage />;
+}
+
 export default function App() {
   return (
     <HashRouter>
       <Routes>
-        <Route path="/" element={<LoginPage />} />
+        <Route path="/" element={<LoginRoute />} />
 
-        {/* 従業員専用 */}
         <Route element={<RequireRole allowedRoles={["employee"]} />}>
           <Route path="/employee" element={<EmployeeDashboard />} />
           <Route
@@ -29,7 +57,6 @@ export default function App() {
           />
         </Route>
 
-        {/* 管理者専用 */}
         <Route element={<RequireRole allowedRoles={["manager"]} />}>
           <Route path="/manager" element={<ManagerDashboard />} />
           <Route path="/manager/shifts" element={<OwnerShiftsPage />} />
@@ -42,14 +69,12 @@ export default function App() {
           />
         </Route>
 
-        {/* オーナー専用 */}
         <Route element={<RequireRole allowedRoles={["owner"]} />}>
           <Route path="/owner" element={<OwnerDashboardHome />} />
           <Route
             path="/owner/ownerdashboard"
             element={<OwnerDashboardHome />}
           />
-
           <Route path="/owner/shifts" element={<OwnerShiftsPage />} />
           <Route path="/owner/timeline" element={<OwnerShiftTimelinePage />} />
           <Route path="/owner/sales" element={<OwnerSalesPage />} />
@@ -61,7 +86,6 @@ export default function App() {
           />
         </Route>
 
-        {/* 旧URL対策 */}
         <Route
           element={
             <RequireRole allowedRoles={["owner", "manager", "employee"]} />
