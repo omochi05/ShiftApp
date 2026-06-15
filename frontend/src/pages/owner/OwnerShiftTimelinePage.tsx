@@ -248,7 +248,7 @@ export default function OwnerShiftTimelinePage() {
     return new Set(weeklyShifts.map((shift) => shift.user_id)).size;
   }, [weeklyShifts]);
 
-  const hasDbTemplate = templates.length > 0;
+  const hasTemplate = templates.length > 0;
 
   const fetchUsers = async () => {
     const res = await api.get<User[]>("/users/");
@@ -265,7 +265,7 @@ export default function OwnerShiftTimelinePage() {
     setTemplates(res.data);
 
     if (res.data.length > 0) {
-      setSelectedTemplateId("db-template");
+      setSelectedTemplateId("template");
     } else {
       setSelectedTemplateId("");
     }
@@ -320,7 +320,7 @@ export default function OwnerShiftTimelinePage() {
       templateName.trim() || `シフトテンプレート ${weekStart}〜${weekEnd}`;
 
     const ok = window.confirm(
-      `${weekStart}〜${weekEnd} のシフトを「${displayName}」としてDBに保存しますか？\n既存のDBテンプレートは上書きされます。`
+      `${weekStart}〜${weekEnd} のシフトを「${displayName}」としてテンプレート保存しますか？\n既存のテンプレートは上書きされます。`
     );
 
     if (!ok) return;
@@ -335,7 +335,7 @@ export default function OwnerShiftTimelinePage() {
       });
 
       setTemplates(res.data);
-      setSelectedTemplateId(res.data.length > 0 ? "db-template" : "");
+      setSelectedTemplateId(res.data.length > 0 ? "template" : "");
       setTemplateName("");
 
       setMessage("この週をテンプレートとして保存しました");
@@ -355,13 +355,13 @@ export default function OwnerShiftTimelinePage() {
       return;
     }
 
-    if (!selectedTemplateId || !hasDbTemplate) {
+    if (!selectedTemplateId || !hasTemplate) {
       setMessage("反映するテンプレートを選択してください");
       return;
     }
 
     const ok = window.confirm(
-      `DBテンプレートを ${weekStart}〜${weekEnd} に反映しますか？\n既に同じシフトがある場合はスキップされます。`
+      `テンプレートを ${weekStart}〜${weekEnd} に反映しますか？\n既に同じシフトがある場合はスキップされます。`
     );
 
     if (!ok) return;
@@ -394,7 +394,7 @@ export default function OwnerShiftTimelinePage() {
       return;
     }
 
-    const ok = window.confirm("保存中のDBテンプレートを削除しますか？");
+    const ok = window.confirm("保存中のテンプレートを削除しますか？");
 
     if (!ok) return;
 
@@ -492,9 +492,7 @@ export default function OwnerShiftTimelinePage() {
               >
                 <option value="">保存したテンプレートを選択</option>
 
-                {hasDbTemplate && (
-                  <option value="db-template">DBテンプレート</option>
-                )}
+                {hasTemplate && <option value="template">テンプレート</option>}
               </select>
             </label>
 
