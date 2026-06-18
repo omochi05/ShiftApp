@@ -147,8 +147,7 @@ export default function PasswordChangePage() {
 
   return (
     <main className="password-change-page">
-      {isOwnerOrManager && <OwnerHamburgerMenu />}
-
+      <OwnerHamburgerMenu />
       <section className="password-change-card">
         <div className="password-change-header">
           <p>SECURITY</p>
