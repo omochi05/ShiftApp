@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { api } from "../../api/client";
 import "./OwnerSalesPage.css";
+import OwnerHamburgerMenu from "../../components/OwnerHamburgerMenu";
 
 type Sale = {
   id: number;
@@ -507,7 +508,8 @@ export default function OwnerSalesPage() {
 
   return (
     <div className="owner-sales-page">
-      <section className="owner-sales-hero">
+      <OwnerHamburgerMenu />
+      <section className="owner-sales-hero">       
         <div>
           <p className="owner-sales-label">Sales Analysis</p>
           <h2>売上管理</h2>
